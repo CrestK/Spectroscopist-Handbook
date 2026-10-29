@@ -5,6 +5,8 @@ moved into the browser so they are easy to use. It lists each page in two column
 short description. Every page is kept in this repository as a copy, in its own folder, so the handbook is one site on
 one domain. The originals stay in their own repositories and on their own sites.
 
+**Live page:** https://handbook.koemel.net/
+
 **Pages:**
 
 | folder | page | copied from | standalone site |
@@ -53,14 +55,16 @@ node tests/validate.mjs
 
 Open `index.html` in a browser. The home page needs no server, no build step, no script and no network, and so do the
 copies (they also open straight from disk; the links go to `<folder>/index.html` for that reason). To publish it, serve the
-repository root from any static host, for example GitHub Pages with "Deploy from a branch" set to the repository root;
-the pages are then at `…/franck-condon/index.html` and so on.
+repository root from any static host. Here it is GitHub Pages, "Deploy from a branch" with `main` and the repository
+root, on the domain in `CNAME`; the pages are then at https://handbook.koemel.net/franck-condon/index.html and so on.
+The empty `.nojekyll` file tells Pages to serve the files as they are instead of running them through Jekyll.
 
 ## Files
 
 | path | what |
 |---|---|
 | `index.html` | the home page: markup and styles, no script |
+| `CNAME`, `.nojekyll` | the GitHub Pages domain, and "serve as is, no Jekyll" |
 | `previews/` | the 256 × 256 WebP previews, shown at 128 px (96 px on a phone) |
 | `franck-condon/`, `focal-overlap/`, `overlap-game/`, `screensaver/`, `solvent-subtraction/` | the copied pages |
 | `tests/validate.mjs` | checks the home page, the previews, the copies and every text file in the repository |
