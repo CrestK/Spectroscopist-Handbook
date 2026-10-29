@@ -112,14 +112,32 @@ site.</p>
   </div>
 </section>
 
+<section id="tools">
+  <h2>Tools</h2>
+  <div class="hub">
+    <div class="entry" id="exam-scan">
+      <a class="thumb" href="exam-scan/index.html" tabindex="-1" aria-hidden="true"><img src="previews/exam-scan.webp" width="128" height="128" alt=""></a>
+      <div>
+        <h3><a href="exam-scan/index.html">Exam scan check</a></h3>
+        <p>Compares every page of a scanned stack of exams with a blank copy and lists missing, duplicated, out-of-order,
+        upside-down and blank pages. Then turn the pages that need it and save a corrected PDF, without recompressing
+        the scan. The PDFs stay in the browser: the page is locked so it cannot send them anywhere.</p>
+        <p class="note">PDF reading with pdf.js, bundled with the page.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="notes">
   <h2>Notes</h2>
   <ul class="notes">
     <li>The calculations run in your browser. Nothing you type or load is uploaded.</li>
     <li>Each page is a static folder in this repository (<code>franck-condon/</code>, <code>focal-overlap/</code>,
-    <code>overlap-game/</code>, <code>screensaver/</code>, <code>solvent-subtraction/</code>, <code>lorentz-explorer/</code>): open its <code>index.html</code> and it runs with
-    no server or build step. The calculation pages list their model and equations at the bottom.</li>
-    <li>The Franck–Condon, solvent subtraction and Lorentz oscillator pages come with their tests
+    <code>overlap-game/</code>, <code>screensaver/</code>, <code>solvent-subtraction/</code>, <code>lorentz-explorer/</code>,
+    <code>exam-scan/</code>): open its <code>index.html</code> and it runs with no build step. The exam scan page has to
+    be served, by this site or any local web server, because browsers do not load its PDF reader straight from disk.
+    The calculation pages list their model and equations at the bottom.</li>
+    <li>The Franck–Condon, solvent subtraction, Lorentz oscillator and exam scan pages come with their tests
     (<code>node franck-condon/tests/validate.mjs</code>), which check the calculation against closed forms,
     numerical integration and published values; their READMEs give the numbers.</li>
   </ul>

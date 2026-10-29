@@ -14,9 +14,9 @@ const quick = process.argv.includes("--quick");
 // public repositories any page may link to
 const PUBLIC_REPOS = ["Franck-Condon-Factor", "Gaussian-Intensity-Weighted-Focal-Overlap-Public", "Beam-Overlap-Game-Public",
   "Solvent-subtraction", "Spectroscopist-Handbook"];
-// the copied pages, and the ones that bring their own tests
-const COPIES = ["franck-condon", "focal-overlap", "overlap-game", "screensaver", "solvent-subtraction", "lorentz-explorer"];
-const COPY_TESTS = ["franck-condon/tests/validate.mjs", "solvent-subtraction/tests/validate.mjs", "lorentz-explorer/tests/validate.mjs"];
+// the page folders (copies of other repositories, and pages kept only here), and the ones that bring their own tests
+const COPIES = ["franck-condon", "focal-overlap", "overlap-game", "screensaver", "solvent-subtraction", "lorentz-explorer", "exam-scan"];
+const COPY_TESTS = ["franck-condon/tests/validate.mjs", "solvent-subtraction/tests/validate.mjs", "lorentz-explorer/tests/validate.mjs", "exam-scan/tests/validate.mjs"];
 const PREVIEW_PX = 256, PREVIEW_MAX = 20 * 1024, PREVIEWS_TOTAL_MAX = 60 * 1024, PAGE_MAX = 20 * 1024;
 
 let fails = 0;
@@ -97,7 +97,7 @@ function webpChunks(b) {
     `${ext.length} external, ${scripts} scripts, ${styles} stylesheets, ${(html.length / 1024).toFixed(1)} KB`);
 }
 
-// 6. every copy has its index.html, every relative script, stylesheet, font and image it names exists, and no CNAME
+// 6. every page folder has its index.html, every relative script, module, stylesheet, font and image it names exists, and no CNAME
 {
   const bad = [];
   let refs = 0;
@@ -106,7 +106,7 @@ function webpChunks(b) {
     if (!fs.existsSync(page)) { bad.push(`${c}: no index.html`); continue; }
     if (fs.existsSync(path.join(dir, "CNAME"))) bad.push(`${c}: has a CNAME`);
     const s = fs.readFileSync(page, "utf8");
-    const named = [...s.matchAll(/<(?:script|link|img)\b[^>]*\s(?:src|href)="([^"#]+)"/g)].map(m => [page, m[1]]);
+    const named = [...s.matchAll(/<(?:script|link|img)\b[^>]*\s(?:src|href)="([^"#]+)"/g), ...s.matchAll(/\bimport\s(?:[^;"']*?\sfrom\s*)?["'](\.{1,2}\/[^"']+)["']/g)].map(m => [page, m[1]]);
     const urls = s => [...s.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map(m => m[1]).filter(u => !u.startsWith("data:") && !isRemote(u));
     for (const css of files.filter(f => f.startsWith(dir + path.sep) && f.endsWith(".css"))) {
       const s = fs.readFileSync(css, "utf8");
@@ -124,14 +124,15 @@ function webpChunks(b) {
       if (!fs.existsSync(path.join(path.dirname(from), u))) bad.push(`${rel(from)}: ${u} missing`);
     }
   }
-  check("6 copies: index.html and every relative script, stylesheet, font and image present, no CNAME", bad.length === 0,
-    `${COPIES.length} copies, ${refs} local references${bad.length ? "; " + bad.join("; ") : ""}`);
+  check("6 page folders: index.html and every relative script, module, stylesheet, font and image present, no CNAME", bad.length === 0,
+    `${COPIES.length} folders, ${refs} local references${bad.length ? "; " + bad.join("; ") : ""}`);
 }
 
 // 7. nothing private in any text file: no email addresses, local paths, file URLs, chat or session links, and GitHub
-//    links only to the public repositories above
+//    links only to the public repositories above. Third-party files in vendor/ folders are left out: they are the
+//    published releases (exam-scan/tests checks pdf.js by its hashes), and minified code holds URL schemes and paths.
 {
-  const text = files.filter(f => /\.(html|md|mjs|js|css|txt|json)$/.test(f) || !path.extname(f));
+  const text = files.filter(f => (/\.(html|md|mjs|js|css|txt|json)$/.test(f) || !path.extname(f)) && !rel(f).split("/").includes("vendor"));
   const rules = [["email address", /[\w.+-]+@[\w-]+\.[a-z]{2,}/i], ["local path", /(^|[\s"'(])(\/home|\/root|\/tmp|\/Users|[A-Z]:\\)[\\/]/m],
     ["file URL", /file:\/\//], ["chat or session link", /claude\.ai|session_[A-Za-z0-9]{6,}/]];
   const hits = [];

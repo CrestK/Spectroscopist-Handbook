@@ -1,0 +1,1402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Exam Scan Check</title>
+<meta name="description" content="Check a scanned stack of exams for missing, duplicated, out-of-order, upside-down and blank pages, and turn pages in the PDF. Runs in the browser; files are not uploaded.">
+<style>
+  /* Plain page: white, black text, system font, native controls. Layout only. */
+  :root { color-scheme: light; }
+  body { margin: 0; background: #fff; color: #000; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; padding-block: 16px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 8px; }
+  h3 { font-size: 15px; margin: 14px 0 4px; }
+  p { margin: 0 0 8px; }
+  section { border-top: 1px solid #bbb; padding-block: 16px; }
+  .caption { color: #333; font-size: 14px; max-width: 90ch; margin-top: 8px; }
+  .note { color: #555; font-size: 13px; }
+  .error { color: #b00000; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-block: 8px; }
+  label.inline { display: inline-flex; gap: 6px; align-items: center; }
+  input.short { width: 5em; }
+  input.spec { width: 16em; max-width: 100%; }
+  input[aria-invalid=true] { outline: 2px solid #b00000; }
+  .num { font-variant-numeric: tabular-nums; }
+  .split { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 4px 7px; text-align: right; white-space: nowrap; }
+  th { background: #f2f2f2; font-weight: 600; }
+  td.l, th.l { text-align: left; white-space: normal; }
+  tr.bad td { background: #fbe9e9; }
+  ul.issues { margin: 4px 0 8px; padding-left: 1.2em; font-variant-numeric: tabular-nums; }
+  ul.issues li { margin-block: 2px; }
+  .summary { font-weight: 600; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; }
+  .eq { font-family: "Times New Roman", Times, serif; font-size: 17px; overflow-x: auto; margin: 4px 0 8px; padding-left: 1em; }
+  ol.eqs { padding-left: 1.6em; margin: 0; max-width: 100ch; }
+  ol.eqs > li { margin-block: 14px; }
+  ol.eqs > li > p:first-child { font-weight: 600; margin-bottom: 2px; }
+  ul.plain { margin: 0; padding-left: 1.2em; max-width: 100ch; }
+  ul.plain > li { margin-block: 4px; }
+  .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px 8px; margin-top: 12px; }
+  .thumb { margin: 0; text-align: center; font-size: 12px; cursor: pointer; user-select: none; -webkit-user-select: none; }
+  .thumb .box { width: 102px; height: 102px; margin: 0 auto 3px; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; box-sizing: border-box; background: #fff; }
+  .thumb canvas { display: block; transition: transform 0.15s; }
+  .thumb.flag .box { border: 2px solid #d40000; }
+  .thumb.sel .box { outline: 3px solid #1f5fbf; outline-offset: 1px; }
+  .thumb:target .box { box-shadow: 0 0 0 5px #f2c94c; }
+  .thumb .turn { color: #1f5fbf; font-weight: 600; }
+  .thumb .why { color: #b00000; }
+  @media (max-width: 920px) { .split { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) { th, td { padding: 3px 4px; } .thumbs { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); } }
+  :focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+<h1>Exam scan check</h1>
+<p>Load a scanned stack of exams as a PDF and, if you have one, a blank copy of the exam. The page compares every scanned
+page with the blank one and lists missing, duplicated, out-of-order, upside-down and blank pages. Then turn the pages that
+need it and save a corrected PDF. Everything happens in this browser: the files are not uploaded, and the page is locked
+so it cannot send them anywhere. Methods are at the bottom.</p>
+<noscript><p class="error">This page needs JavaScript.</p></noscript>
+
+<section id="files">
+  <h2>Files</h2>
+  <div class="row">
+    <label class="inline" for="scanFile">Scanned stack (PDF) <input type="file" id="scanFile" accept="application/pdf,.pdf"></label>
+  </div>
+  <p id="scanInfo" class="note">No file loaded.</p>
+  <div class="row" id="pwRow" hidden>
+    <label class="inline" for="pw"><span id="pwLabel">This PDF needs a password:</span> <input type="password" id="pw" autocomplete="off"></label>
+    <button type="button" id="pwOk">Open</button>
+  </div>
+  <div class="row">
+    <span>Compare with</span>
+    <label class="inline"><input type="radio" name="mode" value="tmpl" id="modeTmpl" checked> a blank copy of the exam</label>
+    <input type="file" id="tmplFile" accept="application/pdf,.pdf" aria-label="blank copy of the exam (PDF)">
+  </div>
+  <div class="row">
+    <span aria-hidden="true" style="visibility: hidden">Compare with</span>
+    <label class="inline"><input type="radio" name="mode" value="first" id="modeFirst"> the first</label>
+    <input type="number" id="nFirst" class="short" min="1" step="1" value="8" autocomplete="off" aria-label="pages per exam">
+    <span>scanned pages (one exam; they must be complete and in order)</span>
+  </div>
+  <p id="tmplInfo" class="note">No blank exam loaded.</p>
+  <div class="row">
+    <label class="inline" for="dpi">Resolution for the comparison <input type="number" id="dpi" class="short" min="10" max="150" step="1" value="30" autocomplete="off"> dpi</label>
+    <span class="note">30 dpi is the default of check_scan.py; higher is slower and rarely needed.</span>
+  </div>
+  <div class="row">
+    <button type="button" id="check" disabled>Check the stack</button>
+    <button type="button" id="stop" hidden>Stop</button>
+    <span id="progress" class="note num" role="status"></span>
+  </div>
+  <p id="fileErr" class="error" role="alert" hidden></p>
+</section>
+
+<section id="result">
+  <h2>Result</h2>
+  <p id="noResult" class="note">Load a scan and press "Check the stack".</p>
+  <div id="resultBody" hidden>
+    <p id="tmplLine" class="note"></p>
+    <p id="summary" class="summary"></p>
+    <div class="split">
+      <div>
+        <h3 id="issuesHead"></h3>
+        <ul id="issues" class="issues"></ul>
+        <p class="caption">Click a scan page number to find it among the pages below. "CHECK" means the page looks more like
+        another page of the exam than the one its place in the stack calls for, or that the match is close: look at it.
+        Upside-down and sideways pages can be turned below.</p>
+      </div>
+      <div>
+        <h3>Exam → scan pages</h3>
+        <div class="tablewrap"><table id="exams"></table></div>
+      </div>
+    </div>
+    <details>
+      <summary>Page-by-page table</summary>
+      <div class="tablewrap"><table id="rows"></table></div>
+    </details>
+    <div class="row">
+      <button type="button" id="dlTxt">Download the report (.txt)</button>
+      <button type="button" id="dlCsv">Download the page table (.csv)</button>
+    </div>
+    <p class="note">The report is the text check_scan.py prints; the table has its --csv columns (scan_page, exam, exam_page, similarity, note).</p>
+  </div>
+</section>
+
+<section id="pagesSec">
+  <h2>Pages and rotation</h2>
+  <p id="noPages" class="note">The pages of the scan appear here once it is loaded.</p>
+  <div id="pagesBody" hidden>
+    <div class="row">
+      <label class="inline" for="spec">Select pages <input type="text" id="spec" class="spec" placeholder="e.g. 1,3-5,9-, even, last" autocomplete="off" spellcheck="false"></label>
+      <button type="button" id="selSpec">Select</button>
+      <button type="button" id="selAll">All</button>
+      <button type="button" id="selNone">None</button>
+      <button type="button" id="selFlag" disabled>Pages the check flagged</button>
+    </div>
+    <p id="specErr" class="error" role="alert" hidden></p>
+    <div class="row">
+      <span>Turn the selected pages</span>
+      <button type="button" data-turn="270">90° counter-clockwise</button>
+      <button type="button" data-turn="90">90° clockwise</button>
+      <button type="button" data-turn="180">180°</button>
+      <button type="button" id="turnReset">Back to as loaded</button>
+    </div>
+    <div class="row">
+      <button type="button" id="straighten" disabled>Turn every upside-down and sideways page upright</button>
+      <span class="note">Uses the orientation the check found for each page.</span>
+    </div>
+    <p id="pagesStatus" class="note num"></p>
+    <div class="row">
+      <button type="button" id="save" disabled>Save the PDF with these turns</button>
+      <span id="saveNote" class="note"></span>
+    </div>
+    <p id="saveErr" class="error" role="alert" hidden></p>
+    <p class="note">Click a page to select it, Shift-click to select a range. Turns count from the file as loaded. Saving sets
+    each page's rotation entry and appends it to the PDF, so the scanned images are not touched or recompressed. The new
+    file is named <i>name</i>_rotated.pdf; the original is not changed.</p>
+    <div id="thumbs" class="thumbs"></div>
+    <details>
+      <summary>Current rotation and size of every page</summary>
+      <div class="tablewrap"><table id="listTable"></table></div>
+      <p class="note">A page that looks sideways can still report 0°: some scanners turn the image itself and leave the rotation entry alone.</p>
+    </details>
+  </div>
+</section>
+
+<section id="methods">
+  <h2>Methods</h2>
+  <p>The check is a port of check_scan.py and gives the same report: the thumbnails, the blur and the paper level are
+  computed exactly as with Pillow and numpy, and on a test stack of 61 pages every similarity agrees with the Python
+  script to 7×10⁻⁶ and the page sequence is identical. The PDF pages are drawn with pdf.js instead of MuPDF, which can
+  shift the similarities slightly.</p>
+  <ol class="eqs">
+    <li>
+      <p>Thumbnails and ink map</p>
+      <div class="eq">page drawn at 30 dpi in grayscale → landscape turned 90° counter-clockwise → 170 × 220 pixels (Lanczos)</div>
+      <div class="eq"><i>a</i> = gray / 255,&emsp; <i>p</i> = 90th percentile of <i>a</i> (the paper),&emsp; ink = clip((<i>p</i> − <i>a</i>) / <i>p</i>, 0, 1),&emsp; then a Gaussian blur with σ = 1.5 pixels</div>
+      <p class="note">Dividing by the paper level makes a dark and a light scanner give the same ink map. The blur makes the comparison tolerant to small misalignments and to thin pen strokes.</p>
+    </li>
+    <li>
+      <p>Similarity of a scanned page <i>a</i> to a template page <i>b</i></p>
+      <div class="eq"><i>s</i> = max over shifts (Δ<i>x</i>, Δ<i>y</i>) ∈ {−4, −2, 0, 2, 4}² of Σ (<i>a</i><sub>Δ</sub> − ā<sub>Δ</sub>)(<i>b</i> − b̄) / (‖<i>a</i><sub>Δ</sub> − ā<sub>Δ</sub>‖ ‖<i>b</i> − b̄‖)</div>
+      <p class="note">A normalised correlation over the central 162 × 212 pixels, so 1 means identical layouts. Handwriting lowers it a little for every template page alike.</p>
+    </li>
+    <li>
+      <p>Upside-down pages</p>
+      <div class="eq">turned 180° if max<sub><i>k</i></sub> <i>s</i>(rotated <i>a</i>, <i>b</i><sub><i>k</i></sub>) &gt; max<sub><i>k</i></sub> <i>s</i>(<i>a</i>, <i>b</i><sub><i>k</i></sub>) + 0.05</div>
+      <p class="note">A page that was drawn landscape and then still matches better upside down was sideways the other way; the page section turns it 90° clockwise.</p>
+    </li>
+    <li>
+      <p>Blank pages</p>
+      <div class="eq">blank if ink fraction (pixels with ink &gt; 0.2) &lt; max(0.0005, 0.15 × median of the template pages)</div>
+      <p class="note">Empty backs from duplex scanning are set aside and not matched, unless the exam itself has a blank page.</p>
+    </li>
+    <li>
+      <p>The most likely page sequence</p>
+      <div class="eq">cost = Σ<sub><i>i</i></sub> 3 (max<sub><i>k</i></sub> <i>s</i><sub><i>ik</i></sub> − <i>s</i><sub><i>i</i>,<i>g<sub>i</sub></i> mod <i>n</i></sub>) / max(max<sub><i>k</i></sub> <i>s</i><sub><i>ik</i></sub> − median<sub><i>k</i></sub> <i>s</i><sub><i>ik</i></sub>, 0.02) + 4 × (skipped positions) + 4 × (repeats)</div>
+      <p class="note">The stack should read 1, 2, …, <i>n</i>, 1, 2, …; each scanned page <i>i</i> gets a global position <i>g<sub>i</sub></i> = exam × <i>n</i> + page that never goes back,
+      chosen by dynamic programming over the whole stack, so one ambiguous page cannot derail the rest. At most 2<i>n</i> positions are skipped at once, and the stack should end on the last page of an exam.</p>
+    </li>
+    <li>
+      <p>Second pass</p>
+      <p class="note">Each template page is rebuilt as the pixel median of every scanned copy assigned to it (when there are 3 or more). Handwriting differs from student to student and cancels out; the printed page remains, with this scanner's look, and all pages are matched again.</p>
+    </li>
+    <li>
+      <p>Report</p>
+      <p class="note">A jump in position is a missing page, a repeated position a duplicate. A page whose best-matching template page is not the one its position calls for is marked "looks most like page …"; one whose best match leads the second best by less than 0.03 is "low confidence". With "the first <i>n</i> scanned pages" in place of a blank exam those pages are the template, so they must be one complete exam.</p>
+    </li>
+    <li>
+      <p>Turning pages</p>
+      <div class="eq">/Rotate<sub>new</sub> = (/Rotate<sub>current</sub> + turn) mod 360,&emsp; turn clockwise in degrees</div>
+      <p class="note">As rotate_pdf.py: rotation is a metadata change, so page content is never re-rendered. The new page entries are written as an incremental update after the original bytes, with their own cross-reference section, which keeps encrypted PDFs encrypted. Before the file is offered, pdf.js reads it back and every page's rotation is checked.</p>
+    </li>
+  </ol>
+</section>
+
+<section id="notes">
+  <h2>Files and limits</h2>
+  <ul class="plain">
+    <li>Privacy: the PDFs are read with the browser's file picker and stay in this tab's memory. The page's
+    Content-Security-Policy allows connections only to this site's own files (pdf.js and its decoders), so the browser
+    itself blocks any attempt to send data elsewhere. Closing the tab discards everything.</li>
+    <li>PDF reading uses pdf.js 6.4.299 (Mozilla, Apache 2.0), bundled with the page, with its JBIG2, CCITT and JPEG 2000 decoders for scanner images.</li>
+    <li>Password-protected PDFs open after you type the password. Turning pages keeps the encryption; it does not work when an
+    encrypted PDF keeps its pages in compressed object streams (the page says so).</li>
+    <li>Large stacks take a while: every page is drawn once. The comparison runs in parallel in the background and can be stopped.</li>
+    <li>To use the page offline, save its folder and serve it with any local web server (for example python -m http.server); browsers do not run its modules straight from disk.</li>
+  </ul>
+</section>
+</main>
+
+<script id="core">
+"use strict";
+/* Numerical core: pure functions, no DOM. tests/validate.mjs runs this script in Node; the page also runs it in Web Workers. */
+/* ---------- page check (a port of check_scan.py) ---------- */
+// Constants as in check_scan.py. Images are { w, h, data: Uint8Array } in 8-bit grayscale, row by row.
+const THUMB_W = 170, THUMB_H = 220, MAX_SHIFT = 4, BLANK_INK = 0.0005;
+const F32 = Math.fround;
+
+// canvas RGBA -> grayscale with Pillow's "L" weights (ITU-R 601-2 luma)
+function rgbaToGray(rgba, w, h) {
+  const g = new Uint8Array(w * h);
+  for (let i = 0, j = 0; i < g.length; i++, j += 4) g[i] = (rgba[j] * 19595 + rgba[j + 1] * 38470 + rgba[j + 2] * 7471 + 0x8000) >>> 16;
+  return { w, h, data: g };
+}
+// Pillow Image.rotate(90, expand=True): a quarter turn counter-clockwise
+function rot90ccw(img) {
+  const { w, h, data } = img, out = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) out[(w - 1 - x) * h + y] = data[y * w + x];
+  return { w: h, h: w, data: out };
+}
+// a page as check_scan.py's render_pages yields it: landscape renders turned to portrait
+const portrait = img => (img.w > img.h ? rot90ccw(img) : img);
+
+// Pillow's resize(..., LANCZOS) for 8-bit images, bit for bit (Resample.c: two passes, 22-bit fixed point)
+const sinc = x => (x === 0 ? 1 : Math.sin(x * Math.PI) / (x * Math.PI));
+const lanczos3 = x => (-3 <= x && x < 3 ? sinc(x) * sinc(x / 3) : 0);
+function resampleCoeffs(inSize, outSize) {
+  const scale = inSize / outSize, filterscale = Math.max(scale, 1), support = 3 * filterscale, ss = 1 / filterscale;
+  const ksize = Math.ceil(support) * 2 + 1, kk = new Int32Array(outSize * ksize), bounds = new Int32Array(outSize * 2);
+  for (let xx = 0; xx < outSize; xx++) {
+    const center = (xx + 0.5) * scale;
+    const xmin = Math.max(0, Math.trunc(center - support + 0.5)), xmax = Math.min(inSize, Math.trunc(center + support + 0.5)) - xmin;
+    const k = new Float64Array(xmax);
+    let ww = 0;
+    for (let x = 0; x < xmax; x++) { k[x] = lanczos3((x + xmin - center + 0.5) * ss); ww += k[x]; }
+    for (let x = 0; x < xmax; x++) {
+      const v = ww !== 0 ? k[x] / ww : k[x];
+      kk[xx * ksize + x] = v < 0 ? Math.trunc(-0.5 + v * 4194304) : Math.trunc(0.5 + v * 4194304);
+    }
+    bounds[2 * xx] = xmin; bounds[2 * xx + 1] = xmax;
+  }
+  return { ksize, kk, bounds };
+}
+const clip8 = s => (s >= 1073741824 ? 255 : s <= 0 ? 0 : Math.floor(s / 4194304));
+function resizeLanczos(img, W, H) {
+  const { w, h, data } = img, cx = resampleCoeffs(w, W), cy = resampleCoeffs(h, H);
+  let src = data, sw = w, yOff = 0;
+  if (W !== w) {
+    const y0 = cy.bounds[0], th = cy.bounds[2 * H - 2] + cy.bounds[2 * H - 1] - y0, tmp = new Uint8Array(W * th);
+    for (let yy = 0; yy < th; yy++) {
+      const row = (yy + y0) * w;
+      for (let xx = 0; xx < W; xx++) {
+        const xmin = cx.bounds[2 * xx], xmax = cx.bounds[2 * xx + 1], kb = xx * cx.ksize;
+        let s = 2097152;
+        for (let x = 0; x < xmax; x++) s += data[row + xmin + x] * cx.kk[kb + x];
+        tmp[yy * W + xx] = clip8(s);
+      }
+    }
+    src = tmp; sw = W; yOff = y0;
+  }
+  if (H === h && W === w) return { w, h, data: data.slice() };
+  if (H === h) return { w: sw, h, data: src };
+  const out = new Uint8Array(sw * H);
+  for (let yy = 0; yy < H; yy++) {
+    const ymin = cy.bounds[2 * yy] - yOff, ymax = cy.bounds[2 * yy + 1], kb = yy * cy.ksize;
+    for (let xx = 0; xx < sw; xx++) {
+      let s = 2097152;
+      for (let y = 0; y < ymax; y++) s += src[(ymin + y) * sw + xx] * cy.kk[kb + y];
+      out[yy * sw + xx] = clip8(s);
+    }
+  }
+  return { w: sw, h: H, data: out };
+}
+
+// Pillow's ImageFilter.GaussianBlur(radius): three passes of a box blur with a fractional radius (BoxBlur.c)
+function boxRadius(radius, passes) {
+  const sigma2 = F32(F32(radius * radius) / passes);
+  const L = F32(Math.sqrt(12 * sigma2 + 1)), l = F32(Math.floor((L - 1) / 2));
+  let a = F32(F32(2 * l + 1) * F32(F32(l * F32(l + 1)) - F32(3 * sigma2)));
+  a = F32(a / F32(6 * F32(sigma2 - F32(F32(l + 1) * F32(l + 1)))));
+  return F32(l + a);
+}
+function boxBlurRows(src, w, h, rf) {
+  const r = Math.trunc(rf), ww = Math.trunc(F32(16777216 / F32(F32(rf * 2) + 1))), fw = Math.trunc((16777216 - (r * 2 + 1) * ww) / 2);
+  const edgeA = Math.min(r + 1, w), edgeB = Math.max(w - r - 1, 0), last = w - 1, out = new Uint8Array(w * h);
+  const save = bulk => Math.floor((bulk + 8388608) / 16777216);
+  for (let y = 0; y < h; y++) {
+    const o = y * w;
+    if (edgeA > edgeB) { // narrower than the box: plain clamped sum (never reached for 170 × 220 thumbnails)
+      for (let x = 0; x < w; x++) {
+        let acc = 0;
+        for (let k = -r; k <= r; k++) acc += src[o + Math.min(last, Math.max(0, x + k))];
+        out[o + x] = save(acc * ww + (src[o + Math.max(0, x - r - 1)] + src[o + Math.min(last, x + r + 1)]) * fw);
+      }
+      continue;
+    }
+    let acc = src[o] * (r + 1);
+    for (let x = 0; x < edgeA - 1; x++) acc += src[o + x];
+    acc += src[o + last] * (r - edgeA + 1);
+    for (let x = 0; x < edgeA; x++) { acc += src[o + x + r] - src[o]; out[o + x] = save(acc * ww + (src[o] + src[o + x + r + 1]) * fw); }
+    for (let x = edgeA; x < edgeB; x++) { acc += src[o + x + r] - src[o + x - r - 1]; out[o + x] = save(acc * ww + (src[o + x - r - 1] + src[o + x + r + 1]) * fw); }
+    for (let x = edgeB; x <= last; x++) { acc += src[o + last] - src[o + x - r - 1]; out[o + x] = save(acc * ww + (src[o + x - r - 1] + src[o + last]) * fw); }
+  }
+  return out;
+}
+function transpose8(src, w, h) { const out = new Uint8Array(w * h); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) out[x * h + y] = src[y * w + x]; return out; }
+function gaussianBlur(img, radius) {
+  const rf = boxRadius(radius, 3), { w, h } = img;
+  let d = img.data;
+  for (let i = 0; i < 3; i++) d = boxBlurRows(d, w, h, rf);
+  d = transpose8(d, w, h);
+  for (let i = 0; i < 3; i++) d = boxBlurRows(d, h, w, rf);
+  return { w, h, data: transpose8(d, h, w) };
+}
+
+// to_feature(): thumbnail -> ink map normalised for scanner brightness, slightly blurred; float32 as in numpy
+function toFeature(img) {
+  const t = resizeLanczos(img, THUMB_W, THUMB_H), N = t.data.length, hist = new Uint32Array(256);
+  for (let i = 0; i < N; i++) hist[t.data[i]]++;
+  const at = k => { let c = 0; for (let v = 0; v < 256; v++) { c += hist[v]; if (c > k) return F32(v / 255); } return 1; };
+  // np.percentile(a, 90), linear interpolation between order statistics
+  const vi = 0.9 * (N - 1), lo = Math.floor(vi), g = vi - lo, a0 = at(lo), a1 = at(Math.min(N - 1, lo + 1)), d = F32(a1 - a0);
+  const paper = g < 0.5 ? F32(a0 + F32(d * F32(g))) : F32(a1 - F32(d * F32(1 - g)));
+  const den = paper > 1e-3 ? paper : F32(1e-3), lim = F32(0.2), u8 = new Uint8Array(N);
+  let inked = 0;
+  for (let i = 0; i < N; i++) {
+    let ink = F32(F32(paper - F32(t.data[i] / 255)) / den);
+    ink = ink < 0 ? 0 : ink > 1 ? 1 : ink;
+    if (ink > lim) inked++;
+    u8[i] = Math.trunc(F32(ink * 255));
+  }
+  const b = gaussianBlur({ w: THUMB_W, h: THUMB_H, data: u8 }, 1.5).data, f = new Float32Array(N);
+  for (let i = 0; i < N; i++) f[i] = b[i] / 255;
+  return { f, ink: inked / N };
+}
+const flip180 = f => f.slice().reverse();
+
+// correlation(a, b): best normalised correlation of a vs b over shifts of -4, -2, 0, 2, 4 pixels in x and y
+const CW = THUMB_W - 2 * MAX_SHIFT, CH = THUMB_H - 2 * MAX_SHIFT, CN = CW * CH, SHIFTS = [];
+for (let dy = -MAX_SHIFT; dy <= MAX_SHIFT; dy += 2) for (let dx = -MAX_SHIFT; dx <= MAX_SHIFT; dx += 2) SHIFTS.push((MAX_SHIFT + dy) * THUMB_W + MAX_SHIFT + dx);
+function prepTemplate(b) { // b[m:-m, m:-m] minus its mean, and its norm
+  const c = new Float64Array(CN);
+  let s = 0;
+  for (let r = 0; r < CH; r++) for (let x = 0; x < CW; x++) { const v = b[(r + MAX_SHIFT) * THUMB_W + x + MAX_SHIFT]; c[r * CW + x] = v; s += v; }
+  const mean = s / CN;
+  let n2 = 0;
+  for (let i = 0; i < CN; i++) { c[i] -= mean; n2 += c[i] * c[i]; }
+  return { c, norm: Math.sqrt(n2) + 1e-9 };
+}
+function prepPage(a) { // norm of every shifted window of a, minus its mean
+  const norms = new Float64Array(SHIFTS.length);
+  SHIFTS.forEach((o, k) => {
+    let s = 0, s2 = 0;
+    for (let r = 0; r < CH; r++) for (let x = 0, p = o + r * THUMB_W; x < CW; x++, p++) { const v = a[p]; s += v; s2 += v * v; }
+    norms[k] = Math.sqrt(Math.max(0, s2 - s * s / CN));
+  });
+  return { a, norms };
+}
+function correlation(P, T) {
+  let best = -1;
+  const { a, norms } = P, c = T.c;
+  for (let k = 0; k < SHIFTS.length; k++) {
+    let dot = 0;
+    for (let r = 0, q = 0; r < CH; r++) for (let x = 0, p = SHIFTS[k] + r * THUMB_W; x < CW; x++, p++, q++) dot += a[p] * c[q];
+    const v = dot / (norms[k] * T.norm + 1e-9);
+    if (v > best) best = v;
+  }
+  return best;
+}
+// every scanned page against every template page, upright and turned 180°; as match_all() in check_scan.py.
+// T holds templates from prepTemplate(); the page runs this in Web Workers, a share of the pages each.
+function matchPrepared(feats, T) {
+  const n = T.length, score = new Float64Array(feats.length * n), flipped = new Uint8Array(feats.length);
+  feats.forEach((f, r) => {
+    const P = prepPage(f), Q = prepPage(flip180(f));
+    const up = T.map(t => correlation(P, t)), down = T.map(t => correlation(Q, t));
+    flipped[r] = Math.max(...down) > Math.max(...up) + 0.05 ? 1 : 0;
+    score.set(flipped[r] ? down : up, r * n);
+  });
+  return { score, flipped };
+}
+const matchPages = (feats, tmpl) => matchPrepared(feats, tmpl.map(prepTemplate));
+
+function median(v) { const s = Array.from(v).sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
+// best_sequence(): the global position (exam × n + page) of every scanned page, by dynamic programming
+function bestSequence(score, m, n, gapPen = 4, dupPen = 4) {
+  const emit = new Float64Array(m * n);
+  for (let i = 0; i < m; i++) {
+    const row = score.subarray(i * n, i * n + n), mx = Math.max(...row), spread = Math.max(mx - median(row), 0.02);
+    for (let k = 0; k < n; k++) emit[i * n + k] = (mx - row[k]) / spread * 3.0;
+  }
+  const G = m + 3 * n, maxJump = 2 * n, INF = 1e18, back = new Int32Array(m * G);
+  let cost = new Float64Array(G), next = new Float64Array(G);
+  const arg = new Int32Array(G);
+  for (let g = 0; g < G; g++) { cost[g] = gapPen * g + emit[g % n]; back[g] = -1; }
+  for (let i = 1; i < m; i++) {
+    next.fill(INF); arg.fill(0);
+    for (let d = 0; d <= maxJump; d++) {
+      const t = d === 0 ? dupPen : gapPen * (d - 1);
+      for (let g = d; g < G; g++) { const c = cost[g - d] + t; if (c < next[g]) { next[g] = c; arg[g] = g - d; } }
+    }
+    for (let g = 0; g < G; g++) { next[g] += emit[i * n + g % n]; back[i * G + g] = arg[g]; }
+    [cost, next] = [next, cost];
+  }
+  let g = 0, best = Infinity;
+  for (let x = 0; x < G; x++) { const v = cost[x] + (n - 1 - x % n) * gapPen; if (v < best) { best = v; g = x; } }
+  const pos = new Int32Array(m);
+  for (let i = m - 1; i >= 0; i--) { pos[i] = g; g = back[i * G + g]; }
+  return pos;
+}
+
+// blank pages (e.g. empty backs from duplex scanning) are set aside, not matched
+function blankPages(scanInk, tmplInk) {
+  const level = Math.max(BLANK_INK, 0.15 * median(tmplInk)), tmplHasBlank = tmplInk.some(k => k < BLANK_INK);
+  return scanInk.map(k => k < level && !tmplHasBlank);
+}
+// pass 2 of check_scan.py: each template page rebuilt as the pixel median of its scanned copies (3 or more)
+function refineTemplates(feats, idx, pos, flipped, tmpl) {
+  const n = tmpl.length;
+  return tmpl.map((t, k) => {
+    const copies = [];
+    idx.forEach((i, r) => { if (pos[r] % n === k) copies.push(flipped[r] ? flip180(feats[i]) : feats[i]); });
+    if (copies.length < 3) return t;
+    const out = new Float32Array(t.length), col = new Float32Array(copies.length), mid = copies.length >> 1;
+    for (let p = 0; p < t.length; p++) {
+      for (let c = 0; c < copies.length; c++) col[c] = copies[c][p];
+      col.sort();
+      out[p] = copies.length % 2 ? col[mid] : F32(F32(col[mid - 1] + col[mid]) / 2);
+    }
+    return out;
+  });
+}
+
+// the report of check_scan.py: rows, issues (same wording), exam -> scan page ranges; plus the turn each page needs
+function buildReport(nScan, n, idx, isBlank, score, flipped, pos, landscape) {
+  const rows = [], problems = [];
+  idx.forEach((i, r) => {
+    const exam = Math.floor(pos[r] / n), page = pos[r] % n, s = Array.from(score.subarray(r * n, r * n + n));
+    let bestK = 0;
+    for (let k = 1; k < n; k++) if (s[k] > s[bestK]) bestK = k;
+    const sorted = s.slice().sort((a, b) => b - a), margin = sorted[0] - (n > 1 ? sorted[1] : 0), note = [];
+    if (flipped[r]) note.push("upside down");
+    if (bestK !== page) note.push(`looks most like page ${bestK + 1} - CHECK`);
+    else if (margin < 0.03) note.push("low confidence - CHECK");
+    // clockwise turn that brings the page upright: the comparison turned landscape renders 90° counter-clockwise
+    const turn = ((landscape[i] ? 270 : 0) + (flipped[r] ? 180 : 0)) % 360;
+    rows.push({ scan_page: i + 1, exam: exam + 1, exam_page: page + 1, similarity: Math.round(s[page] * 1000) / 1000, note: note.join("; "), turn });
+  });
+  for (let i = 0; i < nScan; i++) if (isBlank[i]) rows.push({ scan_page: i + 1, exam: "", exam_page: "", similarity: "", note: "blank page", turn: 0 });
+  rows.sort((a, b) => a.scan_page - b.scan_page);
+  let prev = -1;
+  idx.forEach((i, r) => {
+    const g = pos[r];
+    if (g === prev) problems.push({ kind: "DUPLICATE", page: i + 1, text: `DUPLICATE  exam #${Math.floor(g / n) + 1} page ${g % n + 1} appears again at scan page ${i + 1}` });
+    for (let mi = prev + 1; mi < g; mi++) problems.push({ kind: "MISSING", page: i + 1, text: `MISSING    exam #${Math.floor(mi / n) + 1} page ${mi % n + 1}  (should be just before scan page ${i + 1})` });
+    prev = Math.max(prev, g);
+  });
+  for (let mi = prev + 1; mi < (Math.floor(prev / n) + 1) * n; mi++) problems.push({ kind: "MISSING", page: nScan, text: `MISSING    exam #${Math.floor(mi / n) + 1} page ${mi % n + 1}  (at the very end of the scan)` });
+  for (const row of rows) if (row.note) problems.push({ kind: "NOTE", page: row.scan_page, text: `NOTE       scan page ${row.scan_page}: ${row.note}` + (row.exam !== "" ? ` (assigned exam #${row.exam} page ${row.exam_page})` : "") });
+  const nExams = Math.floor(prev / n) + 1, ranges = new Map();
+  for (const row of rows) if (row.exam !== "") { if (!ranges.has(row.exam)) ranges.set(row.exam, []); ranges.get(row.exam).push(row.scan_page); }
+  const exams = [...ranges.keys()].sort((a, b) => a - b).map(e => ({ exam: e, pages: ranges.get(e) }));
+  const nBlank = isBlank.filter(Boolean).length;
+  const summary = `Found ${nExams} exams x ${n} pages = ${nExams * n} expected pages; ${idx.length} pages matched, ${nBlank} blank.`;
+  return { rows, problems, nExams, n, nMatched: idx.length, nBlank, summary, exams };
+}
+
+// the report as check_scan.py prints it, and its --csv table
+function reportText(rep, header) {
+  const L = header ? [header, ""] : [];
+  L.push(rep.summary);
+  if (rep.problems.length) { L.push("", `${rep.problems.length} issue(s):`); for (const p of rep.problems) L.push("  " + p.text); }
+  else L.push("", "No problems found - every exam is complete and in order.");
+  L.push("", "Exam -> scan pages:");
+  for (const { exam, pages } of rep.exams) L.push(`  exam #${String(exam).padStart(3)}: scan pages ${pages[0]}-${pages[pages.length - 1]}` + (pages.length === rep.n ? "" : `   <-- ${pages.length}/${rep.n} pages`));
+  return L.join("\n") + "\n";
+}
+function csvField(v) { const s = String(v); return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+function reportCsv(rep) {
+  const keys = ["scan_page", "exam", "exam_page", "similarity", "note"];
+  return [keys.join(",")].concat(rep.rows.map(r => keys.map(k => csvField(r[k])).join(","))).join("\r\n") + "\r\n";
+}
+
+// the whole check on features: { feats, ink, landscape } for the scan and { feats, ink } for the template.
+// match(feats, tmpl) does the comparisons; the page hands this to Web Workers, the tests call matchPages.
+async function checkStack(scan, tmpl, match = async (f, t) => matchPages(f, t)) {
+  const n = tmpl.feats.length, isBlank = blankPages(scan.ink, tmpl.ink), idx = [];
+  for (let i = 0; i < scan.feats.length; i++) if (!isBlank[i]) idx.push(i);
+  if (!idx.length) return { error: "Every scanned page looks blank." };
+  const sub = idx.map(i => scan.feats[i]);
+  const p1 = await match(sub, tmpl.feats, 1), pos1 = bestSequence(p1.score, idx.length, n);
+  const refined = refineTemplates(scan.feats, idx, pos1, p1.flipped, tmpl.feats);
+  const p2 = await match(sub, refined, 2), pos = bestSequence(p2.score, idx.length, n);
+  const report = buildReport(scan.feats.length, n, idx, isBlank, p2.score, p2.flipped, pos, scan.landscape);
+  return { report, idx, isBlank, pass1: { ...p1, pos: pos1 }, pass2: { ...p2, pos }, refined };
+}
+
+/* ---------- page selection (a port of rotate_pdf.py) ---------- */
+// "all", "even", "odd", "last", "5", "2-6", "7-", "-4", comma-separated -> sorted 0-based page indices
+function parsePages(spec, nPages) {
+  spec = String(spec).trim().toLowerCase();
+  if (!spec) throw new Error("empty page selection");
+  const sel = new Set(), int = s => {
+    s = s.trim();
+    if (!/^[+-]?\d+$/.test(s)) throw new Error(`'${s}' is not a page number or range (try 5, 2-6, 7-, -4, last, even, odd or all)`);
+    return parseInt(s, 10);
+  };
+  for (const raw of spec.split(",")) {
+    const t = raw.trim();
+    if (!t) continue;
+    if (t === "all") for (let i = 0; i < nPages; i++) sel.add(i);
+    else if (t === "even") for (let i = 1; i < nPages; i += 2) sel.add(i);
+    else if (t === "odd") for (let i = 0; i < nPages; i += 2) sel.add(i);
+    else if (t === "last") sel.add(nPages - 1);
+    else if (t.includes("-")) {
+      const k = t.indexOf("-"), a = t.slice(0, k), b = t.slice(k + 1);
+      let start = a.trim() ? int(a) : 1, end = b.trim() ? int(b) : nPages;
+      if (start > end) [start, end] = [end, start];
+      for (let i = start; i <= end; i++) sel.add(i - 1);
+    } else sel.add(int(t) - 1);
+  }
+  const out = [...sel].sort((x, y) => x - y), bad = out.filter(i => i < 0 || i >= nPages).map(i => i + 1);
+  if (bad.length) throw new Error(`page(s) ${bad.join(", ")} are outside this document (it has ${nPages})`);
+  if (!out.length) throw new Error(`page selection '${spec}' matched no pages`);
+  return out;
+}
+// [1, 2, 3, 7, 9, 10] -> "1-3, 7, 9-10"
+function compact(numbers) {
+  if (!numbers.length) return "none";
+  const runs = [];
+  let start = numbers[0], prev = numbers[0];
+  for (const v of numbers.slice(1)) { if (v === prev + 1) prev = v; else { runs.push([start, prev]); start = prev = v; } }
+  runs.push([start, prev]);
+  return runs.map(([a, b]) => (a === b ? `${a}` : `${a}-${b}`)).join(", ");
+}
+
+/* ---------- inflate (RFC 1950/1951), for compressed cross-reference and object streams ---------- */
+const LEN_BASE = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258];
+const LEN_EXTRA = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0];
+const DIST_BASE = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577];
+const DIST_EXTRA = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13];
+const CL_ORDER = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
+function huffman(lengths) {
+  const counts = new Uint16Array(16), offs = new Uint16Array(16), symbols = new Uint16Array(lengths.length);
+  for (const l of lengths) counts[l]++;
+  counts[0] = 0;
+  for (let l = 1; l < 15; l++) offs[l + 1] = offs[l] + counts[l];
+  lengths.forEach((l, s) => { if (l) symbols[offs[l]++] = s; });
+  return { counts, symbols };
+}
+function inflate(data) {
+  let pos = 0, bitBuf = 0, bitCnt = 0, out = new Uint8Array(Math.max(1024, data.length * 4)), n = 0;
+  if (data.length > 2 && (data[0] & 15) === 8 && ((data[0] << 8) | data[1]) % 31 === 0) pos = 2; // zlib header
+  const bits = k => {
+    while (bitCnt < k) { if (pos >= data.length) throw new Error("end of data"); bitBuf |= data[pos++] << bitCnt; bitCnt += 8; }
+    const v = bitBuf & ((1 << k) - 1);
+    bitBuf >>>= k; bitCnt -= k;
+    return v;
+  };
+  const room = k => { if (n + k > out.length) { const o = new Uint8Array(Math.max(out.length * 2, n + k)); o.set(out.subarray(0, n)); out = o; } };
+  const decode = h => {
+    let code = 0, first = 0, index = 0;
+    for (let len = 1; len < 16; len++) {
+      code |= bits(1);
+      const count = h.counts[len];
+      if (code - count < first) return h.symbols[index + code - first];
+      index += count; first = (first + count) << 1; code <<= 1;
+    }
+    throw new Error("bad Huffman code");
+  };
+  let fixed = null;
+  try {
+    for (let last = 0; !last;) {
+      last = bits(1);
+      const type = bits(2);
+      if (type === 0) {
+        bitBuf = 0; bitCnt = 0;
+        if (pos + 4 > data.length) throw new Error("end of data");
+        const len = data[pos] | (data[pos + 1] << 8);
+        pos += 4;
+        room(len); out.set(data.subarray(pos, pos + len), n); n += Math.min(len, data.length - pos); pos += len;
+        continue;
+      }
+      let lit, dist;
+      if (type === 1) {
+        if (!fixed) {
+          const l = new Uint8Array(288);
+          l.fill(8, 0, 144); l.fill(9, 144, 256); l.fill(7, 256, 280); l.fill(8, 280, 288);
+          fixed = [huffman(l), huffman(new Uint8Array(30).fill(5))];
+        }
+        [lit, dist] = fixed;
+      } else if (type === 2) {
+        const nlen = bits(5) + 257, ndist = bits(5) + 1, ncode = bits(4) + 4, cl = new Uint8Array(19);
+        for (let i = 0; i < ncode; i++) cl[CL_ORDER[i]] = bits(3);
+        const ch = huffman(cl), lengths = new Uint8Array(nlen + ndist);
+        for (let i = 0; i < nlen + ndist;) {
+          const sym = decode(ch);
+          if (sym < 16) { lengths[i++] = sym; continue; }
+          let rep = 0, val = 0;
+          if (sym === 16) { if (!i) throw new Error("bad lengths"); val = lengths[i - 1]; rep = 3 + bits(2); }
+          else if (sym === 17) rep = 3 + bits(3);
+          else rep = 11 + bits(7);
+          if (i + rep > nlen + ndist) throw new Error("bad lengths");
+          while (rep--) lengths[i++] = val;
+        }
+        lit = huffman(lengths.subarray(0, nlen)); dist = huffman(lengths.subarray(nlen));
+      } else throw new Error("bad block type");
+      for (;;) {
+        let sym = decode(lit);
+        if (sym < 256) { room(1); out[n++] = sym; continue; }
+        if (sym === 256) break;
+        sym -= 257;
+        if (sym >= 29) throw new Error("bad length code");
+        const len = LEN_BASE[sym] + bits(LEN_EXTRA[sym]), dsym = decode(dist);
+        if (dsym >= 30) throw new Error("bad distance code");
+        const d = DIST_BASE[dsym] + bits(DIST_EXTRA[dsym]);
+        if (d > n) throw new Error("distance too far back");
+        room(len);
+        for (let k = 0; k < len; k++, n++) out[n] = out[n - d];
+      }
+    }
+  } catch (e) {
+    if (!n) throw e; // a truncated or untidy stream: keep what was decoded, as PDF readers do
+  }
+  return out.slice(0, n);
+}
+// PNG predictors (DecodeParms /Predictor 10-15), as used by cross-reference streams
+function unpredict(data, parms) {
+  const pred = num(parms && parms.get("Predictor"), 1);
+  if (pred < 10) { if (pred === 1) return data; throw new Error(`predictor ${pred} is not supported`); }
+  const colors = num(parms.get("Colors"), 1), bpc = num(parms.get("BitsPerComponent"), 8), cols = num(parms.get("Columns"), 1);
+  const bpp = Math.max(1, Math.ceil(colors * bpc / 8)), row = Math.ceil(colors * bpc * cols / 8), out = new Uint8Array(Math.floor(data.length / (row + 1)) * row);
+  for (let r = 0, i = 0, o = 0; i + row < data.length + 1 && o < out.length; r++) {
+    const f = data[i++];
+    for (let x = 0; x < row; x++, i++, o++) {
+      const a = x >= bpp ? out[o - bpp] : 0, b = r ? out[o - row] : 0, c = r && x >= bpp ? out[o - row - bpp] : 0, v = data[i];
+      if (f === 0) out[o] = v;
+      else if (f === 1) out[o] = v + a;
+      else if (f === 2) out[o] = v + b;
+      else if (f === 3) out[o] = v + ((a + b) >> 1);
+      else if (f === 4) { const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c); out[o] = v + (pa <= pb && pa <= pc ? a : pb <= pc ? b : c); }
+      else throw new Error("bad PNG filter");
+    }
+  }
+  return out;
+}
+
+/* ---------- PDF objects ---------- */
+// values: numbers, { name }, { str: bytes }, arrays, { dict: Map, spans: Map(key -> [valueStart, valueEnd]), start, end }, { ref: [num, gen] }, true/false/null
+const WS = new Uint8Array(256), DELIM = new Uint8Array(256);
+for (const c of [0, 9, 10, 12, 13, 32]) WS[c] = 1;
+for (const c of "()<>[]{}/%") DELIM[c.charCodeAt(0)] = 1;
+const latin1 = bytes => { let s = ""; for (let i = 0; i < bytes.length; i += 8192) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192)); return s; };
+const toBytes = s => { const b = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i) & 255; return b; };
+const num = (v, dflt) => (typeof v === "number" ? v : dflt);
+const isDict = v => v && v.dict instanceof Map;
+
+class Lexer {
+  constructor(buf, pos = 0) { this.buf = buf; this.pos = pos; }
+  skip() {
+    const b = this.buf;
+    for (;;) {
+      while (this.pos < b.length && WS[b[this.pos]]) this.pos++;
+      if (b[this.pos] !== 37) return;
+      while (this.pos < b.length && b[this.pos] !== 10 && b[this.pos] !== 13) this.pos++;
+    }
+  }
+  word() { // a run of regular characters at pos
+    const b = this.buf, s = this.pos;
+    while (this.pos < b.length && !WS[b[this.pos]] && !DELIM[b[this.pos]]) this.pos++;
+    return latin1(b.subarray(s, this.pos));
+  }
+  peekWord() { const p = this.pos; this.skip(); const w = this.word(); this.pos = p; return w; }
+  value(depth = 0) {
+    if (depth > 100) throw new Error("PDF objects nested too deeply");
+    this.skip();
+    const b = this.buf, c = b[this.pos];
+    if (this.pos >= b.length) throw new Error("unexpected end of the PDF");
+    if (c === 47) { this.pos++; return { name: this.word().replace(/#([0-9a-fA-F]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16))) }; }
+    if (c === 40) { // literal string: balanced parentheses, backslash escapes
+      const s = ++this.pos;
+      for (let d = 1; this.pos < b.length; this.pos++) {
+        const x = b[this.pos];
+        if (x === 92) this.pos++;
+        else if (x === 40) d++;
+        else if (x === 41 && --d === 0) break;
+      }
+      return { str: b.subarray(s, this.pos++) };
+    }
+    if (c === 60 && b[this.pos + 1] === 60) { // dictionary
+      const start = this.pos, dict = new Map(), spans = new Map();
+      this.pos += 2;
+      for (;;) {
+        this.skip();
+        if (b[this.pos] === 62 && b[this.pos + 1] === 62) { this.pos += 2; break; }
+        if (this.pos >= b.length) throw new Error("unterminated dictionary");
+        const k = this.value(depth + 1);
+        if (!k || k.name === undefined) throw new Error("dictionary key is not a name");
+        this.skip();
+        const vs = this.pos, v = this.value(depth + 1);
+        dict.set(k.name, v); spans.set(k.name, [vs, this.pos]);
+      }
+      return { dict, spans, start, end: this.pos };
+    }
+    if (c === 60) { const s = ++this.pos; while (this.pos < b.length && b[this.pos] !== 62) this.pos++; return { str: b.subarray(s, this.pos++), hex: true }; }
+    if (c === 91) {
+      this.pos++;
+      const arr = [];
+      for (;;) { this.skip(); if (b[this.pos] === 93) { this.pos++; return arr; } if (this.pos >= b.length) throw new Error("unterminated array"); arr.push(this.value(depth + 1)); }
+    }
+    if (DELIM[c]) { this.pos++; throw new Error(`unexpected '${String.fromCharCode(c)}' in the PDF`); }
+    const w = this.word();
+    if (/^[+-]?(\d+\.?\d*|\.\d+)$/.test(w)) {
+      const v = parseFloat(w);
+      if (/^\d+$/.test(w)) { // "num gen R"?
+        const save = this.pos;
+        this.skip();
+        const g = this.word();
+        if (/^\d+$/.test(g)) { this.skip(); if (this.word() === "R") return { ref: [v, parseInt(g, 10)] }; }
+        this.pos = save;
+      }
+      return v;
+    }
+    if (w === "true") return true;
+    if (w === "false") return false;
+    if (w === "null") return null;
+    return { kw: w };
+  }
+}
+
+/* ---------- reading a PDF: cross-reference sections, objects, the page tree ---------- */
+function lastIndexOf(buf, s, from = buf.length) {
+  const t = toBytes(s);
+  outer: for (let i = Math.min(from, buf.length - t.length); i >= 0; i--) { for (let k = 0; k < t.length; k++) if (buf[i + k] !== t[k]) continue outer; return i; }
+  return -1;
+}
+function indexOf(buf, s, from = 0) {
+  const t = toBytes(s);
+  outer: for (let i = from; i <= buf.length - t.length; i++) { for (let k = 0; k < t.length; k++) if (buf[i + k] !== t[k]) continue outer; return i; }
+  return -1;
+}
+class PdfFile {
+  constructor(buf) {
+    this.buf = buf; this.cache = new Map(); this.stmCache = new Map(); this.entries = new Map();
+    try { this.readXref(); this.root(); }
+    catch (e) { this.rebuilt = String(e.message || e); this.entries.clear(); this.cache.clear(); this.reconstruct(); this.root(); }
+  }
+  readXref() {
+    const b = this.buf, k = lastIndexOf(b, "startxref");
+    if (k < 0) throw new Error("no startxref");
+    const lx = new Lexer(b, k + 9), start = lx.value();
+    if (typeof start !== "number") throw new Error("bad startxref");
+    this.startxref = start;
+    const queue = [start], seen = new Set();
+    while (queue.length) {
+      const off = queue.shift();
+      if (seen.has(off) || off < 0 || off >= b.length) { if (!seen.has(off)) throw new Error("cross-reference offset outside the file"); continue; }
+      seen.add(off);
+      const L = new Lexer(b, off);
+      let trailer;
+      if (L.peekWord() === "xref") { trailer = this.readTable(L); if (!this.trailer) this.kind = "table"; }
+      else { trailer = this.readXrefStream(off); if (!this.trailer) this.kind = "stream"; }
+      if (!this.trailer) this.trailer = trailer;
+      const xs = trailer.dict.get("XRefStm"), prev = trailer.dict.get("Prev");
+      if (typeof xs === "number") queue.unshift(xs);
+      if (typeof prev === "number") queue.push(prev);
+    }
+  }
+  setEntry(n, e) { const old = this.entries.get(n); if (!old || old.type === 0) this.entries.set(n, e); }
+  readTable(L) {
+    L.skip(); L.word(); // "xref"
+    for (;;) {
+      L.skip();
+      if (L.peekWord() === "trailer") { L.skip(); L.word(); break; }
+      const first = L.value(), count = L.value();
+      if (typeof first !== "number" || typeof count !== "number") throw new Error("bad cross-reference table");
+      for (let i = 0; i < count; i++) {
+        const off = L.value(), gen = L.value(), t = L.value();
+        if (typeof off !== "number" || typeof gen !== "number" || !t || (t.kw !== "n" && t.kw !== "f")) throw new Error("bad cross-reference entry");
+        this.setEntry(first + i, t.kw === "n" ? { type: 1, offset: off, gen } : { type: 0 });
+      }
+    }
+    const t = L.value();
+    if (!isDict(t)) throw new Error("bad trailer");
+    t.src = this.buf;
+    return t;
+  }
+  readXrefStream(off) {
+    const o = this.parseIndirect(this.buf, off);
+    if (!o.stream || !o.value.dict.get("Type") || o.value.dict.get("Type").name !== "XRef") throw new Error("no cross-reference at startxref");
+    const d = o.value.dict, data = this.streamData(o), W = d.get("W").map(Number), size = num(d.get("Size"), 0);
+    const index = d.get("Index") ? d.get("Index").map(Number) : [0, size], esz = W[0] + W[1] + W[2];
+    let p = 0;
+    const field = w => { let v = 0; for (let k = 0; k < w; k++) v = v * 256 + data[p++]; return v; };
+    for (let s = 0; s < index.length; s += 2) for (let i = 0; i < index[s + 1]; i++) {
+      if (p + esz > data.length) throw new Error("cross-reference stream too short");
+      const type = W[0] ? field(W[0]) : 1, f2 = field(W[1]), f3 = field(W[2]), n = index[s] + i;
+      if (type === 1) this.setEntry(n, { type: 1, offset: f2, gen: f3 });
+      else if (type === 2) this.setEntry(n, { type: 2, stm: f2, idx: f3 });
+      else if (type === 0) this.setEntry(n, { type: 0 });
+    }
+    o.value.src = this.buf;
+    return o.value;
+  }
+  // a damaged file: find every "n g obj" and the newest trailer or catalog
+  reconstruct() {
+    const b = this.buf, text = latin1(b), re = /(?:^|[\s>\]])(\d{1,10})\s+(\d{1,5})\s+obj\b/g;
+    let m;
+    while ((m = re.exec(text))) this.entries.set(Number(m[1]), { type: 1, offset: m.index + m[0].indexOf(m[1]), gen: Number(m[2]) });
+    for (const [n, e] of [...this.entries]) { // objects inside object streams
+      try {
+        const o = this.object(n);
+        if (isDict(o.value) && o.value.dict.get("Type") && o.value.dict.get("Type").name === "ObjStm") {
+          const hdr = this.objStm(n);
+          hdr.nums.forEach((k, i) => { if (!this.entries.has(k)) this.entries.set(k, { type: 2, stm: n, idx: i }); });
+        }
+      } catch (err) { /* skip unreadable objects */ }
+      void e;
+    }
+    this.cache.clear();
+    const t = lastIndexOf(b, "trailer");
+    if (t >= 0) { try { const v = new Lexer(b, t + 7).value(); if (isDict(v) && v.dict.get("Root")) { v.src = b; this.trailer = v; } } catch (err) { /* look for the catalog below */ } }
+    if (!this.trailer) for (const [n] of this.entries) {
+      try { const o = this.object(n); if (isDict(o.value) && o.value.dict.get("Type") && o.value.dict.get("Type").name === "Catalog") { const s = `<< /Root ${n} ${this.entries.get(n).gen || 0} R >>`; this.trailer = new Lexer(toBytes(s)).value(); this.trailer.src = toBytes(s); } } catch (err) { /* keep looking */ }
+    }
+    if (!this.trailer) throw new Error(`cannot read this PDF (${this.rebuilt})`);
+    this.kind = "rebuilt";
+  }
+  parseIndirect(buf, off) {
+    const L = new Lexer(buf, off), n = L.value(), g = L.value(), kw = L.value();
+    if (typeof n !== "number" || typeof g !== "number" || !kw || kw.kw !== "obj") throw new Error(`no object at offset ${off}`);
+    L.skip();
+    const vs = L.pos, value = L.value(), o = { num: n, gen: g, value, src: buf, start: vs, end: L.pos };
+    if (isDict(value) && L.peekWord() === "stream") {
+      L.skip(); L.word();
+      if (buf[L.pos] === 13) L.pos++;
+      if (buf[L.pos] === 10) L.pos++;
+      o.stream = { start: L.pos };
+    }
+    return o;
+  }
+  streamData(o) {
+    const d = o.value.dict, b = o.src, s = o.stream.start;
+    let len = d.get("Length");
+    if (len && len.ref) { try { len = this.resolve(len); } catch (e) { len = null; } }
+    let end = typeof len === "number" ? s + len : -1;
+    if (end < s || end > b.length || indexOf(b, "endstream", end) - end > 4 || indexOf(b, "endstream", end) < 0) { // a wrong /Length
+      end = indexOf(b, "endstream", s);
+      if (end < 0) throw new Error("stream without endstream");
+      while (end > s && (b[end - 1] === 10 || b[end - 1] === 13)) end--;
+    }
+    let data = b.subarray(s, end);
+    const filters = [].concat(d.get("Filter") || []).map(f => this.resolve(f).name), parms = [].concat(this.resolve(d.get("DecodeParms")) || []);
+    filters.forEach((f, i) => {
+      if (f !== "FlateDecode" && f !== "Fl") throw new Error(`${f} streams are not supported here`);
+      data = unpredict(inflate(data), parms[i] ? this.resolve(parms[i]).dict : null);
+    });
+    return data;
+  }
+  objStm(n) {
+    if (this.stmCache.has(n)) return this.stmCache.get(n);
+    if (this.trailer && this.trailer.dict.get("Encrypt")) throw new Error("this PDF is encrypted and keeps its pages in compressed object streams, which this page cannot rewrite");
+    const o = this.object(n), d = o.value.dict, data = this.streamData(o), N = num(d.get("N"), 0), first = num(d.get("First"), 0);
+    const L = new Lexer(data, 0), nums = [], offs = [];
+    for (let i = 0; i < N; i++) { nums.push(L.value()); offs.push(L.value()); }
+    const r = { data, first, nums, offs };
+    this.stmCache.set(n, r);
+    return r;
+  }
+  object(n) { // { num, gen, value, src, start, end } with the value's bytes at src[start, end)
+    if (this.cache.has(n)) return this.cache.get(n);
+    const e = this.entries.get(n);
+    let o;
+    if (!e || e.type === 0) o = { num: n, gen: 0, value: null };
+    else if (e.type === 1) o = this.parseIndirect(this.buf, e.offset);
+    else {
+      const s = this.objStm(e.stm), L = new Lexer(s.data, s.first + s.offs[e.idx]);
+      L.skip();
+      const st = L.pos, value = L.value();
+      o = { num: n, gen: 0, value, src: s.data, start: st, end: L.pos, inStm: true };
+    }
+    this.cache.set(n, o);
+    return o;
+  }
+  resolve(v) { for (let k = 0; v && v.ref && k < 32; k++) v = this.object(v.ref[0]).value; return v; }
+  root() {
+    const r = this.resolve(this.trailer.dict.get("Root"));
+    if (!isDict(r) || !r.dict.get("Pages")) throw new Error("no page tree");
+    return r;
+  }
+  // leaf pages in order, with inherited /Rotate and /MediaBox
+  pages() {
+    const out = [], seen = new Set();
+    const walk = (ref, inh, depth) => {
+      if (!ref || !ref.ref) throw new Error("a page that is not an indirect object");
+      if (seen.has(ref.ref[0]) || depth > 64) throw new Error("the page tree loops");
+      seen.add(ref.ref[0]);
+      const o = this.object(ref.ref[0]), d = o.value;
+      if (!isDict(d)) throw new Error(`page tree node ${ref.ref[0]} is missing`);
+      const type = d.dict.get("Type") && d.dict.get("Type").name, rot = this.resolve(d.dict.get("Rotate")), mb = this.resolve(d.dict.get("MediaBox"));
+      const here = { rotate: typeof rot === "number" ? rot : inh.rotate, mediabox: Array.isArray(mb) ? mb.map(v => this.resolve(v)) : inh.mediabox };
+      if (type === "Pages" || (type !== "Page" && d.dict.get("Kids"))) for (const kid of this.resolve(d.dict.get("Kids")) || []) walk(kid, here, depth + 1);
+      else out.push({ num: o.num, gen: o.gen, obj: o, rotate: normRotate(here.rotate), mediabox: here.mediabox || [0, 0, 612, 792] });
+    };
+    walk(this.root().dict.get("Pages"), { rotate: 0 }, 0);
+    return out;
+  }
+}
+// as PDF readers do: multiples of 90 folded into 0..270, anything else is 0
+const normRotate = r => (Number.isInteger(r) && r % 90 === 0 ? ((r % 360) + 360) % 360 : 0);
+
+// rotate_pdf.py --list: each page's rotation and size
+function listPages(buf) {
+  const pdf = new PdfFile(buf);
+  return pdf.pages().map((p, i) => {
+    const [x0, y0, x1, y1] = p.mediabox.map(Number), w = Math.abs(x1 - x0), h = Math.abs(y1 - y0);
+    return { page: i + 1, num: p.num, gen: p.gen, rotate: p.rotate, width: w, height: h, shape: w > h ? "landscape" : "portrait" };
+  });
+}
+
+// Turn pages by setting /Rotate, written as an incremental update after the unchanged original bytes.
+// turns: Map or object, 0-based page index -> clockwise degrees (multiples of 90).
+function rotatePdf(buf, turns) {
+  const pdf = new PdfFile(buf), pages = pdf.pages(), objs = [];
+  for (const [k, t] of turns instanceof Map ? turns : Object.entries(turns)) {
+    const i = Number(k), d = ((Number(t) % 360) + 360) % 360;
+    if (!pages[i]) throw new Error(`page ${i + 1} is outside this document (it has ${pages.length})`);
+    if (d % 90) throw new Error("turns must be multiples of 90°");
+    if (!d) continue;
+    const p = pages[i], o = p.obj, nr = (p.rotate + d) % 360, sp = o.value.spans.get("Rotate");
+    const head = sp ? o.src.subarray(o.start, sp[0]) : o.src.subarray(o.start, o.start + 2);
+    const tail = sp ? o.src.subarray(sp[1], o.end) : o.src.subarray(o.start + 2, o.end);
+    objs.push({ num: p.num, gen: p.gen, body: [head, toBytes(sp ? `${nr}` : ` /Rotate ${nr} `), tail] });
+  }
+  if (!objs.length) return { bytes: buf, changed: 0 };
+  if (pdf.trailer.dict.get("Encrypt") && objs.some(o => pdf.object(o.num).inStm)) throw new Error("this PDF is encrypted and keeps its pages in compressed object streams, which this page cannot rewrite");
+  objs.sort((a, b) => a.num - b.num);
+  const parts = [buf];
+  let off = buf.length;
+  const add = x => { const b = typeof x === "string" ? toBytes(x) : x; parts.push(b); off += b.length; };
+  if (buf[buf.length - 1] !== 10 && buf[buf.length - 1] !== 13) add("\n");
+  const xref = [];
+  for (const o of objs) { xref.push({ num: o.num, type: 1, f2: off, f3: o.gen }); add(`${o.num} ${o.gen} obj\n`); o.body.forEach(add); add("\nendobj\n"); }
+  // keep the newest trailer's Root, Info, ID and Encrypt as they are
+  const t = pdf.trailer, keep = ["Root", "Info", "ID", "Encrypt"].filter(k => t.spans.has(k)).map(k => `/${k} ${latin1(t.src.subarray(...t.spans.get(k)))}`).join(" ");
+  let size = num(t.dict.get("Size"), 0);
+  for (const n of pdf.entries.keys()) size = Math.max(size, n + 1);
+  for (const o of objs) size = Math.max(size, o.num + 1);
+  const prev = pdf.kind === "rebuilt" ? "" : ` /Prev ${pdf.startxref}`;
+  const runs = list => { const r = []; for (const e of list) { const lastRun = r[r.length - 1]; if (lastRun && lastRun[0] + lastRun[1] === e.num) lastRun[1]++; else r.push([e.num, 1]); } return r; };
+  if (pdf.kind === "table") {
+    const at = off;
+    add("xref\n");
+    let i = 0;
+    for (const [first, count] of runs(xref)) { add(`${first} ${count}\n`); for (let k = 0; k < count; k++, i++) add(`${String(xref[i].f2).padStart(10, "0")} ${String(xref[i].f3).padStart(5, "0")} n\r\n`); }
+    add(`trailer\n<< /Size ${size} ${keep}${prev} >>\nstartxref\n${at}\n%%EOF\n`);
+  } else { // a cross-reference stream (type, offset/stream, generation/index in 1 + 4 + 2 bytes)
+    const all = pdf.kind === "rebuilt" ? [...pdf.entries].filter(([n, e]) => e.type && !xref.some(x => x.num === n)).map(([n, e]) => ({ num: n, type: e.type, f2: e.type === 1 ? e.offset : e.stm, f3: e.type === 1 ? e.gen : e.idx })) : [];
+    const self = { num: size, type: 1, f2: off, f3: 0 }, list = all.concat(xref, [self]).sort((a, b) => a.num - b.num), data = new Uint8Array(list.length * 7);
+    list.forEach((e, i) => { const p = i * 7; data[p] = e.type; for (let k = 0; k < 4; k++) data[p + 1 + k] = Math.floor(e.f2 / 256 ** (3 - k)) & 255; data[p + 5] = (e.f3 >> 8) & 255; data[p + 6] = e.f3 & 255; });
+    add(`${size} 0 obj\n<< /Type /XRef /Size ${size + 1} /W [1 4 2] /Index [${runs(list).flat().join(" ")}] ${keep}${prev} /Length ${data.length} >>\nstream\n`);
+    add(data);
+    add(`\nendstream\nendobj\nstartxref\n${self.f2}\n%%EOF\n`);
+  }
+  const out = new Uint8Array(off);
+  let p = 0;
+  for (const b of parts) { out.set(b, p); p += b.length; }
+  return { bytes: out, changed: objs.length, kind: pdf.kind };
+}
+</script>
+
+<script type="module">
+import * as pdfjsLib from "./vendor/pdfjs/pdf.min.mjs";
+
+const $ = id => document.getElementById(id);
+const VENDOR = new URL("vendor/pdfjs/", location.href).href;
+const CORE = $("core").textContent;
+class Cancelled extends Error {}
+
+/* ---------- pdf.js, running inside this page's security policy ---------- */
+// A blob: worker inherits the page's Content-Security-Policy; it imports the real pdf.js worker from this site.
+try {
+  const blob = new Blob([`import ${JSON.stringify(VENDOR + "pdf.worker.min.mjs")};`], { type: "text/javascript" });
+  pdfjsLib.GlobalWorkerOptions.workerPort = new Worker(URL.createObjectURL(blob), { type: "module" });
+} catch (e) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = VENDOR + "pdf.worker.min.mjs";
+}
+function openPdf(bytes, askPassword) {
+  const task = pdfjsLib.getDocument({ data: bytes.slice(), wasmUrl: VENDOR + "wasm/", isEvalSupported: false, enableXfa: false, verbosity: 0 });
+  if (askPassword) task.onPassword = askPassword;
+  return task;
+}
+
+const S = {
+  scan: null,      // { name, bytes, task, doc, pages: [{ gray, landscape, rotate, ref, thumb, fig, cap }], dpi, list, rotErr, password }
+  tmpl: null,      // { name, task, doc, gray: [], dpi }
+  res: null,       // checkStack() result
+  pending: null,   // clockwise turn of every page, from the file as loaded
+  sel: new Set(), anchor: null, busy: false, cancel: false, stopWorkers: null,
+};
+
+/* ---------- small helpers ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const mb = n => (n < 1048576 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1048576).toFixed(n < 10485760 ? 1 : 0)} MB`);
+const msg = e => String((e && e.message) || e).replace(/\.+$/, "");
+const turnName = t => ({ 90: "90° clockwise", 180: "180°", 270: "90° counter-clockwise" }[t] || "none");
+const tick = () => new Promise(r => setTimeout(r, 0));
+const progress = s => { $("progress").textContent = s; };
+function showErr(id, msg) { $(id).textContent = msg || ""; $(id).hidden = !msg; }
+function download(name, data, type) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([data], { type }));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+function setBusy(on) {
+  S.busy = on;
+  $("stop").hidden = !on;
+  for (const id of ["scanFile", "tmplFile", "dpi", "nFirst", "modeTmpl", "modeFirst", "save"]) $(id).disabled = on || (id === "save" && !canSave());
+  updateCheckButton();
+}
+function updateCheckButton() {
+  const first = $("modeFirst").checked;
+  $("check").disabled = S.busy || !S.scan || (!first && !S.tmpl);
+}
+const canSave = () => !!(S.scan && !S.scan.rotErr && S.pending && S.pending.some(Boolean));
+
+/* ---------- reading PDFs ---------- */
+function askPassword(label) {
+  return (update, reason) => {
+    $("pwLabel").textContent = reason === pdfjsLib.PasswordResponses.INCORRECT_PASSWORD ? `Wrong password for ${label}; try again:` : `${label} needs a password:`;
+    $("pwRow").hidden = false; $("pw").value = ""; $("pw").focus();
+    $("pwOk").onclick = () => { const p = $("pw").value; $("pwRow").hidden = true; S.lastPassword = p; update(p); };
+    $("pw").onkeydown = e => { if (e.key === "Enter") $("pwOk").click(); };
+  };
+}
+// draw every page once at the comparison resolution: grayscale for the check, a small copy for the page grid
+async function renderAll(doc, dpi, label, onPage) {
+  const canvas = document.createElement("canvas"), ctx = canvas.getContext("2d", { willReadFrequently: true });
+  for (let i = 1; i <= doc.numPages; i++) {
+    if (S.cancel) throw new Cancelled();
+    progress(`Reading ${label}: page ${i} of ${doc.numPages}`);
+    const page = await doc.getPage(i), vp = page.getViewport({ scale: dpi / 72 });
+    canvas.width = Math.max(1, Math.ceil(vp.width - 0.001)); canvas.height = Math.max(1, Math.ceil(vp.height - 0.001));
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvas, canvasContext: ctx, viewport: vp, background: "#ffffff" }).promise;
+    const gray = rgbaToGray(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
+    onPage(i - 1, page, gray, canvas);
+    page.cleanup();
+  }
+}
+function makeThumb(canvas) {
+  const w = canvas.width, h = canvas.height, s = Math.min(98 / Math.max(w, h), 76 / Math.min(w, h));
+  const cw = Math.max(1, Math.round(w * s)), ch = Math.max(1, Math.round(h * s)), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const t = document.createElement("canvas");
+  t.width = Math.round(cw * dpr); t.height = Math.round(ch * dpr); t.style.width = cw + "px"; t.style.height = ch + "px";
+  const c = t.getContext("2d");
+  c.imageSmoothingQuality = "high";
+  c.drawImage(canvas, 0, 0, t.width, t.height);
+  return t;
+}
+
+async function loadScan(file) {
+  closeScan();
+  const bytes = new Uint8Array(await file.arrayBuffer()), t0 = performance.now(), dpi = readDpi();
+  S.scan = { name: file.name, bytes, pages: [], dpi, password: null };
+  $("scanInfo").textContent = `${file.name}: reading…`;
+  const task = openPdf(bytes, askPassword(file.name));
+  S.scan.task = task;
+  const doc = await task.promise;
+  S.scan.doc = doc; S.scan.password = S.lastPassword || null;
+  S.pending = new Int16Array(doc.numPages); S.sel.clear(); S.anchor = null;
+  $("thumbs").textContent = "";
+  $("noPages").hidden = true; $("pagesBody").hidden = false;
+  await renderAll(doc, dpi, file.name, (i, page, gray, canvas) => {
+    const fig = document.createElement("figure"), box = document.createElement("div"), cap = document.createElement("figcaption"), thumb = makeThumb(canvas);
+    fig.className = "thumb"; fig.id = `p${i + 1}`; fig.dataset.i = i; box.className = "box"; box.appendChild(thumb); fig.append(box, cap);
+    $("thumbs").appendChild(fig);
+    S.scan.pages[i] = { gray, landscape: gray.w > gray.h, rotate: page.rotate, ref: page.ref, thumb, fig, cap };
+    drawThumb(i);
+  });
+  // this page's own PDF reader must see the same pages as pdf.js before it may write the file
+  try {
+    const list = listPages(bytes);
+    S.scan.list = list;
+    if (list.length !== doc.numPages) throw new Error(`it finds ${list.length} pages, pdf.js ${doc.numPages}`);
+    list.forEach((p, i) => {
+      const q = S.scan.pages[i];
+      if ((q.ref && (q.ref.num !== p.num || q.ref.gen !== p.gen)) || q.rotate !== p.rotate) throw new Error(`it and pdf.js disagree about page ${i + 1}`);
+    });
+    renderList();
+  } catch (e) {
+    S.scan.rotErr = `Turning pages is switched off for this file: ${e.message}.`;
+  }
+  const secs = ((performance.now() - t0) / 1000).toFixed(1);
+  $("scanInfo").textContent = `${file.name}: ${doc.numPages} pages, ${mb(bytes.length)}, read in ${secs} s.` + (S.scan.password !== null ? " Password protected." : "");
+  showErr("saveErr", S.scan.rotErr);
+  updatePages();
+}
+function closeScan() {
+  if (S.scan && S.scan.task) S.scan.task.destroy();
+  S.scan = null; S.res = null; S.pending = null; S.sel.clear(); S.lastPassword = null;
+  $("thumbs").textContent = ""; $("listTable").textContent = "";
+  $("resultBody").hidden = true; $("noResult").hidden = false; $("selFlag").disabled = true; $("straighten").disabled = true;
+}
+async function loadTmpl(file) {
+  if (S.tmpl && S.tmpl.task) S.tmpl.task.destroy();
+  S.tmpl = null;
+  const bytes = new Uint8Array(await file.arrayBuffer()), dpi = readDpi(), task = openPdf(bytes, askPassword(file.name)), doc = await task.promise;
+  const t = { name: file.name, task, doc, gray: [], dpi };
+  await renderAll(doc, dpi, file.name, (i, page, gray) => { t.gray[i] = gray; });
+  S.tmpl = t;
+  $("tmplInfo").textContent = `${file.name}: ${doc.numPages} pages per exam.`;
+}
+function readDpi() { const v = Math.round(Number($("dpi").value)); return Number.isFinite(v) && v >= 10 && v <= 150 ? v : 30; }
+async function rerenderIfNeeded() { // the resolution changed since the files were read
+  const dpi = readDpi();
+  if (S.scan && S.scan.dpi !== dpi) {
+    await renderAll(S.scan.doc, dpi, S.scan.name, (i, page, gray) => { S.scan.pages[i].gray = gray; S.scan.pages[i].landscape = gray.w > gray.h; });
+    S.scan.dpi = dpi;
+  }
+  if (S.tmpl && S.tmpl.dpi !== dpi) {
+    await renderAll(S.tmpl.doc, dpi, S.tmpl.name, (i, page, gray) => { S.tmpl.gray[i] = gray; });
+    S.tmpl.dpi = dpi;
+  }
+}
+
+/* ---------- the check: features here, comparisons in Web Workers ---------- */
+const WORKER_SRC = CORE + `
+let T = null;
+onmessage = e => {
+  const m = e.data;
+  if (m.tmpl) { T = m.tmpl.map(prepTemplate); return; }
+  const r = matchPrepared(m.feats, T);
+  postMessage({ start: m.start, score: r.score, flipped: r.flipped }, [r.score.buffer, r.flipped.buffer]);
+};`;
+async function features(grays, label) {
+  const feats = [], ink = [];
+  for (let i = 0; i < grays.length; i++) {
+    if (S.cancel) throw new Cancelled();
+    const r = toFeature(portrait(grays[i]));
+    feats.push(r.f); ink.push(r.ink);
+    if (i % 8 === 7) { progress(`Preparing ${label}: page ${i + 1} of ${grays.length}`); await tick(); }
+  }
+  return { feats, ink };
+}
+function poolMatch(feats, tmpl, pass) {
+  return new Promise((resolve, reject) => {
+    const n = tmpl.length, m = feats.length, score = new Float64Array(m * n), flipped = new Uint8Array(m), CHUNK = 6;
+    let url, workers = [], next = 0, done = 0, over = false;
+    const finish = () => { over = true; workers.forEach(w => w.terminate()); if (url) URL.revokeObjectURL(url); S.stopWorkers = null; };
+    const feed = w => { if (next >= m) return; const start = next; next = Math.min(m, start + CHUNK); w.postMessage({ start, feats: feats.slice(start, next) }); };
+    S.stopWorkers = () => { if (!over) { finish(); reject(new Cancelled()); } };
+    try {
+      url = URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" }));
+      const k = Math.max(1, Math.min(navigator.hardwareConcurrency || 2, 8, Math.ceil(m / CHUNK)));
+      for (let j = 0; j < k; j++) {
+        const w = new Worker(url);
+        workers.push(w);
+        w.onmessage = e => {
+          const r = e.data;
+          score.set(r.score, r.start * n); flipped.set(r.flipped, r.start); done += r.flipped.length;
+          progress(`Comparing pages, pass ${pass} of 2: ${done} of ${m}`);
+          if (done === m) { finish(); resolve({ score, flipped }); } else feed(w);
+        };
+        w.onerror = e => { if (!over) { finish(); reject(new Error(e.message || "a comparison worker stopped")); } };
+        w.postMessage({ tmpl });
+        feed(w);
+      }
+    } catch (e) { // no workers (very old browser): compare here, a few pages at a time
+      finish(); over = false;
+      (async () => {
+        const T = tmpl.map(prepTemplate);
+        for (let s = 0; s < m; s += CHUNK) {
+          if (S.cancel) throw new Cancelled();
+          const r = matchPrepared(feats.slice(s, s + CHUNK), T);
+          score.set(r.score, s * n); flipped.set(r.flipped, s);
+          progress(`Comparing pages, pass ${pass} of 2: ${Math.min(m, s + CHUNK)} of ${m}`);
+          await tick();
+        }
+        return { score, flipped };
+      })().then(resolve, reject);
+    }
+  });
+}
+async function runCheck() {
+  showErr("fileErr", "");
+  setBusy(true); S.cancel = false;
+  const t0 = performance.now();
+  try {
+    await rerenderIfNeeded();
+    const grays = S.scan.pages.map(p => p.gray), scan = await features(grays, "the scan");
+    scan.landscape = S.scan.pages.map(p => p.landscape);
+    let tmpl, tmplLine;
+    if ($("modeFirst").checked) {
+      const n = Math.round(Number($("nFirst").value));
+      if (!(n >= 1 && n <= grays.length)) throw new Error(`The number of pages per exam must be between 1 and ${grays.length}.`);
+      tmpl = { feats: scan.feats.slice(0, n), ink: scan.ink.slice(0, n) };
+      tmplLine = `Template: ${n} pages per exam (first ${n} scanned pages); scan: ${grays.length} pages`;
+    } else {
+      tmpl = await features(S.tmpl.gray, "the blank exam");
+      tmplLine = `Template: ${tmpl.feats.length} pages per exam (template ${S.tmpl.name}); scan: ${grays.length} pages`;
+    }
+    const res = await checkStack(scan, tmpl, (f, t, pass) => poolMatch(f, t, pass));
+    if (res.error) throw new Error(res.error);
+    S.res = res; S.res.tmplLine = tmplLine;
+    renderReport();
+    progress(`Checked ${grays.length} pages in ${((performance.now() - t0) / 1000).toFixed(1)} s.`);
+  } catch (e) {
+    progress("");
+    if (!(e instanceof Cancelled)) showErr("fileErr", `${msg(e)}.`);
+  } finally {
+    setBusy(false);
+  }
+}
+
+/* ---------- report ---------- */
+const pageLinks = s => esc(s).replace(/scan page (\d+)/g, (m, k) => `<a href="#p${k}">scan page ${k}</a>`);
+function renderReport() {
+  const r = S.res.report;
+  $("noResult").hidden = true; $("resultBody").hidden = false;
+  $("tmplLine").textContent = S.res.tmplLine;
+  $("summary").textContent = r.summary;
+  $("issuesHead").textContent = r.problems.length ? `${r.problems.length} issue(s)` : "No problems found - every exam is complete and in order.";
+  $("issues").innerHTML = r.problems.map(p => `<li>${pageLinks(p.text)}</li>`).join("");
+  $("exams").innerHTML = `<thead><tr><th>exam</th><th class="l">scan pages</th><th>pages</th></tr></thead><tbody>` + r.exams.map(({ exam, pages }) => {
+    const bad = pages.length !== r.n;
+    return `<tr${bad ? ' class="bad"' : ""}><td>${exam}</td><td class="l"><a href="#p${pages[0]}">${pages[0]}</a>–<a href="#p${pages[pages.length - 1]}">${pages[pages.length - 1]}</a></td><td>${pages.length}/${r.n}</td></tr>`;
+  }).join("") + "</tbody>";
+  $("rows").innerHTML = `<thead><tr><th>scan page</th><th>exam</th><th>exam page</th><th>similarity</th><th class="l">note</th><th class="l">turn to upright</th></tr></thead><tbody>` +
+    r.rows.map(x => `<tr${x.note ? ' class="bad"' : ""}><td><a href="#p${x.scan_page}">${x.scan_page}</a></td><td>${x.exam}</td><td>${x.exam_page}</td><td>${x.similarity === "" ? "" : x.similarity.toFixed(3)}</td><td class="l">${esc(x.note)}</td><td class="l">${x.turn ? turnName(x.turn) : ""}</td></tr>`).join("") + "</tbody>";
+  // flags on the page grid
+  const why = new Map();
+  for (const p of r.problems) { const k = p.page - 1; if (!why.has(k)) why.set(k, []); why.get(k).push(p.kind === "MISSING" ? "missing page before" : p.kind === "DUPLICATE" ? "duplicate" : p.text.replace(/^NOTE\s+scan page \d+: /, "")); }
+  S.why = why; S.rowOf = new Map(r.rows.map(x => [x.scan_page - 1, x]));
+  $("selFlag").disabled = !why.size;
+  $("straighten").disabled = !r.rows.some(x => x.turn);
+  S.scan.pages.forEach((p, i) => drawThumb(i));
+  updatePages();
+}
+
+/* ---------- page grid, selection and turns ---------- */
+function drawThumb(i) {
+  const p = S.scan.pages[i], t = S.pending[i], row = S.rowOf && S.rowOf.get(i), why = S.why && S.why.get(i);
+  p.thumb.style.transform = t ? `rotate(${t}deg)` : "";
+  p.fig.classList.toggle("sel", S.sel.has(i));
+  p.fig.classList.toggle("flag", !!why);
+  let html = `${i + 1}` + (row && row.exam !== "" ? ` · ${row.exam}/${row.exam_page}` : "");
+  if (t) html += `<br><span class="turn">turn ${turnName(t)}</span>`;
+  if (why) html += `<br><span class="why">${esc(why.join("; ").replace(/ - CHECK| \(assigned exam #\d+ page \d+\)/g, ""))}</span>`;
+  p.cap.innerHTML = html;
+  p.fig.title = `Scan page ${i + 1}` + (row && row.exam !== "" ? `, exam ${row.exam} page ${row.exam_page}` : "") + (why ? `: ${why.join("; ")}` : "");
+}
+function updatePages() {
+  if (!S.scan || !S.pending) return;
+  const turned = [];
+  S.pending.forEach((t, i) => { if (t) turned.push(i + 1); });
+  const byTurn = [90, 180, 270].map(t => [t, turned.filter(k => S.pending[k - 1] === t)]).filter(([, l]) => l.length);
+  $("pagesStatus").textContent = `${S.scan.pages.length} pages · ${S.sel.size} selected · ` +
+    (turned.length ? `${turned.length} set to turn: ` + byTurn.map(([t, l]) => `${compact(l)} (${turnName(t)})`).join("; ") : "none set to turn");
+  $("save").disabled = S.busy || !canSave();
+}
+function setSel(list) { const old = [...S.sel]; S.sel = new Set(list); for (const i of new Set(old.concat(list))) drawThumb(i); updatePages(); }
+$("thumbs").addEventListener("click", e => {
+  const fig = e.target.closest(".thumb");
+  if (!fig || !S.scan) return;
+  const i = Number(fig.dataset.i);
+  if (e.shiftKey && S.anchor !== null) {
+    const a = Math.min(S.anchor, i), b = Math.max(S.anchor, i), add = [];
+    for (let k = a; k <= b; k++) add.push(k);
+    setSel([...S.sel, ...add]);
+  } else {
+    const s = new Set(S.sel);
+    if (s.has(i)) s.delete(i); else s.add(i);
+    S.anchor = i; setSel([...s]);
+  }
+});
+$("selSpec").addEventListener("click", () => {
+  if (!S.scan) return;
+  try { setSel(parsePages($("spec").value, S.scan.pages.length)); $("spec").removeAttribute("aria-invalid"); showErr("specErr", ""); }
+  catch (e) { $("spec").setAttribute("aria-invalid", "true"); showErr("specErr", `That selection does not work: ${e.message}.`); }
+});
+$("spec").addEventListener("keydown", e => { if (e.key === "Enter") $("selSpec").click(); });
+$("selAll").addEventListener("click", () => { if (S.scan) setSel(S.scan.pages.map((p, i) => i)); });
+$("selNone").addEventListener("click", () => setSel([]));
+$("selFlag").addEventListener("click", () => { if (S.why) setSel([...S.why.keys()].filter(i => i < S.scan.pages.length)); });
+document.querySelectorAll("[data-turn]").forEach(b => b.addEventListener("click", () => {
+  if (!S.scan) return;
+  if (!S.sel.size) { showErr("specErr", "Select the pages to turn first: click them, or type a selection."); return; }
+  showErr("specErr", "");
+  for (const i of S.sel) { S.pending[i] = (S.pending[i] + Number(b.dataset.turn)) % 360; drawThumb(i); }
+  updatePages();
+}));
+$("turnReset").addEventListener("click", () => {
+  if (!S.scan) return;
+  const list = S.sel.size ? [...S.sel] : S.scan.pages.map((p, i) => i);
+  for (const i of list) { S.pending[i] = 0; drawThumb(i); }
+  updatePages();
+});
+$("straighten").addEventListener("click", () => {
+  if (!S.res) return;
+  for (const row of S.res.report.rows) if (row.turn) { S.pending[row.scan_page - 1] = row.turn; drawThumb(row.scan_page - 1); }
+  updatePages();
+});
+function renderList() {
+  $("listTable").innerHTML = `<thead><tr><th>page</th><th>/Rotate</th><th>size (pt)</th><th class="l">shape</th></tr></thead><tbody>` +
+    S.scan.list.map(p => `<tr><td>${p.page}</td><td>${p.rotate}°</td><td>${Math.round(p.width)} × ${Math.round(p.height)}</td><td class="l">${p.shape}</td></tr>`).join("") + "</tbody>";
+}
+
+/* ---------- saving ---------- */
+$("save").addEventListener("click", async () => {
+  showErr("saveErr", ""); $("saveNote").textContent = "";
+  const sc = S.scan, turns = new Map();
+  sc.pages.forEach((p, i) => { if (S.pending[i]) turns.set(i, S.pending[i]); });
+  setBusy(true);
+  try {
+    const r = rotatePdf(sc.bytes, turns), want = sc.pages.map((p, i) => (p.rotate + S.pending[i]) % 360);
+    progress("Checking the new file with pdf.js…");
+    const task = openPdf(r.bytes, sc.password !== null ? (update => update(sc.password)) : null), doc = await task.promise;
+    try {
+      if (doc.numPages !== want.length) throw new Error(`it has ${doc.numPages} pages instead of ${want.length}`);
+      for (let i = 0; i < want.length; i++) { const got = (await doc.getPage(i + 1)).rotate; if (got !== want[i]) throw new Error(`page ${i + 1} reads ${got}° instead of ${want[i]}°`); }
+    } finally { task.destroy(); }
+    const name = sc.name.replace(/\.pdf$/i, "") + "_rotated.pdf";
+    download(name, r.bytes, "application/pdf");
+    const list = [...turns.keys()].map(i => i + 1);
+    $("saveNote").textContent = `Saved ${name}: turned page(s) ${compact(list)}. pdf.js read every page back with the intended rotation; the file is the original plus ${(r.bytes.length - sc.bytes.length).toLocaleString()} bytes.`;
+    progress("");
+  } catch (e) {
+    progress("");
+    showErr("saveErr", `Not saved: ${msg(e)}.`);
+  } finally {
+    setBusy(false); updatePages();
+  }
+});
+
+/* ---------- wiring ---------- */
+async function guarded(fn, errId) {
+  showErr(errId, "");
+  setBusy(true); S.cancel = false;
+  try { await fn(); } catch (e) { if (!(e instanceof Cancelled)) showErr(errId, `Could not read the file: ${msg(e)}.`); }
+  finally { progress(""); $("pwRow").hidden = true; setBusy(false); updatePages(); }
+}
+$("scanFile").addEventListener("change", () => {
+  const f = $("scanFile").files[0];
+  if (f) guarded(() => loadScan(f).catch(e => { $("scanInfo").textContent = `${f.name}: ${e instanceof Cancelled ? "stopped; choose the file again to read it" : "not read"}.`; closeScan(); $("noPages").hidden = false; $("pagesBody").hidden = true; throw e; }), "fileErr");
+});
+$("tmplFile").addEventListener("change", () => {
+  const f = $("tmplFile").files[0];
+  if (f) { $("modeTmpl").checked = true; guarded(() => loadTmpl(f).catch(e => { $("tmplInfo").textContent = `${f.name}: ${e instanceof Cancelled ? "stopped; choose the file again to read it" : "not read"}.`; S.tmpl = null; throw e; }), "fileErr"); }
+});
+for (const id of ["modeTmpl", "modeFirst"]) $(id).addEventListener("change", updateCheckButton);
+$("nFirst").addEventListener("input", () => { $("modeFirst").checked = true; updateCheckButton(); });
+$("check").addEventListener("click", runCheck);
+$("stop").addEventListener("click", () => { S.cancel = true; if (S.stopWorkers) S.stopWorkers(); });
+$("dlTxt").addEventListener("click", () => { if (S.res) download("check_scan_report.txt", reportText(S.res.report, S.res.tmplLine), "text/plain"); });
+$("dlCsv").addEventListener("click", () => { if (S.res) download("check_scan_pages.csv", reportCsv(S.res.report), "text/csv"); });
+updateCheckButton();
+</script>
+</body>
+</html>
