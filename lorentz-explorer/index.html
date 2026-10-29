@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lorentz Oscillator Explorer</title>
+<style>
+  /* Plain page: white, black text, system font, native controls. Layout only. */
+  :root { color-scheme: light; }
+  body { margin: 0; background: #fff; color: #000; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; padding-block: 16px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 8px; }
+  h3 { font-size: 15px; margin: 14px 0 4px; }
+  p { margin: 0 0 8px; }
+  section { border-top: 1px solid #bbb; padding-block: 16px; }
+  .caption { color: #333; font-size: 14px; max-width: 90ch; margin-top: 8px; }
+  .note { color: #555; font-size: 13px; }
+  .error { color: #b00000; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-block: 8px; }
+  .sliders { display: grid; grid-template-columns: max-content minmax(120px, 1fr) 8em max-content; gap: 6px 10px; align-items: center; margin-block: 8px; max-width: 860px; }
+  .sliders input[type=range] { width: 100%; margin: 0; }
+  .sliders input[type=number] { width: 100%; box-sizing: border-box; }
+  .sliders .unit { color: #444; font-size: 13px; }
+  input[aria-invalid=true] { outline: 2px solid #b00000; }
+  .num { font-variant-numeric: tabular-nums; }
+  .split { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
+  .plotbox { min-width: 0; }
+  .plotbox canvas { display: block; width: 100%; cursor: crosshair; touch-action: pan-y; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; margin: 8px 0 2px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .readout { font-size: 13px; min-height: 1.45em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 4px 7px; text-align: right; white-space: nowrap; }
+  th { background: #f2f2f2; font-weight: 600; }
+  td.l, th.l { text-align: left; }
+  .eq { font-family: "Times New Roman", Times, serif; font-size: 17px; overflow-x: auto; margin: 4px 0 8px; padding-left: 1em; }
+  ol.eqs { padding-left: 1.6em; margin: 0; max-width: 100ch; }
+  ol.eqs > li { margin-block: 14px; }
+  ol.eqs > li > p:first-child { font-weight: 600; margin-bottom: 2px; }
+  .osc { margin-top: 10px; }
+  .osc .row { margin-block: 4px; }
+  label.inline { display: inline-flex; gap: 6px; align-items: center; }
+  input.short { width: 7em; }
+  @media (max-width: 920px) { .split { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) {
+    .sliders { grid-template-columns: minmax(0, 1fr) 6.5em max-content; }
+    .sliders label { grid-column: 1 / -1; margin-top: 4px; }
+    th, td { padding: 3px 4px; }
+  }
+  :focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<main>
+<h1>Lorentz oscillator: absorption and refractive index</h1>
+<p>Pick an example or set the number density <i>N</i>, the background index <i>n</i><sub>bg</sub> and up to three oscillators
+(centre wavelength, linewidth, oscillator strength, mass, charge). The page computes α(ω) and <i>n</i>(ω) exactly from
+ε̃<sub>r</sub> = <i>n</i><sub>bg</sub>² + χ̃ and can overlay the two standard approximations: the dilute expansion (|χ̃| ≪ 1)
+and the near-resonance Lorentzian (γ ≪ ω<sub>0</sub>). Everything recalculates as you type or drag. Equations are at the bottom.</p>
+<noscript><p class="error">This page needs JavaScript.</p></noscript>
+
+<section id="inputs">
+  <h2>Medium</h2>
+  <div class="row">
+    <span class="note">Examples:</span>
+    <button type="button" data-preset="na">Na vapour, 589 nm</button>
+    <button type="button" data-preset="he">He⁺, 30.4 nm</button>
+    <button type="button" data-preset="air">Air, 1 atm</button>
+    <button type="button" data-preset="silica">Fused silica glass</button>
+    <button type="button" data-preset="bk7">BK7 glass</button>
+  </div>
+  <p id="presetNote" class="note"></p>
+  <div class="sliders">
+    <label for="NN"><i>N</i>, number density</label><input type="range" id="NR" autocomplete="off"><input type="number" id="NN" step="any" autocomplete="off"><span class="unit">m⁻³</span>
+    <label for="nbgN"><i>n</i><sub>bg</sub>, background index</label><input type="range" id="nbgR" autocomplete="off"><input type="number" id="nbgN" step="any" autocomplete="off"><span class="unit"></span>
+  </div>
+  <p class="note">Sliders for <i>N</i>, Δν, λ₀ and <i>m</i> move on a log scale. The number boxes take any value, e.g. 1e17.
+  <i>n</i><sub>bg</sub> is the index of the host the oscillators sit in (1 for a gas in vacuum, ~1.33 for a solute in water).</p>
+  <div id="oscs"></div>
+  <p id="inErr" class="error" role="alert" hidden></p>
+</section>
+
+<section id="view">
+  <h2>Plot</h2>
+  <div class="row">
+    <label class="inline" for="axis">x axis
+      <select id="axis"><option value="det">Detuning around one line (linear)</option><option value="lam">Wavelength (log)</option></select></label>
+    <label class="inline" for="oscK" data-opt="det">line
+      <select id="oscK"></select></label>
+    <label class="inline" for="span" data-opt="det">± <input type="number" id="span" class="short" step="any" min="0.5" autocomplete="off"> FWHM</label>
+    <label class="inline" data-opt="det"><input type="checkbox" id="fwhmU"> x in units of Δν</label>
+    <label class="inline" for="lmin" data-opt="lam">from <input type="number" id="lmin" class="short" step="any" autocomplete="off"> to
+      <input type="number" id="lmax" class="short" step="any" autocomplete="off" aria-label="largest wavelength"> nm</label>
+  </div>
+  <div class="row">
+    <label class="inline"><input type="checkbox" id="logA"> log scale for α</label>
+    <label class="inline" for="nMode">lower pane
+      <select id="nMode"><option value="res">n − n_bg (resonant contribution)</option><option value="abs">n</option></select></label>
+    <label class="inline" for="cmp">compare with
+      <select id="cmp"><option value="none">nothing</option><option value="dilute">dilute expansion (|χ| ≪ 1)</option><option value="lorentz">near-resonance Lorentzian (γ ≪ ω₀)</option></select></label>
+  </div>
+  <div class="row">
+    <span>α axis</span><label class="inline"><input type="checkbox" id="yAauto"> auto</label>
+    <label class="inline" for="yAlo">from <input type="number" id="yAlo" class="short" step="any" autocomplete="off"> to
+      <input type="number" id="yAhi" class="short" step="any" autocomplete="off" aria-label="α axis top"> m⁻¹</label>
+  </div>
+  <div class="row">
+    <span id="yNname">n axis</span><label class="inline"><input type="checkbox" id="yNauto"> auto</label>
+    <label class="inline" for="yNlo">from <input type="number" id="yNlo" class="short" step="any" autocomplete="off"> to
+      <input type="number" id="yNhi" class="short" step="any" autocomplete="off" aria-label="n axis top"></label>
+  </div>
+  <p class="note">Untick "auto" to type your own y limits; the boxes start at the current range. In log mode the α limits must be above 0. Dragging on the plot still zooms x.</p>
+  <p id="viewErr" class="error" role="alert" hidden></p>
+</section>
+
+<section id="results">
+  <h2>Result</h2>
+  <div class="split">
+    <div>
+      <div id="legend" class="legend" aria-hidden="true"></div>
+      <div id="readout" class="readout note"></div>
+      <div id="plotBox" class="plotbox"><canvas id="plotCanvas" role="img" aria-label="Absorption coefficient (top) and refractive index (bottom) against frequency or wavelength"></canvas></div>
+      <div class="row">
+        <button type="button" id="zoomOut">Full range</button>
+        <span class="note">Drag across the plot to zoom in x, double-click to zoom out, hover to read values.</span>
+      </div>
+      <p id="mainCaption" class="caption"></p>
+    </div>
+    <div>
+      <div class="tablewrap"><table id="table"></table></div>
+      <p id="checkLine" class="caption"></p>
+      <p id="validity" class="caption"></p>
+    </div>
+  </div>
+</section>
+
+<section id="glass">
+  <h2>Example spectrum: fused silica glass</h2>
+  <p>The same model for a real glass: Malitson's Sellmeier terms for fused silica turned into two UV electron oscillators and one
+  IR Si–O vibration, with linewidths added by hand. Fixed example; load "Fused silica glass" above to change it.</p>
+  <div id="glassLegend" class="legend" aria-hidden="true"></div>
+  <div id="glassReadout" class="readout note"></div>
+  <div id="glassBox" class="plotbox"><canvas id="glassCanvas" role="img" aria-label="Fused silica: absorption coefficient and refractive index from 30 nm to 50 µm"></canvas></div>
+  <div class="row"><button type="button" id="glassZoomOut">Full range</button><span class="note">Same zoom and hover as above.</span></div>
+  <p class="caption">Glass is transparent between its UV electronic absorption (below ~0.2 µm) and its IR lattice absorption (above ~4 µm);
+  the visible band (grey) sits inside that window, where <i>n</i> falls slowly with wavelength (normal dispersion, Cauchy's formula).
+  Each resonance makes the same dispersive wiggle in <i>n</i> as the Na line, just much broader. The model <i>n</i> (blue) matches the measured
+  Sellmeier curve (orange dashed) to about 10⁻⁵ in the window. The model α in the window is far too large: Lorentzian tails fall off only as a
+  power of the detuning, while real absorption edges fall off exponentially, so the depth of the window (and α in the visible) is not
+  quantitative. Real fused silica has α ≪ 1 m⁻¹ in the visible; the blue band marks roughly where UV-grade silica transmits.</p>
+</section>
+
+<section id="equations">
+  <h2>Equations</h2>
+  <ol class="eqs">
+    <li>
+      <p>Driven charge on a spring</p>
+      <div class="eq"><i>d</i>²<i>x̃</i>/<i>dt</i>² + γ <i>dx̃</i>/<i>dt</i> + ω<sub>0</sub>² <i>x̃</i> = (<i>q</i>/<i>m</i>) <i>Ẽ</i><sub>0</sub> e<sup>−<i>i</i>ω<i>t</i></sup>
+        &emsp;⇒&emsp; <i>x̃</i> = (<i>q</i>/<i>m</i>) <i>Ẽ</i> / (ω<sub>0</sub>² − ω² − <i>i</i>γω)</div>
+      <p class="note"><i>q</i> and <i>m</i> are the charge and mass that oscillate: an electron (<i>q</i> = <i>e</i>, <i>m</i> = <i>m</i><sub>e</sub>) for UV/visible lines,
+      an ion pair (reduced mass, effective charge) for IR vibrations. The nuclear charge of an atom or ion does not enter <i>q</i>; it sets ω<sub>0</sub>.</p>
+    </li>
+    <li>
+      <p>Susceptibility and permittivity</p>
+      <div class="eq">χ̃ = Σ<sub><i>j</i></sub> (<i>N q<sub>j</sub></i>² <i>f<sub>j</sub></i> / ε<sub>0</sub><i>m<sub>j</sub></i>) / (ω<sub><i>j</i></sub>² − ω² − <i>i</i>γ<sub><i>j</i></sub>ω),&emsp; ε̃<sub>r</sub> = <i>n</i><sub>bg</sub>² + χ̃</div>
+      <p class="note">With <i>n</i><sub>bg</sub> = 1 and one <i>q</i>, <i>m</i> this is the usual ε̃ = ε<sub>0</sub>(1 + χ̃). The page writes <i>S<sub>j</sub></i> = <i>N q<sub>j</sub></i>²<i>f<sub>j</sub></i>/ε<sub>0</sub><i>m<sub>j</sub></i> (units rad² s⁻²).</p>
+    </li>
+    <li>
+      <p>Complex wavenumber, absorption coefficient and index, solid curves</p>
+      <div class="eq"><i>k̃</i> = ω√(ε̃μ<sub>0</sub>) = (ω/<i>c</i>) √ε̃<sub>r</sub> = <i>k</i> + <i>i</i>κ,&emsp; <i>n</i> = <i>ck</i>/ω = Re √ε̃<sub>r</sub>,&emsp; α = 2κ = (2ω/<i>c</i>) Im √ε̃<sub>r</sub></div>
+      <p class="note"><i>I</i> = <i>I</i><sub>0</sub> e<sup>−α<i>z</i></sup>; α is in m⁻¹ and 1/α is the distance over which the intensity falls to 1/e. The square root is the branch with Im ≥ 0.</p>
+    </li>
+    <li>
+      <p>Dilute limit, |χ̃| ≪ 1, red dashed</p>
+      <div class="eq"><i>n</i> ≈ <i>n</i><sub>bg</sub> + Re χ̃ / 2<i>n</i><sub>bg</sub>,&emsp; α ≈ (ω / <i>c n</i><sub>bg</sub>) Im χ̃</div>
+      <div class="eq"><i>n</i> = 1 + (<i>Nq</i>²/2ε<sub>0</sub><i>m</i>) Σ <i>f<sub>j</sub></i>(ω<sub><i>j</i></sub>² − ω²) / [(ω<sub><i>j</i></sub>² − ω²)² + γ<sub><i>j</i></sub>²ω²],&emsp;
+        α = (ω²<i>Nq</i>²/ε<sub>0</sub><i>mc</i>) Σ γ<sub><i>j</i></sub><i>f<sub>j</sub></i> / [(ω<sub><i>j</i></sub>² − ω²)² + γ<sub><i>j</i></sub>²ω²]&emsp;(<i>n</i><sub>bg</sub> = 1)</div>
+      <p class="note">Fine for gases; fails for glass, where |χ̃| ≈ 1. The table says which case you are in.</p>
+    </li>
+    <li>
+      <p>Near one resonance, ω<sub>0</sub> + ω ≈ 2ω<sub>0</sub> and γ ≪ ω<sub>0</sub>, orange dashed</p>
+      <div class="eq">α = (<i>Nq</i>²<i>f</i> / 2ε<sub>0</sub><i>mc n</i><sub>bg</sub>) · (γ/2) / [(ω − ω<sub>0</sub>)² + (γ/2)²]</div>
+      <div class="eq"><i>n</i> − <i>n</i><sub>bg</sub> = (<i>Nq</i>²<i>f</i> / 4ε<sub>0</sub><i>m</i>ω<sub>0</sub><i>n</i><sub>bg</sub>) · (ω<sub>0</sub> − ω) / [(ω − ω<sub>0</sub>)² + (γ/2)²]</div>
+      <p class="note">α is a Lorentzian whose FWHM in ω is γ. In the code, each oscillator's Lorentzian is summed.</p>
+    </li>
+    <li>
+      <p>Peak, extrema and the anomalous-dispersion region</p>
+      <div class="eq">α<sub>max</sub> = <i>Nq</i>²<i>f</i> / (ε<sub>0</sub><i>mc</i>γ<i>n</i><sub>bg</sub>)&emsp;at ω = ω<sub>0</sub></div>
+      <div class="eq"><i>n</i> largest at ω<sub>0</sub> − γ/2, smallest at ω<sub>0</sub> + γ/2;&emsp; α there = α<sub>max</sub>/2;&emsp; anomalous-dispersion width = γ (Δν in Hz)</div>
+      <div class="eq">(<i>n</i> − <i>n</i><sub>bg</sub>)<sub>max</sub> = <i>Nq</i>²<i>f</i> / (4ε<sub>0</sub><i>m</i>ω<sub>0</sub>γ<i>n</i><sub>bg</sub>) = α<sub>max</sub> <i>c</i> / 4ω<sub>0</sub> = α<sub>max</sub> λ<sub>0</sub> / 8π</div>
+      <p class="note">α<sub>max</sub> does not depend on ω<sub>0</sub>; (<i>n</i> − <i>n</i><sub>bg</sub>)<sub>max</sub> falls as 1/ω<sub>0</sub>.</p>
+    </li>
+    <li>
+      <p>Units and conversions</p>
+      <div class="eq">ω = 2πν,&emsp; ν = <i>c</i>/λ,&emsp; ω = 2π<i>c</i>/λ,&emsp; ν̃ (cm⁻¹) = 10⁷ / λ(nm),&emsp; γ = 2π Δν<sub>FWHM</sub>,&emsp; 1 u = 1822.89 <i>m</i><sub>e</sub></div>
+      <p class="note">A linewidth quoted in Hz is Δν; the γ in the formulas is in rad/s. Hz and rad/s are both s⁻¹, so the 2π is easy to drop.</p>
+    </li>
+    <li>
+      <p>Sellmeier and Cauchy</p>
+      <div class="eq">γ → 0:&emsp; <i>n</i>² = 1 + Σ<sub><i>j</i></sub> <i>B<sub>j</sub></i> λ² / (λ² − λ<sub><i>j</i></sub>²),&emsp; <i>B<sub>j</sub></i> = <i>S<sub>j</sub></i> / ω<sub><i>j</i></sub>² = <i>Nq<sub>j</sub></i>²<i>f<sub>j</sub></i> / ε<sub>0</sub><i>m<sub>j</sub></i>ω<sub><i>j</i></sub>²</div>
+      <div class="eq">ω ≪ ω<sub>0</sub>, dilute:&emsp; <i>n</i> ≈ 1 + <i>A</i>(1 + <i>B</i>/λ²)</div>
+      <p class="note">The glass examples use published Sellmeier coefficients (fused silica: I. H. Malitson, J. Opt. Soc. Am. 55, 1205 (1965); N-BK7: Schott data sheet)
+      converted with this relation. That fixes <i>N q</i>²<i>f</i>/<i>m</i> for each term; how you split it among <i>N</i>, <i>f</i>, <i>q</i> and <i>m</i> is a choice.</p>
+    </li>
+  </ol>
+</section>
+
+<section id="notes">
+  <h2>Notes on the examples</h2>
+  <ul class="note">
+    <li>Na vapour: a dilute gas with N = 10¹⁷ m⁻³, Δν = 100 MHz and f = 1, simple round numbers for a single line. The real Na D₂ line has f ≈ 0.64 and a natural width of about 10 MHz.</li>
+    <li>He⁺: the 1s→2p line of a hydrogen-like ion (Z = 2): λ₀ = 30.38 nm, f = 0.416, natural width A/2π ≈ 1.6 GHz (A ≈ 1.0×10¹⁰ s⁻¹, 16× hydrogen's Lyman-α).
+    An ionised gas also has free electrons, which add a term with ω<sub>0</sub> = 0 that lowers <i>n</i>; add it as an oscillator with a very long λ₀ if you want to see it.</li>
+    <li>Air: one effective UV oscillator (λ₀ = 77 nm, f = 4.02, N for 15 °C and 1 atm) chosen so that <i>n</i> − 1 = 2.77×10⁻⁴ at 589 nm with the measured slope between 400 and 700 nm.
+    Real air absorbs below ~200 nm through many O₂ and N₂ bands; this single line only reproduces their effect on <i>n</i> in the visible.</li>
+    <li>Glass: N = 2.2×10²⁸ m⁻³ (SiO₂ units in fused silica, used as an effective value for BK7). UV widths are 2% of ν₀, the IR width is 60 cm⁻¹; both are illustrative.</li>
+  </ul>
+</section>
+</main>
+
+<script id="core">
+"use strict";
+/* Numerical core: pure functions, no DOM. Checked in Node by the validation script. */
+const PHYS = { c: 299792458, e: 1.602176634e-19, me: 9.1093837015e-31, eps0: 8.8541878128e-12, amu: 1.66053906660e-27 };
+
+// one oscillator, input {lam (nm), f, dnu (Hz FWHM), m (in m_e), q (in e)}
+function derivedOsc(o, N, nbg) {
+  const { c, e, me, eps0 } = PHYS;
+  const nu0 = c / (o.lam * 1e-9), w0 = 2 * Math.PI * nu0, g = 2 * Math.PI * o.dnu;
+  const m = o.m * me, q = o.q * e, S = N * q * q * o.f / (eps0 * m);
+  return { lam: o.lam, nu0, w0, g, dnu: o.dnu, m, q, f: o.f, S, B: S / (w0 * w0), wavenumber: nu0 / c / 100,
+    alphaMax: S / (c * g * nbg), dnMax: S / (4 * w0 * g * nbg), nuMaxN: nu0 - o.dnu / 2, nuMinN: nu0 + o.dnu / 2 };
+}
+// complex susceptibility at angular frequency w (rad/s)
+function chiAt(w, list) {
+  let re = 0, im = 0;
+  for (const d of list) {
+    const a = (d.w0 - w) * (d.w0 + w), b = d.g * w, den = a * a + b * b;
+    re += d.S * a / den; im += d.S * b / den;
+  }
+  return [re, im];
+}
+// principal square root, written to keep the small imaginary part when re >> im
+function csqrt(re, im) {
+  const r = Math.hypot(re, im);
+  if (r === 0) return [0, 0];
+  if (re >= 0) { const x = Math.sqrt((r + re) / 2); return [x, im / (2 * x)]; }
+  const y = Math.sqrt((r - re) / 2) * (im < 0 ? -1 : 1);
+  return [Math.abs(im) / (2 * Math.abs(y)), y];
+}
+// exact, dilute and near-resonance Lorentzian n and alpha on a grid of w
+function spectrum(ws, list, nbg) {
+  const c = PHYS.c, len = ws.length;
+  const out = { n: new Float64Array(len), alpha: new Float64Array(len), nD: new Float64Array(len), alphaD: new Float64Array(len),
+    nL: new Float64Array(len), alphaL: new Float64Array(len), chiMax: 0 };
+  for (let i = 0; i < len; i++) {
+    const w = ws[i], [cr, ci] = chiAt(w, list), [nr, ni] = csqrt(nbg * nbg + cr, ci);
+    out.n[i] = nr; out.alpha[i] = 2 * w * ni / c;
+    out.nD[i] = nbg + cr / (2 * nbg); out.alphaD[i] = w * ci / (c * nbg);
+    let nl = nbg, al = 0;
+    for (const d of list) {
+      const dl = w - d.w0, h = d.g / 2, den = dl * dl + h * h;
+      al += d.S / (2 * c * nbg) * h / den;
+      nl += d.S / (4 * d.w0 * nbg) * (-dl) / den;
+    }
+    out.nL[i] = nl; out.alphaL[i] = al;
+    out.chiMax = Math.max(out.chiMax, Math.hypot(cr, ci));
+  }
+  return out;
+}
+// frequency grid nu0 ± span·FWHM (Hz)
+function detuningGrid(nu0, dnu, span, npts) {
+  const nu = new Float64Array(npts);
+  for (let i = 0; i < npts; i++) nu[i] = nu0 + dnu * span * (2 * i / (npts - 1) - 1);
+  return nu;
+}
+// log-spaced wavelengths (nm) plus dense points across every line inside the range, ascending
+function wavelengthGrid(lmin, lmax, list, npts) {
+  const a = Math.log(lmin), b = Math.log(lmax), arr = [];
+  for (let i = 0; i < npts; i++) arr.push(Math.exp(a + (b - a) * i / (npts - 1)));
+  for (const d of list) for (let k = -240; k <= 240; k++) {
+    const nu = d.nu0 + k / 20 * d.dnu;
+    if (nu <= 0) continue;
+    const lam = PHYS.c / nu * 1e9;
+    if (lam > lmin && lam < lmax) arr.push(lam);
+  }
+  arr.sort((p, q) => p - q);
+  const out = [];
+  for (const v of arr) if (!out.length || v > out[out.length - 1]) out.push(v);
+  return Float64Array.from(out);
+}
+function argMax(y) { let k = 0; for (let i = 1; i < y.length; i++) if (y[i] > y[k]) k = i; return k; }
+function argMin(y) { let k = 0; for (let i = 1; i < y.length; i++) if (y[i] < y[k]) k = i; return k; }
+// parabola through the point and its neighbours: position and value of the extremum
+function refineExtremum(x, y, i) {
+  if (i <= 0 || i >= x.length - 1) return { x: x[i], y: y[i] };
+  const t0 = x[i - 1] - x[i], t2 = x[i + 1] - x[i], d0 = y[i - 1] - y[i], d2 = y[i + 1] - y[i];
+  const r = (d2 / t2 - d0 / t0) / (t2 - t0), p = d0 / t0 - r * t0;
+  if (r === 0) return { x: x[i], y: y[i] };
+  return { x: x[i] - p / (2 * r), y: y[i] - p * p / (4 * r) };
+}
+function interp(x, y, xv) {
+  let lo = 0, hi = x.length - 1;
+  if (xv <= x[lo]) return y[lo]; if (xv >= x[hi]) return y[hi];
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (x[mid] <= xv) lo = mid; else hi = mid; }
+  return y[lo] + (y[hi] - y[lo]) * (xv - x[lo]) / (x[hi] - x[lo]);
+}
+// Sellmeier: n² = 1 + Σ B λ²/(λ² − λj²), terms [[B, λj in µm], ...]
+function sellmeierN(lamNm, terms) {
+  const l2 = (lamNm / 1000) ** 2;
+  let s = 1;
+  for (const [B, lj] of terms) s += B * l2 / (l2 - lj * lj);
+  return Math.sqrt(s);
+}
+const SILICA = [[0.6961663, 0.0684043], [0.4079426, 0.1162414], [0.8974794, 9.896161]];
+const BK7 = [[1.03961212, Math.sqrt(0.00600069867)], [0.231792344, Math.sqrt(0.0200179144)], [1.01046945, Math.sqrt(103.560653)]];
+const sig6 = v => Number(v.toPrecision(6));
+// Sellmeier terms -> oscillators: first two terms are electrons (q = e, m = m_e, f from B);
+// the last is an ion vibration (reduced mass in u, f = 1, effective charge from B)
+function glassOscillators(terms, N, uvFrac, irMassU, irDnu) {
+  const { c, e, me, eps0, amu } = PHYS;
+  return terms.map(([B, lj], j) => {
+    const lam = lj * 1000, w0 = 2 * Math.PI * c / (lam * 1e-9), nu0 = c / (lam * 1e-9);
+    if (j < terms.length - 1) return { on: true, lam: sig6(lam), f: sig6(B * w0 * w0 * eps0 * me / (N * e * e)), dnu: sig6(uvFrac * nu0), m: 1, q: 1 };
+    const m = irMassU * amu;
+    return { on: true, lam: sig6(lam), f: 1, dnu: irDnu, m: sig6(m / me), q: sig6(Math.sqrt(B * w0 * w0 * eps0 * m / N) / e) };
+  });
+}
+</script>
+
+<script>
+"use strict";
+(function () {
+const $ = id => document.getElementById(id);
+const FONT = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+const COL = { exact: "#000", n: "#1f5fbf", dilute: "#d40000", lorentz: "#c65a12", zero: "#999", mark: "#d40000" };
+const NOSC = 3, AMU_ME = PHYS.amu / PHYS.me, GLASS_N = 2.205e28;
+
+const blank = () => ({ on: false, lam: 500, f: 1, dnu: 1e12, m: 1, q: 1 });
+const fill = list => { const a = list.map(o => ({ ...o })); while (a.length < NOSC) a.push(blank()); return a; };
+const PRESETS = {
+  na: { N: 1e17, nbg: 1, osc: [{ on: true, lam: 589, f: 1, dnu: 1e8, m: 1, q: 1 }],
+    view: { axis: "det", k: 0, span: 5, fwhmU: false, logA: false, nMode: "res", cmp: "lorentz" },
+    note: "One Lorentz oscillator per atom, N = 10¹⁷ m⁻³, Δν = 100 MHz, f = 1, n ≈ 1. The lower pane is the resonant contribution n − 1." },
+  he: { N: 1e17, nbg: 1, osc: [{ on: true, lam: 30.378, f: 0.416, dnu: 1.595e9, m: 1, q: 1 }],
+    view: { axis: "det", k: 0, span: 5, fwhmU: false, logA: false, nMode: "res", cmp: "lorentz" },
+    note: "He⁺ 1s→2p at the same N as the Na example. λ₀ is ~19× shorter and the natural width ~16× larger, so α_max drops by the width ratio and (n − 1)_max drops further, by 1/ω₀ as well." },
+  air: { N: 2.547e25, nbg: 1, osc: [{ on: true, lam: 77, f: 4.02, dnu: 2e14, m: 1, q: 1 }],
+    view: { axis: "lam", lmin: 40, lmax: 3000, logA: true, nMode: "res", cmp: "dilute" },
+    note: "Air at 15 °C, 1 atm as one effective UV oscillator. Hover at 589 nm: n − 1 ≈ 2.77×10⁻⁴. In the visible, n rises toward the blue: normal dispersion on the low-frequency side of the resonance." },
+  silica: { N: GLASS_N, nbg: 1, osc: glassOscillators(SILICA, GLASS_N, 0.02, 10.18, 1.8e12),
+    view: { axis: "lam", lmin: 30, lmax: 50000, logA: true, nMode: "abs", cmp: "dilute" },
+    note: "Fused silica from Malitson's Sellmeier terms: two UV electron oscillators and an IR Si–O vibration (reduced mass 10.18 u, effective charge from B). |χ̃| is not small, so the dilute curves (red) are visibly wrong here." },
+  bk7: { N: GLASS_N, nbg: 1, osc: glassOscillators(BK7, GLASS_N, 0.02, 10.18, 1.8e12),
+    view: { axis: "lam", lmin: 30, lmax: 50000, logA: true, nMode: "abs", cmp: "none" },
+    note: "Schott N-BK7 from its Sellmeier terms, converted the same way (N used as an effective value). Hover at 587.6 nm: n ≈ 1.5168." },
+};
+let state = null, curPreset = "na";
+const MAIN = { box: "plotBox", canvas: "plotCanvas", readout: "readout", H: 480, data: null, view: null, hover: null, drag: null, layout: null };
+const GLASS = { box: "glassBox", canvas: "glassCanvas", readout: "glassReadout", H: 440, data: null, view: null, hover: null, drag: null, layout: null };
+
+/* ---------- formatting ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const minus = s => s.replace(/^-/, "−").replace(/e-/, "e−");
+const SUP = { "-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+const sup = n => String(n).split("").map(ch => SUP[ch] || ch).join("");
+function fmtG(v, n) {
+  if (v === undefined || v === null || Number.isNaN(v)) return "—";
+  if (v === 0) return "0";
+  const a = Math.abs(v), p = n || 5;
+  if (a >= 1e-3 && a < 1e5) return minus(String(Number(v.toPrecision(p))));
+  const [mant, ex] = v.toExponential(p - 1).split("e");
+  return minus(String(Number(mant))) + "×10" + sup(Number(ex));
+}
+const boxVal = v => { const r = Number(v.toPrecision(6)), a = Math.abs(r); return a !== 0 && (a >= 1e6 || a < 1e-3) ? r.toExponential().replace("e+", "e") : String(r); };
+function niceStep(range, n) {
+  const raw = range / Math.max(1, n), p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+}
+function fmtNum(v, step) {
+  const d = Math.max(0, -Math.floor(Math.log10(step) + 1e-9)), s = v.toFixed(Math.min(d, 8));
+  return minus(/^-0\.?0*$/.test(s) ? s.slice(1) : s);
+}
+const fmtLen = nm => nm >= 1000 ? `${Number((nm / 1000).toPrecision(3))} µm` : `${Number(nm.toPrecision(3))} nm`;
+function hzUnit(span) {
+  if (span < 2e3) return { s: 1, name: "Hz" };
+  if (span < 2e6) return { s: 1e3, name: "kHz" };
+  if (span < 2e9) return { s: 1e6, name: "MHz" };
+  if (span < 2e12) return { s: 1e9, name: "GHz" };
+  return { s: 1e12, name: "THz" };
+}
+
+/* ---------- canvas helpers ---------- */
+function prepCanvas(host, canvas, H) {
+  const W = Math.max(260, host.clientWidth), dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); }
+  canvas.style.height = H + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+  ctx.font = FONT; ctx.lineJoin = "round";
+  return { ctx, W };
+}
+function axisLine(ctx, x0, y0, x1, y1) { ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+function yTicksLin(ctx, L, top, bot, lo, hi, ymap, scale) {
+  axisLine(ctx, L - 0.5, top, L - 0.5, bot);
+  const st = niceStep(hi - lo, Math.max(2, Math.floor((bot - top) / 34)));
+  ctx.fillStyle = "#000"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let v = Math.ceil(lo / st - 1e-9) * st; v <= hi + 1e-9 * st; v += st) {
+    const py = Math.round(ymap(v)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(L - 5, py); ctx.lineTo(L, py); ctx.stroke();
+    ctx.fillText(fmtNum(v / scale, st / scale), L - 7, py);
+  }
+}
+function yTicksLog(ctx, L, top, bot, lo, hi, ymap) { // lo, hi are log10 values
+  axisLine(ctx, L - 0.5, top, L - 0.5, bot);
+  const every = Math.max(1, Math.ceil((hi - lo) / Math.max(2, Math.floor((bot - top) / 26))));
+  ctx.fillStyle = "#000"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let p = Math.ceil(lo); p <= Math.floor(hi); p++) {
+    const py = Math.round(ymap(p)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(L - (p % every ? 3 : 5), py); ctx.lineTo(L, py); ctx.stroke();
+    if (p % every === 0) ctx.fillText("10" + sup(p), L - 7, py);
+  }
+}
+function xTicksLin(ctx, L, R, B, lo, hi, xmap, label) {
+  axisLine(ctx, L, B + 0.5, R, B + 0.5);
+  const st = niceStep(hi - lo, Math.max(3, Math.floor((R - L) / 80)));
+  ctx.fillStyle = "#000"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let v = Math.ceil(lo / st - 1e-9) * st; v <= hi + 1e-9 * st; v += st) {
+    const px = Math.round(xmap(v)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(px, B); ctx.lineTo(px, B + 5); ctx.stroke();
+    if (label !== null) ctx.fillText(fmtNum(v, st), px, B + 7);
+  }
+  if (label) ctx.fillText(label, (L + R) / 2, B + 22);
+}
+function xTicksLog(ctx, L, R, B, lo, hi, xmap, label, fmt) {
+  axisLine(ctx, L, B + 0.5, R, B + 0.5);
+  const d0 = Math.floor(Math.log10(lo)), d1 = Math.ceil(Math.log10(hi)), decades = Math.log10(hi / lo);
+  const subs = decades <= 1.2 ? [1, 1.5, 2, 3, 5, 7] : decades <= 3.2 ? [1, 2, 5] : [1];
+  const pxPerDec = (R - L) / decades, labelEvery = pxPerDec > 60 ? 1 : pxPerDec > 30 ? 2 : 3;
+  ctx.fillStyle = "#000"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let d = d0; d <= d1; d++) for (const s of [1, 2, 3, 4, 5, 6, 7, 8, 9, 1.5]) {
+    const v = s * Math.pow(10, d);
+    if (v < lo * (1 - 1e-9) || v > hi * (1 + 1e-9)) continue;
+    const px = Math.round(xmap(v)) + 0.5, major = subs.includes(s);
+    if (s === 1.5 && !major) continue;
+    ctx.beginPath(); ctx.moveTo(px, B); ctx.lineTo(px, B + (major ? 5 : 3)); ctx.stroke();
+    if (label !== null && major && (s !== 1 || ((d % labelEvery) + labelEvery) % labelEvery === 0)) ctx.fillText(fmt(v), px, B + 7);
+  }
+  if (label) ctx.fillText(label, (L + R) / 2, B + 22);
+}
+function lowerIdx(x, v) { let lo = 0, hi = x.length; while (lo < hi) { const m = (lo + hi) >> 1; if (x[m] < v) lo = m + 1; else hi = m; } return lo; }
+
+// one pane: autoscaled y over the visible x range; returns its y map (value -> px)
+function drawPane(ctx, pane, x, i0, i1, xm, L, R, top, bot) {
+  const tr = pane.log ? (v => (v > 0 ? Math.log10(v) : NaN)) : (v => v);
+  let ylo = Infinity, yhi = -Infinity;
+  for (const s of pane.series) for (let i = i0; i <= i1; i++) { const v = tr(s.y[i]); if (Number.isFinite(v)) { ylo = Math.min(ylo, v); yhi = Math.max(yhi, v); } }
+  if (pane.extraY) for (const v0 of pane.extraY) { const v = tr(v0); if (Number.isFinite(v)) { ylo = Math.min(ylo, v); yhi = Math.max(yhi, v); } }
+  if (!Number.isFinite(ylo)) { ylo = 0; yhi = 1; }
+  if (pane.log) { ylo = Math.max(ylo, yhi - 14); ylo = Math.floor(ylo - 0.05); yhi = Math.ceil(yhi + 0.05); }
+  else { if (!(yhi > ylo)) { const a = Math.abs(yhi) || 1; ylo -= 0.1 * a; yhi += 0.1 * a; } const pad = 0.07 * (yhi - ylo); ylo -= pad; yhi += pad; }
+  if (pane.manual) { const a = tr(pane.manual[0]), b = tr(pane.manual[1]); if (Number.isFinite(a) && Number.isFinite(b) && b > a) { ylo = a; yhi = b; } }
+  pane.used = pane.log ? [Math.pow(10, ylo), Math.pow(10, yhi)] : [ylo, yhi];
+  const ym = v => bot - (tr(v) - ylo) / (yhi - ylo) * (bot - top), ymRaw = t => bot - (t - ylo) / (yhi - ylo) * (bot - top);
+  let label = pane.label, scale = 1;
+  if (pane.log) yTicksLog(ctx, L, top, bot, ylo, yhi, ymRaw);
+  else {
+    const big = Math.max(Math.abs(ylo), Math.abs(yhi)), spanY = yhi - ylo;
+    if (big < 1e-2 || big >= 1e4) { const p = Math.floor(Math.log10(big)); scale = Math.pow(10, p); label += ` (×10${sup(p)})`; }
+    else if (spanY < 1e-3 * big) { /* small range on a large offset: keep plain numbers, ticks show the digits */ }
+    if (pane.ref !== undefined && pane.ref > ylo && pane.ref < yhi) {
+      ctx.strokeStyle = COL.zero; ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+      const py = Math.round(ymRaw(pane.ref)) + 0.5; ctx.beginPath(); ctx.moveTo(L, py); ctx.lineTo(R, py); ctx.stroke(); ctx.setLineDash([]);
+    }
+    yTicksLin(ctx, L, top, bot, ylo, yhi, ymRaw, scale);
+  }
+  ctx.save(); ctx.fillStyle = "#000"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.translate(2, (top + bot) / 2); ctx.rotate(-Math.PI / 2); ctx.fillText(label, 0, 0); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(L, top, R - L, bot - top); ctx.clip();
+  for (const h of pane.hlines || []) {
+    const py = Math.round(ym(h)) + 0.5; if (!Number.isFinite(py)) continue;
+    ctx.strokeStyle = COL.zero; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(L, py); ctx.lineTo(R, py); ctx.stroke(); ctx.setLineDash([]);
+  }
+  for (const s of pane.series) {
+    ctx.strokeStyle = s.color; ctx.lineWidth = s.dash ? 1.3 : 1.5; ctx.setLineDash(s.dash ? [6, 4] : []); ctx.beginPath();
+    let pen = false;
+    for (let i = i0; i <= i1; i++) {
+      const v = tr(s.y[i]);
+      if (!Number.isFinite(v)) { pen = false; continue; }
+      const px = xm(x[i]), py = ymRaw(v);
+      if (pen) ctx.lineTo(px, py); else { ctx.moveTo(px, py); pen = true; }
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+  for (const p of pane.points || []) {
+    const px = xm(p.x), py = ym(p.y); if (!Number.isFinite(py)) continue;
+    ctx.fillStyle = COL.mark; ctx.beginPath(); ctx.arc(px, py, 3.5, 0, 2 * Math.PI); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawPlot(P) {
+  const host = $(P.box), canvas = $(P.canvas), H = P.H, { ctx, W } = prepCanvas(host, canvas, H);
+  const L = W < 480 ? 62 : 76, R = W - 12, T = 10, B2 = H - 42, gap = 30, ph = (B2 - T - gap) / 2, B1 = T + ph, T2 = B1 + gap;
+  const Dd = P.data;
+  if (!Dd) { P.layout = null; ctx.fillStyle = "#555"; ctx.textAlign = "center"; ctx.fillText("Switch on at least one oscillator", W / 2, H / 2); return; }
+  const x = Dd.x, [lo, hi] = P.view || [x[0], x[x.length - 1]];
+  const tx = Dd.logx ? Math.log10 : (v => v), tlo = tx(lo), thi = tx(hi);
+  const xm = v => L + (tx(v) - tlo) / (thi - tlo) * (R - L);
+  const i0 = Math.max(0, lowerIdx(x, lo) - 1), i1 = Math.min(x.length - 1, lowerIdx(x, hi));
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T, R - L, B2 - T); ctx.clip();
+  for (const sh of Dd.shade || []) {
+    const a = Math.max(L, xm(sh.x0)), b = Math.min(R, xm(sh.x1)); if (!(b > a)) continue;
+    ctx.fillStyle = sh.color; ctx.fillRect(a, T, b - a, B1 - T); ctx.fillRect(a, T2, b - a, B2 - T2);
+  }
+  for (const sh of Dd.shade || []) {
+    const a = Math.max(L, xm(sh.x0)), b = Math.min(R, xm(sh.x1)); if (!(b > a) || !sh.label || b - a < 44) continue;
+    ctx.fillStyle = "#555"; ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText(sh.label, a + 4, T2 + 3 + (sh.row || 0) * 14);
+  }
+  for (const v of Dd.vlines || []) {
+    const px = Math.round(xm(v)) + 0.5; if (px < L || px > R) continue;
+    ctx.strokeStyle = COL.zero; ctx.setLineDash([2, 3]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(px, T); ctx.lineTo(px, B1); ctx.moveTo(px, T2); ctx.lineTo(px, B2); ctx.stroke(); ctx.setLineDash([]);
+  }
+  ctx.restore();
+  drawPane(ctx, Dd.A, x, i0, i1, xm, L, R, T, B1);
+  drawPane(ctx, Dd.n, x, i0, i1, xm, L, R, T2, B2);
+  if (Dd.logx) { xTicksLog(ctx, L, R, B1, lo, hi, xm, null, fmtLen); xTicksLog(ctx, L, R, B2, lo, hi, xm, Dd.xlabel, fmtLen); }
+  else { xTicksLin(ctx, L, R, B1, lo, hi, xm, null); xTicksLin(ctx, L, R, B2, lo, hi, xm, Dd.xlabel); }
+  if (P.drag && P.drag.moved) { const a = Math.max(L, Math.min(P.drag.x0, P.drag.x1)), b = Math.min(R, Math.max(P.drag.x0, P.drag.x1)); ctx.fillStyle = "rgba(0, 60, 200, 0.12)"; ctx.fillRect(a, T, b - a, B2 - T); }
+  if (P.hover !== null && P.hover < x.length) {
+    const px = Math.round(xm(x[P.hover])) + 0.5;
+    if (px >= L && px <= R) { ctx.strokeStyle = "#888"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, T); ctx.lineTo(px, B1); ctx.moveTo(px, T2); ctx.lineTo(px, B2); ctx.stroke(); }
+  }
+  P.layout = { L, R, lo, hi, logx: Dd.logx };
+  if (P.onDraw) P.onDraw(Dd);
+  const i = P.hover;
+  $(P.readout).textContent = i === null ? "Hover over the plot to read values." :
+    [Dd.readX(i)].concat(Dd.A.series.map(s => `${s.name} ${fmtG(s.y[i], 5)} m⁻¹`), Dd.n.series.map(s => `${s.name} ${fmtG(s.y[i], Dd.nDigits || 6)}`)).join("   ");
+}
+
+/* ---------- legend ---------- */
+function legendHTML(items) {
+  return items.map(it => `<span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="${it.color}" stroke-width="1.6"${it.dash ? ' stroke-dasharray="6 4"' : ""}/></svg>${esc(it.name)}</span>`).join("");
+}
+
+/* ---------- main computation ---------- */
+let lastCalc = null;
+function enabled() { return state.osc.map((o, j) => ({ o, j })).filter(z => z.o.on); }
+function buildMain() {
+  const on = enabled();
+  if (!on.length) { MAIN.data = null; lastCalc = null; return; }
+  const list = on.map(z => derivedOsc(z.o, state.N, state.nbg));
+  let kk = on.findIndex(z => z.j === state.k); if (kk < 0) kk = 0;
+  const dk = list[kk], c = PHYS.c, nOff = state.nMode === "res" ? state.nbg : 0;
+  let ws, x, readX, xlabel, logx = false, vlines = [], shade = [], unit = null, nu = null, lam = null;
+  if (state.axis === "det") {
+    nu = detuningGrid(dk.nu0, dk.dnu, state.span, 2001);
+    ws = nu.map(v => 2 * Math.PI * v);
+    unit = state.fwhmU ? { s: dk.dnu, name: "Δν" } : hzUnit(dk.dnu * state.span);
+    x = nu.map(v => (v - dk.nu0) / unit.s);
+    xlabel = state.fwhmU ? "(ν − ν₀) / Δν" : `ν − ν₀ (${unit.name})`;
+    readX = i => `ν − ν₀ = ${fmtG(x[i], 4)} ${unit.name}  (λ = ${fmtG(c / nu[i] * 1e9, 9)} nm)`;
+    vlines = [-0.5 * dk.dnu / unit.s, 0.5 * dk.dnu / unit.s];
+  } else {
+    lam = wavelengthGrid(state.lmin, state.lmax, list, 3000);
+    ws = lam.map(l => 2 * Math.PI * c / (l * 1e-9));
+    x = lam; logx = true; xlabel = "wavelength";
+    readX = i => `λ = ${fmtG(lam[i], 6)} nm (ν̃ = ${fmtG(1e7 / lam[i], 5)} cm⁻¹)`;
+    shade = [{ x0: 380, x1: 750, color: "#e6e6e6", label: "visible" }];
+  }
+  const sp = spectrum(ws, list, state.nbg);
+  const nName = state.nMode === "res" ? "n − n_bg" : "n";
+  const sub = arr => nOff ? arr.map(v => v - nOff) : arr;
+  const A = { log: state.logA, label: "α (m⁻¹)", series: [{ y: sp.alpha, color: COL.exact, name: "α" }] };
+  const Nn = { log: false, label: state.nMode === "res" ? "n − n_bg" : "n", ref: state.nMode === "res" ? 0 : 1,
+    series: [{ y: sub(sp.n), color: COL.n, name: nName }] };
+  if (state.cmp === "dilute") { A.series.push({ y: sp.alphaD, color: COL.dilute, dash: true, name: "α dilute" }); Nn.series.push({ y: sub(sp.nD), color: COL.dilute, dash: true, name: nName + " dilute" }); }
+  if (state.cmp === "lorentz") { A.series.push({ y: sp.alphaL, color: COL.lorentz, dash: true, name: "α Lorentzian" }); Nn.series.push({ y: sub(sp.nL), color: COL.lorentz, dash: true, name: nName + " Lorentzian" }); }
+  let ext = null;
+  if (state.axis === "det") {
+    const nArr = sp.n, iMax = argMax(nArr), iMin = argMin(nArr), iA = argMax(sp.alpha);
+    const pMax = refineExtremum(x, nArr, iMax), pMin = refineExtremum(x, nArr, iMin), pA = refineExtremum(x, sp.alpha, iA);
+    ext = { pMax, pMin, pA, aAtMax: interp(x, sp.alpha, pMax.x), aAtMin: interp(x, sp.alpha, pMin.x), unit };
+    Nn.points = [{ x: pMax.x, y: pMax.y - nOff }, { x: pMin.x, y: pMin.y - nOff }];
+    A.points = [{ x: pMax.x, y: ext.aAtMax }, { x: pMin.x, y: ext.aAtMin }];
+    A.hlines = state.logA ? [] : [pA.y / 2];
+  }
+  const nDigits = state.nMode === "abs" ? 8 : 5;
+  MAIN.data = { x, logx, xlabel, readX, vlines, shade, A, n: Nn, nDigits };
+  setManualY();
+  lastCalc = { on, list, dk, kk, sp, ext };
+}
+
+function renderMainText() {
+  $("legend").innerHTML = MAIN.data ? legendHTML(MAIN.data.A.series.concat(MAIN.data.n.series)) : "";
+  if (!lastCalc) { $("table").innerHTML = ""; $("checkLine").textContent = ""; $("validity").textContent = ""; $("mainCaption").textContent = ""; return; }
+  const { on, list, dk, kk, sp, ext } = lastCalc;
+  const rows = [
+    ["λ₀", d => fmtG(d.lam, 6), "nm"],
+    ["ν₀ = c/λ₀", d => fmtG(d.nu0, 6), "Hz"],
+    ["ω₀ = 2πν₀", d => fmtG(d.w0, 5), "rad/s"],
+    ["ν̃₀ = 10⁷/λ₀(nm)", d => fmtG(d.wavenumber, 6), "cm⁻¹"],
+    ["Δν, FWHM", d => fmtG(d.dnu, 4), "Hz"],
+    ["γ = 2πΔν", d => fmtG(d.g, 4), "rad/s"],
+    ["f", d => fmtG(d.f, 4), ""],
+    ["m", d => fmtG(d.m, 4), "kg"],
+    ["m", d => fmtG(d.m / PHYS.amu, 4), "u"],
+    ["q", d => fmtG(d.q, 4), "C"],
+    ["S = Nq²f/ε₀m", d => fmtG(d.S, 4), "rad²/s²"],
+    ["Sellmeier B = S/ω₀²", d => fmtG(d.B, 4), ""],
+    ["α_max = S/(cγ n_bg)", d => fmtG(d.alphaMax, 5), "m⁻¹"],
+    ["α_max", d => fmtG(d.alphaMax / 100, 5), "cm⁻¹"],
+    ["(n − n_bg)_max = S/(4ω₀γ n_bg)", d => fmtG(d.dnMax, 5), ""],
+    ["ν at largest n, ν₀ − Δν/2", d => fmtG(d.nuMaxN, 10), "Hz"],
+    ["ν at smallest n, ν₀ + Δν/2", d => fmtG(d.nuMinN, 10), "Hz"],
+  ];
+  $("table").innerHTML = `<thead><tr><th class="l">single-line formulas</th>${on.map(z => `<th>osc ${z.j + 1}</th>`).join("")}<th class="l">unit</th></tr></thead><tbody>` +
+    rows.map(([k, fn, u]) => `<tr><td class="l">${esc(k)}</td>${list.map(d => `<td>${fn(d)}</td>`).join("")}<td class="l">${esc(u)}</td></tr>`).join("") + "</tbody>";
+  if (ext) {
+    const u = ext.unit, nOff = state.nbg;
+    $("checkLine").textContent = `From the plotted exact curve (osc ${on[kk].j + 1}): n is largest at ν − ν₀ = ${fmtG(ext.pMax.x, 5)} ${u.name} with n − n_bg = ${fmtG(ext.pMax.y - nOff, 5)}, ` +
+      `and smallest at ${fmtG(ext.pMin.x, 5)} ${u.name} with n − n_bg = ${fmtG(ext.pMin.y - nOff, 5)}. Anomalous region width: ${fmtG(ext.pMin.x - ext.pMax.x, 5)} ${u.name}. ` +
+      `Peak α = ${fmtG(ext.pA.y, 5)} m⁻¹; α at the two n extrema is ${fmtG(ext.aAtMax / ext.pA.y, 4)} and ${fmtG(ext.aAtMin / ext.pA.y, 4)} of the peak. Other lines add to these numbers.`;
+    $("mainCaption").textContent = "Top: absorption coefficient α, a Lorentzian. Bottom: the index, a dispersive curve. Dotted verticals mark ν₀ ± Δν/2; red dots are the extrema of n. " +
+      "n falls with frequency between them (anomalous dispersion), and α there is half its peak (dotted horizontal).";
+  } else {
+    $("checkLine").textContent = "Switch the x axis to detuning to locate the extrema of n around one line.";
+    $("mainCaption").textContent = "Wavelength on a log axis. Narrow lines show as spikes; switch to detuning to resolve them. Grey band: visible light. " +
+      "Away from a resonance, n rises toward shorter wavelength (normal dispersion); across a resonance it swings the other way (anomalous).";
+  }
+  const cm = sp.chiMax;
+  $("validity").textContent = `Largest |χ̃| on this grid: ${fmtG(cm, 3)}. ` + (cm < 0.01 ? "Small, so the dilute formulas and the exact result agree." :
+    cm < 0.2 ? "Not small: the dilute formulas start to deviate from the exact curves." : "Of order 1 or more: the expansion √(1 + χ̃) ≈ 1 + χ̃/2 fails; use the solid (exact) curves.");
+}
+
+/* ---------- glass example (fixed) ---------- */
+function buildGlass() {
+  const osc = glassOscillators(SILICA, GLASS_N, 0.02, 10.18, 1.8e12), list = osc.map(o => derivedOsc(o, GLASS_N, 1));
+  const lam = wavelengthGrid(30, 50000, list, 3000), ws = lam.map(l => 2 * Math.PI * PHYS.c / (l * 1e-9)), sp = spectrum(ws, list, 1);
+  const sell = lam.map(l => (l >= 210 && l <= 3710 ? sellmeierN(l, SILICA) : NaN));
+  GLASS.data = {
+    x: lam, logx: true, xlabel: "wavelength",
+    readX: i => `λ = ${fmtG(lam[i], 6)} nm`,
+    shade: [{ x0: 160, x1: 3500, color: "rgba(31, 95, 191, 0.08)", label: "real fused silica transmits", row: 0 }, { x0: 380, x1: 750, color: "#e6e6e6", label: "visible", row: 1 }],
+    A: { log: true, label: "α (m⁻¹)", series: [{ y: sp.alpha, color: COL.exact, name: "α model" }] },
+    n: { log: false, label: "n", ref: 1, series: [{ y: sp.n, color: COL.n, name: "n model" }, { y: sell, color: COL.lorentz, dash: true, name: "n Sellmeier (measured)" }] },
+    nDigits: 6,
+  };
+  $("glassLegend").innerHTML = legendHTML(GLASS.data.A.series.concat(GLASS.data.n.series));
+}
+
+/* ---------- inputs ---------- */
+function fieldDefs() {
+  const F = [
+    { id: "N", get: () => state.N, set: v => { state.N = v; }, log: true, rmin: 8, rmax: 30, ok: v => v > 0, msg: "N must be larger than 0." },
+    { id: "nbg", get: () => state.nbg, set: v => { state.nbg = v; }, log: false, rmin: 1, rmax: 3, step: 0.001, ok: v => v > 0, msg: "n_bg must be larger than 0." },
+  ];
+  for (let j = 0; j < NOSC; j++) {
+    const o = () => state.osc[j];
+    F.push(
+      { id: `lam${j}`, get: () => o().lam, set: v => { o().lam = v; }, log: true, rmin: 1, rmax: 5, ok: v => v > 0, msg: "λ₀ must be larger than 0." },
+      { id: `dnu${j}`, get: () => o().dnu, set: v => { o().dnu = v; }, log: true, rmin: 3, rmax: 15.5, ok: v => v > 0, msg: "Δν must be larger than 0." },
+      { id: `f${j}`, get: () => o().f, set: v => { o().f = v; }, log: false, rmin: 0, rmax: 20, step: 0.001, ok: v => v >= 0, msg: "f must be 0 or more." },
+      { id: `m${j}`, get: () => o().m, set: v => { o().m = v; }, log: true, rmin: 0, rmax: 5.5, ok: v => v > 0, msg: "m must be larger than 0." },
+      { id: `q${j}`, get: () => o().q, set: v => { o().q = v; }, log: false, rmin: 0, rmax: 5, step: 0.001, ok: v => v >= 0, msg: "q must be 0 or more." });
+  }
+  return F;
+}
+const slRow = (id, label, unit) => `<label for="${id}N">${label}</label><input type="range" id="${id}R" autocomplete="off"><input type="number" id="${id}N" step="any" autocomplete="off"><span class="unit">${unit}</span>`;
+function buildOscHTML() {
+  let h = "";
+  for (let j = 0; j < NOSC; j++) h += `<div class="osc"><h3><label class="inline"><input type="checkbox" id="on${j}"> Oscillator ${j + 1}</label></h3>
+    <p class="note num" id="sum${j}"></p>
+    <div class="sliders" id="sl${j}">
+    ${slRow(`lam${j}`, "λ₀, centre wavelength", "nm")}
+    ${slRow(`dnu${j}`, "Δν, linewidth (FWHM)", "Hz")}
+    ${slRow(`f${j}`, "<i>f</i>, oscillator strength", "")}
+    ${slRow(`m${j}`, "<i>m</i>, oscillating mass", "<i>m</i><sub>e</sub>")}
+    ${slRow(`q${j}`, "<i>q</i>, charge", "<i>e</i>")}
+    </div></div>`;
+  $("oscs").innerHTML = h;
+}
+const FIELDS = (buildOscHTML(), fieldDefs());
+function rangeVal(f, v) { return f.log ? Math.log10(v) : v; }
+function setupRanges() {
+  for (const f of FIELDS) { const r = $(f.id + "R"); r.min = f.rmin; r.max = f.rmax; r.step = f.log ? 0.01 : f.step; }
+}
+function writeFields() {
+  $("inErr").hidden = true;
+  for (const f of FIELDS) { const v = f.get(); $(f.id + "N").value = boxVal(v); $(f.id + "R").value = String(rangeVal(f, v)); $(f.id + "N").removeAttribute("aria-invalid"); }
+  for (let j = 0; j < NOSC; j++) { $(`on${j}`).checked = state.osc[j].on; $(`sl${j}`).hidden = !state.osc[j].on; }
+  $("axis").value = state.axis; $("span").value = String(state.span); $("fwhmU").checked = state.fwhmU;
+  $("lmin").value = String(state.lmin); $("lmax").value = String(state.lmax);
+  $("logA").checked = state.logA; $("nMode").value = state.nMode; $("cmp").value = state.cmp;
+  for (const k of ["yA", "yN"]) { $(k + "auto").checked = state[k].auto; $(k + "lo").disabled = $(k + "hi").disabled = state[k].auto; $(k + "lo").removeAttribute("aria-invalid"); $(k + "hi").removeAttribute("aria-invalid"); }
+  fillOscK(); applyAxisVisibility();
+}
+/* ---------- manual y ranges ---------- */
+function setManualY() {
+  if (!MAIN.data) return;
+  MAIN.data.A.manual = state.yA.auto ? null : [state.yA.lo, state.yA.hi];
+  MAIN.data.n.manual = state.yN.auto ? null : [state.yN.lo, state.yN.hi];
+}
+// while "auto" is ticked, the boxes show the range the plot is using
+MAIN.onDraw = Dd => {
+  $("yNname").textContent = state.nMode === "res" ? "n − n_bg axis" : "n axis";
+  for (const [k, pane] of [["yA", Dd.A], ["yN", Dd.n]]) if (state[k].auto && pane.used) { $(k + "lo").value = boxVal(pane.used[0]); $(k + "hi").value = boxVal(pane.used[1]); }
+};
+function wireY(k, paneKey) {
+  $(k + "auto").addEventListener("change", () => {
+    state[k].auto = $(k + "auto").checked;
+    if (!state[k].auto && MAIN.data && MAIN.data[paneKey].used) { const u = MAIN.data[paneKey].used; state[k].lo = Number(boxVal(u[0])); state[k].hi = Number(boxVal(u[1])); }
+    $(k + "lo").disabled = $(k + "hi").disabled = state[k].auto; $("viewErr").hidden = true;
+    setManualY(); drawPlot(MAIN);
+  });
+  const onBox = () => {
+    const lo = Number($(k + "lo").value), hi = Number($(k + "hi").value), logPane = k === "yA" && state.logA;
+    const good = $(k + "lo").value.trim() !== "" && $(k + "hi").value.trim() !== "" && Number.isFinite(lo) && Number.isFinite(hi) && hi > lo && (!logPane || lo > 0);
+    for (const s of ["lo", "hi"]) { if (good) $(k + s).removeAttribute("aria-invalid"); else $(k + s).setAttribute("aria-invalid", "true"); }
+    if (!good) { $("viewErr").textContent = logPane ? "The α limits must be above 0 on a log axis, with the top larger than the bottom." : "The top of the y axis must be larger than the bottom."; $("viewErr").hidden = false; return; }
+    $("viewErr").hidden = true; state[k].lo = lo; state[k].hi = hi; setManualY(); drawPlot(MAIN);
+  };
+  $(k + "lo").addEventListener("input", onBox); $(k + "hi").addEventListener("input", onBox);
+}
+function fillOscK() {
+  const on = enabled();
+  if (on.length && !on.some(z => z.j === state.k)) state.k = on[0].j;
+  $("oscK").innerHTML = on.map(z => `<option value="${z.j}">oscillator ${z.j + 1} (${esc(fmtLen(z.o.lam))})</option>`).join("");
+  $("oscK").value = String(state.k);
+}
+function applyAxisVisibility() { document.querySelectorAll("[data-opt]").forEach(el => { el.hidden = el.dataset.opt !== state.axis; }); }
+function oscSummary() {
+  for (let j = 0; j < NOSC; j++) {
+    const o = state.osc[j];
+    if (!o.on) { $(`sum${j}`).textContent = "Off."; continue; }
+    const d = derivedOsc(o, state.N, state.nbg);
+    $(`sum${j}`).textContent = `ν₀ = ${fmtG(d.nu0, 5)} Hz, ω₀ = ${fmtG(d.w0, 4)} rad/s, γ = ${fmtG(d.g, 4)} rad/s, m = ${fmtG(d.m / PHYS.amu, 4)} u`;
+  }
+}
+function onEdit(f, showError) {
+  const el = $(f.id + "N"), v = Number(el.value), ok = el.value.trim() !== "" && Number.isFinite(v) && f.ok(v);
+  if (ok) el.removeAttribute("aria-invalid"); else el.setAttribute("aria-invalid", "true");
+  if (!ok) { if (showError) { $("inErr").textContent = f.msg; $("inErr").hidden = false; } return; }
+  $("inErr").hidden = true;
+  $(f.id + "R").value = String(rangeVal(f, v));
+  if (f.get() !== v) { f.set(v); update(); }
+}
+function update() {
+  oscSummary(); fillOscK();
+  buildMain(); MAIN.view = null; MAIN.hover = null; drawPlot(MAIN); renderMainText();
+}
+function loadPreset(key) {
+  const p = PRESETS[key]; curPreset = key;
+  const base = { axis: "det", k: 0, span: 5, fwhmU: false, lmin: 30, lmax: 50000, logA: false, nMode: "res", cmp: "none",
+    yA: { auto: true, lo: 0, hi: 1 }, yN: { auto: true, lo: 0, hi: 1 } };
+  state = { N: p.N, nbg: p.nbg, osc: fill(p.osc), ...base, ...p.view };
+  $("presetNote").textContent = p.note;
+  writeFields(); update();
+}
+
+/* ---------- wiring ---------- */
+for (const f of FIELDS) {
+  $(f.id + "N").addEventListener("input", () => onEdit(f, false));
+  $(f.id + "N").addEventListener("change", () => onEdit(f, true));
+  $(f.id + "R").addEventListener("input", () => { const rv = Number($(f.id + "R").value), v = f.log ? Math.pow(10, rv) : rv; $(f.id + "N").value = boxVal(v); onEdit(f, true); });
+}
+setupRanges();
+for (let j = 0; j < NOSC; j++) $(`on${j}`).addEventListener("change", () => { state.osc[j].on = $(`on${j}`).checked; $(`sl${j}`).hidden = !state.osc[j].on; update(); });
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => loadPreset(b.dataset.preset)));
+$("axis").addEventListener("change", () => { state.axis = $("axis").value; applyAxisVisibility(); update(); });
+$("oscK").addEventListener("change", () => { state.k = Number($("oscK").value); update(); });
+$("fwhmU").addEventListener("change", () => { state.fwhmU = $("fwhmU").checked; update(); });
+$("logA").addEventListener("change", () => { state.logA = $("logA").checked; state.yA.auto = true; writeFields(); update(); });
+$("nMode").addEventListener("change", () => { state.nMode = $("nMode").value; state.yN.auto = true; writeFields(); update(); });
+wireY("yA", "A"); wireY("yN", "n");
+$("cmp").addEventListener("change", () => { state.cmp = $("cmp").value; update(); });
+function viewNum(id, key, ok, msg) {
+  $(id).addEventListener("input", () => {
+    const v = Number($(id).value), good = $(id).value.trim() !== "" && Number.isFinite(v) && ok(v);
+    if (!good) { $(id).setAttribute("aria-invalid", "true"); $("viewErr").textContent = msg; $("viewErr").hidden = false; return; }
+    $(id).removeAttribute("aria-invalid"); $("viewErr").hidden = true; state[key] = v; update();
+  });
+}
+viewNum("span", "span", v => v >= 0.5 && v <= 1e4, "The detuning range must be between 0.5 and 10⁴ FWHM.");
+viewNum("lmin", "lmin", v => v > 0 && v < state.lmax, "The shortest wavelength must be above 0 and below the longest.");
+viewNum("lmax", "lmax", v => v > state.lmin && v <= 1e9, "The longest wavelength must be above the shortest.");
+
+function attachPlot(P, zoomBtn) {
+  const cv = $(P.canvas), px = e => e.clientX - cv.getBoundingClientRect().left;
+  const toX = p => { const l = P.layout, t = (Math.min(l.R, Math.max(l.L, p)) - l.L) / (l.R - l.L); return l.logx ? l.lo * Math.pow(l.hi / l.lo, t) : l.lo + t * (l.hi - l.lo); };
+  cv.addEventListener("pointerdown", e => { if (!P.layout || e.button !== 0) return; const p = px(e); if (p < P.layout.L || p > P.layout.R) return; P.drag = { x0: p, x1: p, moved: false }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => {
+    if (!P.layout || !P.data) return;
+    const p = px(e);
+    if (P.drag) { P.drag.x1 = p; P.drag.moved = P.drag.moved || Math.abs(P.drag.x1 - P.drag.x0) > 4; }
+    const xv = toX(p), x = P.data.x;
+    let i = Math.min(x.length - 1, lowerIdx(x, xv)); if (i > 0 && Math.abs(x[i - 1] - xv) < Math.abs(x[i] - xv)) i--;
+    P.hover = p >= P.layout.L && p <= P.layout.R ? i : null;
+    drawPlot(P);
+  });
+  cv.addEventListener("pointerup", () => {
+    if (P.drag && P.drag.moved && P.layout) { const a = toX(Math.min(P.drag.x0, P.drag.x1)), b = toX(Math.max(P.drag.x0, P.drag.x1)); if (b > a) P.view = [a, b]; }
+    P.drag = null; drawPlot(P);
+  });
+  cv.addEventListener("pointerleave", () => { if (!P.drag) { P.hover = null; drawPlot(P); } });
+  cv.addEventListener("dblclick", () => { P.view = null; drawPlot(P); });
+  $(zoomBtn).addEventListener("click", () => { P.view = null; drawPlot(P); });
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $(P.box).clientWidth; if (w && w !== lastW) { lastW = w; drawPlot(P); } }).observe($(P.box));
+}
+attachPlot(MAIN, "zoomOut");
+attachPlot(GLASS, "glassZoomOut");
+
+buildGlass(); drawPlot(GLASS);
+loadPreset("na");
+})();
+</script>
+</body>
+</html>

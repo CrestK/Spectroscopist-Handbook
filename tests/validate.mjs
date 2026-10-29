@@ -15,8 +15,8 @@ const quick = process.argv.includes("--quick");
 const PUBLIC_REPOS = ["Franck-Condon-Factor", "Gaussian-Intensity-Weighted-Focal-Overlap-Public", "Beam-Overlap-Game-Public",
   "Solvent-subtraction", "Spectroscopist-Handbook"];
 // the copied pages, and the ones that bring their own tests
-const COPIES = ["franck-condon", "focal-overlap", "overlap-game", "screensaver", "solvent-subtraction"];
-const COPY_TESTS = ["franck-condon/tests/validate.mjs", "solvent-subtraction/tests/validate.mjs"];
+const COPIES = ["franck-condon", "focal-overlap", "overlap-game", "screensaver", "solvent-subtraction", "lorentz-explorer"];
+const COPY_TESTS = ["franck-condon/tests/validate.mjs", "solvent-subtraction/tests/validate.mjs", "lorentz-explorer/tests/validate.mjs"];
 const PREVIEW_PX = 256, PREVIEW_MAX = 20 * 1024, PREVIEWS_TOTAL_MAX = 60 * 1024, PAGE_MAX = 20 * 1024;
 
 let fails = 0;
