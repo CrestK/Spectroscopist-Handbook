@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pump–Probe Focal Overlap</title>
+<meta name="description" content="Interactive intensity-weighted focal overlap factor for two crossed Gaussian pump and probe beams (2PA and transient absorption).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: an instrument console. A sticky control rack on the left; on the right a live readout
+   strip over a dark optical "scene" (the beams, as a camera would see them) and its charts. */
+:root {
+  --bg: #edf0f3;
+  --panel: #fbfcfd;
+  --panel-2: #f3f5f8;
+  --ink: #111720;
+  --ink-2: #465062;
+  --muted: #737d8e;
+  --rule: #d8dde5;
+  --accent: #2b52c4;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2e8f8;
+  --series: #2a78d6;
+  --series-ref: #898781;
+  --grid: #e4e7ec;
+  --axis: #c3c8d0;
+  --good: #0ca30c;
+  --warn: #d48c00;
+  --bad: #d03b3b;
+  --seq: #f4f8fe, #cde2fb, #9ec5f4, #6da7ec, #3987e5, #256abf, #184f95, #0d366b;
+  --map-line: #0b1320;
+  --scene: #05070b;
+  --scene-ink: #c3ccd8;
+  --scene-dim: #6d7787;
+  --scene-rule: rgba(255, 255, 255, 0.11);
+  --shadow: 0 1px 2px rgba(17, 23, 32, 0.06), 0 6px 24px rgba(17, 23, 32, 0.06);
+
+  --font-display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.875rem;
+  --fs-lg: 1rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.75rem;
+  --fs-hero: 3.5rem;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0e13;
+    --panel: #12171f;
+    --panel-2: #181e28;
+    --ink: #edf1f6;
+    --ink-2: #b3bcc9;
+    --muted: #858fa0;
+    --rule: #252d3a;
+    --accent: #8ea8ff;
+    --accent-ink: #0b0e13;
+    --accent-soft: #1d2741;
+    --series: #3987e5;
+    --series-ref: #898781;
+    --grid: #202733;
+    --axis: #384252;
+    --good: #2bbf2b;
+    --warn: #fab219;
+    --bad: #e66767;
+    --seq: #141a24, #15243c, #184f95, #256abf, #3987e5, #6da7ec, #9ec5f4, #cde2fb;
+    --map-line: #ffffff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0e13;
+  --panel: #12171f;
+  --panel-2: #181e28;
+  --ink: #edf1f6;
+  --ink-2: #b3bcc9;
+  --muted: #858fa0;
+  --rule: #252d3a;
+  --accent: #8ea8ff;
+  --accent-ink: #0b0e13;
+  --accent-soft: #1d2741;
+  --series: #3987e5;
+  --series-ref: #898781;
+  --grid: #202733;
+  --axis: #384252;
+  --good: #2bbf2b;
+  --warn: #fab219;
+  --bad: #e66767;
+  --seq: #141a24, #15243c, #184f95, #256abf, #3987e5, #6da7ec, #9ec5f4, #cde2fb;
+  --map-line: #ffffff;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+sub, sup { line-height: 0; }
+
+.app {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 20px 48px;
+  display: grid;
+  grid-template-columns: minmax(300px, 344px) minmax(0, 1fr);
+  grid-template-areas:
+    "head head"
+    "ctrl read"
+    "ctrl top"
+    "ctrl views"
+    "ctrl charts"
+    "ctrl model";
+  column-gap: 20px;
+  row-gap: 16px;
+  align-items: start;
+}
+
+/* ---------- masthead ---------- */
+.masthead { grid-area: head; display: grid; gap: 6px; padding-block: 4px 6px; }
+.eyebrow {
+  margin: 0;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+.masthead h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.lede { margin: 0; max-width: 72ch; color: var(--ink-2); }
+
+/* ---------- control rack ---------- */
+.rack {
+  grid-area: ctrl;
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  max-height: calc(100vh - env(safe-area-inset-top, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  display: grid;
+  align-content: start;
+}
+.rack-section {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.rack-section:last-child { border-bottom: 0; }
+.rack-title, .rack-section > legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 650;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rack-section > legend + * { clear: both; }
+.rack-note { margin: 0; color: var(--ink-2); font-size: var(--fs-sm); }
+.derived {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px var(--rule);
+}
+.swatch-tag { font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 400; color: var(--muted); margin-left: auto; }
+
+.ctl { display: grid; gap: 4px; min-width: 0; }
+.ctl-top { display: flex; align-items: baseline; gap: 8px; }
+.ctl-top label { font-weight: 500; }
+.ctl-hint { color: var(--muted); font-size: var(--fs-xs); margin-left: auto; text-align: right; }
+.ctl-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.ctl-row input[type="range"] { width: 100%; margin: 0; accent-color: var(--accent); height: 22px; }
+.num {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--panel-2);
+  padding-right: 8px;
+}
+.num:focus-within { border-color: var(--accent); }
+.num input {
+  width: 74px;
+  border: 0;
+  background: transparent;
+  padding: 4px 4px 4px 8px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+.num input::-webkit-outer-spin-button, .num input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.num input:focus { outline: none; }
+.unit { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--muted); min-width: 3.2em; }
+.check { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); color: var(--ink-2); }
+.check input { accent-color: var(--accent); margin: 0; }
+
+.seg {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: var(--panel-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+.seg button {
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.seg button:hover { color: var(--ink); }
+.seg button[aria-checked="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 0 0 1px var(--rule), 0 1px 2px rgba(0,0,0,.08); }
+.seg-wide { display: grid; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button {
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.chips button:hover { border-color: var(--accent); color: var(--ink); }
+
+.btn {
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- readout strip ---------- */
+.readout {
+  grid-area: read;
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+.hero { display: grid; gap: 6px; min-width: 0; }
+.hero-label { font-size: var(--fs-sm); color: var(--ink-2); font-weight: 500; }
+.hero-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hero-value { font-size: var(--fs-hero); font-weight: 600; line-height: 0.95; letter-spacing: -0.02em; }
+.hero-unit { font-size: var(--fs-xl); color: var(--ink-2); margin-left: -6px; }
+.meter { height: 6px; border-radius: 3px; background: var(--accent-soft); overflow: hidden; }
+.meter-fill { height: 100%; width: 0; background: var(--series); border-radius: 3px; transition: width 120ms ease-out; }
+.hero-note { font-size: var(--fs-xs); color: var(--muted); }
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  align-self: center;
+}
+.status svg { width: 12px; height: 12px; }
+.status[data-level="good"] { color: var(--good); }
+.status[data-level="warn"] { color: var(--warn); }
+.status[data-level="bad"] { color: var(--bad); }
+
+.side { display: grid; gap: 12px; min-width: 0; }
+.stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.stats > div { display: grid; gap: 1px; align-content: start; min-width: 0; border-left: 1px solid var(--rule); padding-left: 12px; }
+.stats dt { font-size: var(--fs-xs); color: var(--ink-2); font-weight: 500; }
+.stats dd { margin: 0; font-size: var(--fs-xl); font-weight: 600; white-space: nowrap; }
+.stats p { margin: 0; font-size: var(--fs-xs); color: var(--muted); }
+.side-foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+.budget { font-size: var(--fs-xs); color: var(--muted); }
+
+/* Phone-only bar that keeps f_v in view once the readout has scrolled away. */
+.mini {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  gap: 18px;
+  align-items: baseline;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.mini b { color: var(--ink); font-size: var(--fs-lg); font-weight: 600; }
+.mini-status { margin-left: auto; font-size: var(--fs-xs); font-weight: 600; }
+.mini-status[data-level="good"] { color: var(--good); }
+.mini-status[data-level="warn"] { color: var(--warn); }
+.mini-status[data-level="bad"] { color: var(--bad); }
+
+/* ---------- cards ---------- */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  min-width: 0;
+  overflow: hidden;
+}
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 16px 12px;
+}
+.card-head > div:first-child { min-width: 0; flex: 1 1 260px; }
+.card h2 { margin: 0; font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 650; }
+.card .sub { margin: 2px 0 0; color: var(--ink-2); font-size: var(--fs-sm); max-width: 70ch; }
+.card-body { padding: 0 16px 16px; display: grid; gap: 12px; }
+
+.top { grid-area: top; }
+.views { grid-area: views; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.charts { grid-area: charts; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+.scene {
+  position: relative;
+  background: var(--scene);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.scene canvas { display: block; width: 100%; touch-action: none; cursor: grab; }
+.scene canvas:active { cursor: grabbing; }
+#cv-top { height: clamp(240px, 30vw, 360px); }
+#cv-xs { aspect-ratio: 1 / 1; max-height: 420px; }
+.scene-foot {
+  background: var(--scene);
+  color: var(--scene-ink);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 8px 16px 10px;
+  font-size: var(--fs-xs);
+}
+.key { display: inline-flex; align-items: center; gap: 6px; color: var(--scene-ink); }
+.key i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.timebar { display: flex; align-items: center; gap: 10px; flex: 1 1 260px; }
+.timebar input { flex: 1; accent-color: #8ea8ff; min-width: 80px; }
+.timebar output { font-family: var(--font-mono); min-width: 7.5em; text-align: right; font-variant-numeric: tabular-nums; }
+.btn-scene { background: transparent; color: var(--scene-ink); border-color: var(--scene-rule); padding: 4px 10px; }
+.btn-scene:hover { border-color: #8ea8ff; }
+.scene-ctl { display: flex; align-items: center; gap: 10px; flex: 1 1 220px; }
+.scene-ctl input { flex: 1; accent-color: #8ea8ff; min-width: 80px; }
+.scene-ctl output { font-family: var(--font-mono); font-variant-numeric: tabular-nums; min-width: 6.5em; text-align: right; }
+
+.chart-block { padding: 12px 16px 14px; display: grid; gap: 4px; }
+.chart-title { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.chart-title h3 { margin: 0; font-size: var(--fs-md); font-weight: 600; }
+.chart-title span { color: var(--muted); font-size: var(--fs-xs); }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart text { font-family: var(--font-mono); font-size: 10.5px; fill: var(--muted); }
+.chart .axis-title { font-family: var(--font-ui); font-size: 11px; fill: var(--ink-2); }
+.chart .grid { stroke: var(--grid); stroke-width: 1; }
+.chart .base { stroke: var(--axis); stroke-width: 1; }
+.chart .line { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .line.ref { stroke: var(--series-ref); stroke-width: 1.5; }
+.chart .area { fill: var(--series); opacity: 0.1; }
+.chart .dot { fill: var(--series); stroke: var(--panel); stroke-width: 2; }
+.chart .cross { stroke: var(--ink-2); stroke-width: 1; opacity: 0.5; }
+.chart .now { stroke: var(--series); stroke-width: 1; opacity: 0.35; }
+.chart .hit { fill: transparent; cursor: crosshair; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--fs-xs); color: var(--ink-2); }
+.legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+.legend-row i { width: 16px; height: 2px; border-radius: 1px; display: inline-block; background: var(--series); }
+.legend-row i.ref { background: var(--series-ref); }
+.tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  padding: 5px 8px;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+  z-index: 3;
+  display: grid;
+  gap: 1px;
+}
+.tip b { font-size: var(--fs-sm); font-weight: 600; }
+.tip span { color: var(--ink-2); }
+
+.map-wrap { position: relative; padding: 0 16px; }
+#cv-map { display: block; width: 100%; aspect-ratio: 1 / 1; max-height: 440px; touch-action: none; cursor: crosshair; }
+.map-scale { display: flex; align-items: center; gap: 8px; padding: 6px 16px 14px; font-size: var(--fs-xs); color: var(--muted); }
+.map-scale .ramp { flex: 0 1 180px; height: 8px; border-radius: 4px; }
+
+.tol { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.tol th, .tol td { text-align: right; padding: 5px 6px; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+.tol th:first-child, .tol td:first-child { text-align: left; }
+.tol thead th { font-weight: 500; color: var(--muted); font-size: var(--fs-xs); }
+.tol td { font-family: var(--font-mono); font-size: var(--fs-xs); }
+.tol td:first-child { font-family: var(--font-ui); font-size: var(--fs-sm); }
+.tol tr[aria-current="true"] td { color: var(--ink); font-weight: 600; }
+.table-wrap { overflow-x: auto; }
+
+/* ---------- model notes ---------- */
+.model { grid-area: model; }
+.model .card-body { gap: 14px; }
+.model p, .model li { max-width: 74ch; color: var(--ink-2); }
+.model p { margin: 0; }
+.model ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.model h3 { margin: 6px 0 0; font-size: var(--fs-md); font-weight: 600; }
+.eq {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+  color: var(--ink);
+}
+.eq + .eq { margin-top: -6px; }
+.model-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 28px; }
+.model-cols > div { display: grid; gap: 10px; align-content: start; min-width: 0; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+  .readout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}
+@media (max-width: 1040px) {
+  .views, .charts, .model-cols { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 860px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "read" "top" "ctrl" "views" "charts" "model";
+    padding-inline: 16px;
+  }
+  .rack { position: static; max-height: none; overflow: visible; }
+  .readout { position: static; padding: 10px 14px; }
+  .hero-value { font-size: 2.5rem; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats > div:nth-child(3) { display: none; }
+  .hero-note, .budget { display: none; }
+}
+@media (max-width: 480px) {
+  .stats dd { font-size: var(--fs-lg); }
+  .seg button { padding: 5px 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="masthead">
+    <p class="eyebrow">Ultrafast pump–probe · two Gaussian beams in vacuum</p>
+    <h1>Pump–Probe Focal Overlap</h1>
+    <p class="lede">The pump and probe cross inside the sample, and the signal grows with how much pump the probe photons actually pass through. This page integrates that intensity-weighted overlap over space and time. It reports f<sub>v</sub>, which reads 100% when the pump sits at its best position and delay.</p>
+  </header>
+
+  <div class="mini" id="mini" aria-hidden="true" hidden>
+    <span>f<sub>v</sub> <b id="mini-fv">–</b></span>
+    <span>η <b id="mini-eta">–</b></span>
+    <span class="mini-status" id="mini-status"></span>
+  </div>
+
+  <section class="readout" id="readout" aria-label="Overlap readout">
+    <div class="hero">
+      <div class="hero-label">Focal overlap f<sub>v</sub></div>
+      <div class="hero-row">
+        <span class="hero-value" id="fv">–</span><span class="hero-unit">%</span>
+        <span class="status" id="status" data-level="good"></span>
+      </div>
+      <div class="meter" role="meter" aria-label="Focal overlap" aria-valuemin="0" aria-valuemax="100" id="fv-meter"><div class="meter-fill" id="fv-fill"></div></div>
+      <div class="hero-note">100% = best pump position and delay at this crossing angle</div>
+    </div>
+    <div class="side">
+      <dl class="stats">
+        <div><dt>Absolute overlap η</dt><dd id="eta">–</dd><p id="eta-note">probe-weighted pump intensity ÷ peak</p></div>
+        <div><dt id="ieff-label">Pump intensity seen by probe</dt><dd id="ieff">–</dd><p id="ieff-note">η × I<sub>0</sub></p></div>
+        <div><dt>Crossing-angle factor</dt><dd id="xfac">–</dd><p id="xfac-note">best overlap ÷ collinear best</p></div>
+      </dl>
+      <div class="side-foot">
+        <span class="budget" id="budget"></span>
+        <div class="btn-row">
+          <button class="btn" id="btn-center" type="button">Re-center pump</button>
+          <button class="btn primary" id="btn-opt" type="button">Optimize overlap</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="rack" id="controls" aria-label="Controls">
+    <div class="rack-section">
+      <h2 class="rack-title">Experiment</h2>
+      <div class="seg seg-wide" role="radiogroup" aria-label="Experiment type" id="mode">
+        <button type="button" role="radio" data-v="2pa">2PA</button>
+        <button type="button" role="radio" data-v="ta">TA</button>
+        <button type="button" role="radio" data-v="ta2">2P-excited TA</button>
+      </div>
+      <p class="rack-note" id="mode-desc"></p>
+      <div class="chips" id="presets" aria-label="Example setups"></div>
+    </div>
+
+    <fieldset class="rack-section" id="pump-box">
+      <legend><span class="swatch" id="pump-swatch"></span>Pump<span class="swatch-tag" id="pump-tag"></span></legend>
+      <div data-ctl="pump.lambda"></div>
+      <div data-ctl="pump.w0"></div>
+      <div data-ctl="pump.fwhm"></div>
+      <div data-ctl="pump.I0"></div>
+      <p class="derived" id="pump-derived"></p>
+    </fieldset>
+
+    <fieldset class="rack-section" id="probe-box">
+      <legend><span class="swatch" id="probe-swatch"></span>Probe<span class="swatch-tag" id="probe-tag"></span></legend>
+      <div data-ctl="probe.lambda"></div>
+      <div data-ctl="probe.w0"></div>
+      <div data-ctl="probe.fwhm"></div>
+      <div data-ctl="probe.I0"></div>
+      <p class="derived" id="probe-derived"></p>
+    </fieldset>
+
+    <fieldset class="rack-section">
+      <legend>Geometry</legend>
+      <div data-ctl="angle"></div>
+      <div data-ctl="L"></div>
+    </fieldset>
+
+    <fieldset class="rack-section">
+      <legend>Pump position</legend>
+      <p class="rack-note">Offset of the pump focus from the probe focus. You can also drag the pump in any of the views.</p>
+      <div data-ctl="dx"></div>
+      <div data-ctl="dy"></div>
+      <div data-ctl="dz"></div>
+    </fieldset>
+
+    <fieldset class="rack-section">
+      <legend>Timing</legend>
+      <div data-ctl="delay"></div>
+      <div id="t1-box" class="ctl">
+        <label class="check"><input type="checkbox" id="decay"> Excited state decays (lifetime T<sub>1</sub>)</label>
+        <div data-ctl="T1ps"></div>
+      </div>
+    </fieldset>
+  </aside>
+
+  <section class="card top" aria-labelledby="top-title">
+    <header class="card-head">
+      <div>
+        <h2 id="top-title">Crossing plane</h2>
+        <p class="sub" id="top-sub">Top view (x–z) through the probe axis, across the full sample depth. Drag to move the pump focus.</p>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Top view display" id="topmode">
+        <button type="button" role="radio" data-v="signal">Signal map</button>
+        <button type="button" role="radio" data-v="pulses">Pulses in time</button>
+      </div>
+    </header>
+    <div class="scene">
+      <canvas id="cv-top" tabindex="0" aria-label="Top view of the crossing beams. Arrow keys move the pump focus; hold Shift for larger steps."></canvas>
+    </div>
+    <div class="scene-foot" id="top-foot">
+      <span class="key"><i id="key-pump"></i>Pump</span>
+      <span class="key"><i id="key-probe"></i>Probe</span>
+      <span class="key" id="key-pop" hidden><i style="background:#ffd59a"></i>Excited population</span>
+      <span class="key"><i style="background:#ffffff"></i><span id="key-sig">Signal (pump × probe)</span></span>
+      <div class="timebar" id="timebar" hidden>
+        <button class="btn btn-scene" id="btn-play" type="button">Play</button>
+        <input type="range" id="t-scrub" min="0" max="1000" step="1" value="0" aria-label="Time">
+        <output id="t-out" for="t-scrub"></output>
+      </div>
+    </div>
+    <div class="chart-block">
+      <div class="chart-title"><h3>Where the signal comes from</h3><span id="depth-sub"></span></div>
+      <div class="chart" id="ch-depth"></div>
+    </div>
+  </section>
+
+  <div class="views">
+    <section class="card" aria-labelledby="xs-title">
+      <header class="card-head">
+        <div>
+          <h2 id="xs-title">Beam cross-section</h2>
+          <p class="sub">The x–y plane at one depth, looking along the probe. The pump spot is stretched along x by 1/cos θ. Drag to move the pump.</p>
+        </div>
+      </header>
+      <div class="scene">
+        <canvas id="cv-xs" tabindex="0" aria-label="Cross-section of both beams. Arrow keys move the pump; hold Shift for larger steps."></canvas>
+      </div>
+      <div class="scene-foot">
+        <div class="scene-ctl">
+          <label for="slice-z">Depth z</label>
+          <input type="range" id="slice-z" min="-500" max="500" step="1" value="0">
+          <output id="slice-z-out" for="slice-z"></output>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="map-title">
+      <header class="card-head">
+        <div>
+          <h2 id="map-title">Overlap map</h2>
+          <p class="sub" id="map-sub">f<sub>v</sub> for every pump position. Click or drag to place the pump there.</p>
+        </div>
+        <div class="seg" role="radiogroup" aria-label="Map plane" id="mapplane">
+          <button type="button" role="radio" data-v="xy">Δx–Δy</button>
+          <button type="button" role="radio" data-v="xz">Δx–Δz</button>
+        </div>
+      </header>
+      <div class="map-wrap chart" id="map-wrap">
+        <canvas id="cv-map" tabindex="0" aria-label="Map of the focal overlap versus pump position. Arrow keys move the pump."></canvas>
+      </div>
+      <div class="map-scale"><span>0%</span><span class="ramp" id="map-ramp"></span><span>100%</span><span>· contours at 50% and 90%</span></div>
+    </section>
+  </div>
+
+  <div class="charts">
+    <section class="card" aria-labelledby="delay-title">
+      <header class="card-head">
+        <div>
+          <h2 id="delay-title">Delay scan</h2>
+          <p class="sub" id="delay-sub">f<sub>v</sub> versus pump–probe delay with the pump where it is now. Positive delay: the probe arrives after the pump.</p>
+        </div>
+      </header>
+      <div class="chart-block">
+        <div class="legend-row" id="delay-legend"></div>
+        <div class="chart" id="ch-delay"></div>
+        <div class="chart-title"><span id="delay-foot"></span></div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="cut-title">
+      <header class="card-head">
+        <div>
+          <h2 id="cut-title">Position scan</h2>
+          <p class="sub">f<sub>v</sub> as the pump moves along one axis through its current position.</p>
+        </div>
+        <div class="seg" role="radiogroup" aria-label="Scan axis" id="cutaxis">
+          <button type="button" role="radio" data-v="x">Δx</button>
+          <button type="button" role="radio" data-v="y">Δy</button>
+          <button type="button" role="radio" data-v="z">Δz</button>
+        </div>
+      </header>
+      <div class="chart-block">
+        <div class="chart" id="ch-cut"></div>
+        <div class="table-wrap">
+          <table class="tol" id="tol">
+            <thead><tr><th scope="col">Axis</th><th scope="col">FWHM</th><th scope="col">≥ 90% of peak</th><th scope="col">Slope here</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card model" aria-labelledby="model-title">
+    <header class="card-head">
+      <div>
+        <h2 id="model-title">How f<sub>v</sub> is calculated</h2>
+        <p class="sub">Linear-response pump–probe signal of two TEM<sub>00</sub> Gaussian beams with Gaussian, transform-limited pulses in vacuum.</p>
+      </div>
+    </header>
+    <div class="card-body">
+      <div class="model-cols">
+        <div>
+          <h3>Beams</h3>
+          <p>The probe travels along z and focuses at the origin. The pump travels in the x–z plane at the crossing angle θ, with its focus at (Δx, Δy, Δz). Each beam, in its own coordinates (transverse ρ, longitudinal s):</p>
+          <div class="eq">I(ρ, s, t) = I₀ · (w₀/w(s))² · exp(−2ρ²/w(s)²) · exp(−4 ln2 · (t − s/c)²/τ²)</div>
+          <div class="eq">w(s) = w₀ √(1 + (s/z<sub>R</sub>)²),  z<sub>R</sub> = π w₀²/λ</div>
+          <p>Pulse fronts are perpendicular to each beam. When the beams cross at θ, the arrival-time difference changes by sin θ / c per µm across x. This smears the cross-correlation and is why a large angle shortens the useful overlap.</p>
+          <h3>Signal</h3>
+          <div class="eq">S = ∫<sub>sample</sub> d³r ∫ dt · D(r, t) · I<sub>probe</sub>(r, t)</div>
+          <ul>
+            <li><b>2PA</b>: D = I<sub>pump</sub>. Nondegenerate pump + probe photon absorption, present only while the pulses overlap.</li>
+            <li><b>TA</b>: D = N ∝ ∫<sub>−∞</sub><sup>t</sup> I<sub>pump</sub>(t′) e<sup>−(t−t′)/T₁</sup> dt′. The pump leaves an excited population that the probe reads later.</li>
+            <li><b>2P-excited TA</b>: as TA, with I<sub>pump</sub>² as the source. The effective pump spot is √2 narrower.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>The two overlap numbers</h3>
+          <div class="eq">f<sub>v</sub> = S / max S   (max over pump position and delay, same angle)</div>
+          <div class="eq">η = S / (D<sub>peak</sub> · L · E<sub>probe</sub>) = ⟨D⟩<sub>probe</sub> / D<sub>peak</sub></div>
+          <p>f<sub>v</sub> tells you how well aligned you are, from 0 to 100%. η is the absolute factor you need when converting a measured ΔA into a cross-section: the probe sees an effective pump intensity η·I₀ (2PA) or fluence η·F₀ (TA). The crossing-angle factor compares the best overlap at θ with the best collinear overlap of the same beams.</p>
+          <p>Check value. For collinear beams, no diffraction, at zero delay (2PA):</p>
+          <div class="eq">η = w<sub>pump</sub>² / (w<sub>pump</sub>² + w<sub>probe</sub>²) · τ<sub>pump</sub> / √(τ<sub>pump</sub>² + τ<sub>probe</sub>²)</div>
+          <h3>Numerics and assumptions</h3>
+          <ul>
+            <li>At each depth z the x, y and t integrals are done analytically. This includes the pulse-front-tilt smear and the excited-state rise and decay. The z integral uses an adaptive trapezoid grid. A brute-force quadrature agrees to about 10⁻⁴ for typical cases.</li>
+            <li>Small-signal limit. There is no pump depletion, saturation or ground-state bleaching of the pump, and the probe absorption stays linear.</li>
+            <li>Vacuum propagation. There is no refraction, group-velocity walk-off or dispersion, and polarization and orientation effects are ignored.</li>
+            <li>Intensity sets η·I₀ and the drawing brightness. It does not change f<sub>v</sub> or η, because the signal is linear in each beam.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="overlap.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -36,16 +36,17 @@
 <main>
 <h1>Spectroscopist Handbook</h1>
 <p>Spectroscopy calculations and ideas as web pages: overlap factors, beam alignment and spectrum processing, moved
-from Igor Pro into the browser so they are easy to use. Click a preview or a title to open a page; "source" opens its
-repository.</p>
+from Igor Pro into the browser so they are easy to use. Every page is kept here as a copy, so the handbook is one
+site. Click a preview or a title to open a page; "source" opens the page's own repository and "also at" its standalone
+site.</p>
 
 <section id="pages">
   <h2>Pages</h2>
   <div class="hub">
     <div class="entry" id="franck-condon">
-      <a class="thumb" href="https://crestk.github.io/Franck-Condon-Factor/" tabindex="-1" aria-hidden="true"><img src="previews/franck-condon.webp" width="128" height="128" alt=""></a>
+      <a class="thumb" href="franck-condon/index.html" tabindex="-1" aria-hidden="true"><img src="previews/franck-condon.webp" width="128" height="128" alt=""></a>
       <div>
-        <h3><a href="https://crestk.github.io/Franck-Condon-Factor/">Franck–Condon overlap factors</a></h3>
+        <h3><a href="franck-condon/index.html">Franck–Condon overlap factors</a></h3>
         <p>Two harmonic potential energy surfaces. Set ω<sub>g</sub>, ω<sub>e</sub>, the displacement and the starting
         level v″; the page gives every overlap ⟨χ′|χ″⟩, the Franck–Condon factors and the vibronic stick spectrum,
         with the closed form for each row.</p>
@@ -54,40 +55,43 @@ repository.</p>
     </div>
 
     <div class="entry" id="focal-overlap">
-      <a class="thumb" href="https://beamoverlap.koemel.net/" tabindex="-1" aria-hidden="true"><img src="previews/focal-overlap.webp" width="128" height="128" alt=""></a>
+      <a class="thumb" href="focal-overlap/index.html" tabindex="-1" aria-hidden="true"><img src="previews/focal-overlap.webp" width="128" height="128" alt=""></a>
       <div>
-        <h3><a href="https://beamoverlap.koemel.net/">Gaussian beam focal overlap</a></h3>
+        <h3><a href="focal-overlap/index.html">Gaussian beam focal overlap</a></h3>
         <p>Pump and probe Gaussian beams crossing in a sample. The intensity-weighted overlap f<sub>v</sub> and the
         absolute overlap η for 2PA, transient absorption and 2P-excited TA, with the crossing plane, the beam
         cross-section, an overlap map and delay and position scans.</p>
-        <p class="note"><a href="https://github.com/CrestK/Gaussian-Intensity-Weighted-Focal-Overlap-Public">source</a></p>
+        <p class="note"><a href="https://github.com/CrestK/Gaussian-Intensity-Weighted-Focal-Overlap-Public">source</a> · also at <a href="https://beamoverlap.koemel.net/">beamoverlap.koemel.net</a></p>
       </div>
     </div>
 
     <div class="entry" id="overlap-game">
-      <a class="thumb" href="https://beamoverlap.game.koemel.net/" tabindex="-1" aria-hidden="true"><img src="previews/overlap-game.webp" width="128" height="128" alt=""></a>
+      <a class="thumb" href="overlap-game/index.html" tabindex="-1" aria-hidden="true"><img src="previews/overlap-game.webp" width="128" height="128" alt=""></a>
       <div>
-        <h3><a href="https://beamoverlap.game.koemel.net/">Find the overlap (game)</a></h3>
+        <h3><a href="overlap-game/index.html">Find the overlap (game)</a></h3>
         <p>Steer the pump with a kinematic mirror and slide the delay stage until the pulses meet in the sample. The
         cyclohexane Raman spectrum grows as you get closer; hold 95&nbsp;% overlap to lock in. Three beams per game and
         three levels; hard has 50&nbsp;fs pulses and small beams.</p>
-        <p class="note"><a href="https://github.com/CrestK/Beam-Overlap-Game-Public">source</a></p>
+        <p class="note"><a href="https://github.com/CrestK/Beam-Overlap-Game-Public">source</a> · also at <a href="https://beamoverlap.game.koemel.net/">beamoverlap.game.koemel.net</a>. Best times are kept per site, in your browser.</p>
       </div>
     </div>
 
     <div class="entry" id="screensaver">
-      <a class="thumb empty" href="https://screensaver.overlap.koemel.net/" tabindex="-1" aria-hidden="true">preview to come</a>
+      <a class="thumb" href="screensaver/index.html" tabindex="-1" aria-hidden="true"><img src="previews/screensaver.webp" width="128" height="128" alt=""></a>
       <div>
-        <h3><a href="https://screensaver.overlap.koemel.net/">Beam overlap screensaver</a></h3>
-        <p>Beam overlap as a CD-player style screensaver.</p>
-        <p class="note">Description and preview to come.</p>
+        <h3><a href="screensaver/index.html">Beam overlap screensaver</a></h3>
+        <p>A pump and a probe spot drift around a black screen and bounce off the edges, like the old bouncing-logo
+        screensaver. Where they cross, the signal glows white and the corner shows the overlap. Each load picks new
+        colours, waists and pulse lengths; add a seed to the address (<code>#48213</code>, <code>#classic</code>) to
+        keep one. Double-click for full screen.</p>
+        <p class="note">Also at <a href="https://screensaver.overlap.koemel.net/">screensaver.overlap.koemel.net</a></p>
       </div>
     </div>
 
     <div class="entry" id="solvent-subtraction">
-      <a class="thumb" href="https://crestk.github.io/Solvent-subtraction/" tabindex="-1" aria-hidden="true"><img src="previews/solvent-subtraction.webp" width="128" height="128" alt=""></a>
+      <a class="thumb" href="solvent-subtraction/index.html" tabindex="-1" aria-hidden="true"><img src="previews/solvent-subtraction.webp" width="128" height="128" alt=""></a>
       <div>
-        <h3><a href="https://crestk.github.io/Solvent-subtraction/">Solvent subtraction</a></h3>
+        <h3><a href="solvent-subtraction/index.html">Solvent subtraction</a></h3>
         <p>Removes solvent Raman bands from a spectrum, written for FSRS data. Load Igor Pro waves (.ibw, .itx, .pxp) or text, fit the
         solvent by a scale factor, a Taylor expansion (shift and broadening) or an exact shift-and-broadening model,
         and download the result as an Igor wave.</p>
@@ -101,10 +105,12 @@ repository.</p>
   <h2>Notes</h2>
   <ul class="notes">
     <li>The calculations run in your browser. Nothing you type or load is uploaded.</li>
-    <li>Each page is a static site: open its <code>index.html</code> from the repository and it runs with no server
-    or build step. The calculation pages list their model and equations at the bottom.</li>
-    <li>The Franck–Condon and solvent subtraction repositories have tests (<code>node tests/validate.mjs</code>) that
-    check the calculation against closed forms and numerical integration; their READMEs give the numbers.</li>
+    <li>Each page is a static folder in this repository (<code>franck-condon/</code>, <code>focal-overlap/</code>,
+    <code>overlap-game/</code>, <code>screensaver/</code>, <code>solvent-subtraction/</code>): open its <code>index.html</code> and it runs with
+    no server or build step. The calculation pages list their model and equations at the bottom.</li>
+    <li>The Franck–Condon and solvent subtraction pages come with their tests
+    (<code>node franck-condon/tests/validate.mjs</code>), which check the calculation against closed forms and
+    numerical integration; their repositories' READMEs give the numbers.</li>
   </ul>
   <p class="note">Source of this page: <a href="https://github.com/CrestK/Spectroscopist-Handbook">github.com/CrestK/Spectroscopist-Handbook</a></p>
 </section>

@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Find the Overlap</title>
+<meta name="description" content="A browser game: steer a pump beam with a mirror and a delay stage until it overlaps the probe in space and time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: an optical table seen from above. The crossing-plane camera and the spectrometer
+   screen sit across the top; the hardware you touch (mirror mount, delay stage) sits below.
+   A deliberately single dark theme: laser labs run with the lights down. */
+:root {
+  color-scheme: dark;
+  --table: #0b0e13;
+  --hole: #1b222d;
+  --panel: rgba(16, 21, 29, 0.94);
+  --panel-solid: #10151d;
+  --panel-2: #18202b;
+  --ink: #e9eef5;
+  --ink-2: #b6c0ce;
+  --muted: #7f8a9c;
+  --line: #263142;
+  --accent: #ffb21e;
+  --accent-ink: #1b1300;
+  --trace: #5cc8ff;
+  --good: #3ddc84;
+  --bad: #ff6b6b;
+  --steel: #a3adbb;
+  --scene: #05070b;
+
+  --font-display: "Chakra Petch", "IBM Plex Sans", system-ui, sans-serif;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background-color: var(--table);
+  /* M6 holes on a 25 mm grid */
+  background-image: radial-gradient(circle at center, var(--hole) 0 2.3px, transparent 2.9px);
+  background-size: 25px 25px;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-inline: 16px;
+  padding-block: 12px 28px;
+  display: grid;
+  gap: 12px;
+}
+
+/* ---------- HUD ---------- */
+.hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand i {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 20%, var(--accent) 45%, transparent 72%);
+  box-shadow: 0 0 10px var(--accent);
+}
+.hud-stats { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; flex: 1 1 auto; }
+.stat { display: flex; align-items: baseline; gap: 6px; }
+.stat span { font-family: var(--font-display); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.stat b { font-family: var(--font-mono); font-weight: 500; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.stat b.clock { color: var(--accent); font-size: 1.15rem; }
+.sample { color: var(--ink-2); font-size: 0.8rem; }
+
+/* ---------- table layout ---------- */
+.bench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  grid-template-areas: "view spec" "mirror stage";
+  gap: 12px;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-width: 0;
+  display: grid;
+  align-content: start;
+}
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px 8px;
+}
+.panel-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.panel-head p { margin: 0; color: var(--muted); font-size: 0.75rem; }
+.view { grid-area: view; }
+.spec { grid-area: spec; }
+.mirror { grid-area: mirror; }
+.stage { grid-area: stage; }
+
+.scene { position: relative; background: var(--scene); border-top: 1px solid var(--line); border-bottom-left-radius: var(--radius); border-bottom-right-radius: var(--radius); overflow: hidden; }
+#cv-main { display: block; width: 100%; height: clamp(280px, 36vw, 460px); }
+.card-inset {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: clamp(110px, 24%, 170px);
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 8px;
+  background: #07090d;
+  overflow: hidden;
+}
+.card-inset canvas { display: block; width: 100%; height: 100%; }
+.card-inset span {
+  position: absolute; left: 6px; top: 4px;
+  font-family: var(--font-display); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+}
+.scene-keys { position: absolute; left: 12px; bottom: 8px; display: flex; gap: 12px; font-size: 0.72rem; color: var(--ink-2); flex-wrap: wrap; max-width: 60%; }
+.scene-keys span { display: inline-flex; align-items: center; gap: 6px; }
+.scene-keys i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+
+.spec-body { padding: 0 12px 12px; display: grid; gap: 8px; }
+#cv-spec { display: block; width: 100%; height: clamp(220px, 22vw, 300px); background: #070a0f; border: 1px solid var(--line); border-radius: 8px; }
+#cv-trend { display: block; width: 100%; height: 84px; background: #070a0f; border: 1px solid var(--line); border-radius: 8px; }
+.spec-note { margin: 0; color: var(--muted); font-size: 0.75rem; }
+
+/* ---------- hardware ---------- */
+.hw { padding: 4px 14px 14px; display: grid; gap: 10px; }
+.mirror .hw { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); align-items: center; }
+#mount { width: 100%; max-width: 230px; height: auto; display: block; touch-action: none; user-select: none; }
+.plate { fill: url(#anod); stroke: #313a48; }
+.ring { fill: #1d232d; stroke: #3a4454; }
+.screw { fill: #0d1117; stroke: #3a4454; }
+.pivot { fill: var(--steel); }
+.knob { cursor: grab; outline: none; }
+.knob:active { cursor: grabbing; }
+.knob-body { fill: #2a323e; stroke: #4a5566; stroke-width: 1.5; }
+.knob:focus-visible .knob-body { stroke: var(--accent); stroke-width: 2.5; }
+.knob-mark { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+.knurl line { stroke: #12171e; stroke-width: 2; }
+.lbl { fill: var(--ink-2); font-family: var(--font-display); font-size: 13px; letter-spacing: 0.08em; text-anchor: middle; text-transform: uppercase; }
+.axis-ctl { display: grid; gap: 4px; }
+.axis-ctl label { font-family: var(--font-display); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
+.axis-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.axis-row input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
+.step {
+  min-width: 34px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 0 8px;
+}
+.step:hover { border-color: var(--accent); }
+.hw-note { margin: 0; color: var(--muted); font-size: 0.75rem; }
+
+#stage-svg { width: 100%; height: auto; display: block; touch-action: none; user-select: none; }
+.stage-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.readout {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  background: #070a0f;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 10px;
+  color: var(--accent);
+}
+.readout small { color: var(--muted); font-size: 0.75rem; }
+.stage-steps { display: flex; gap: 6px; }
+.carriage { cursor: grab; }
+.carriage:active { cursor: grabbing; }
+
+/* ---------- overlays ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: rgba(5, 7, 11, 0.72);
+  backdrop-filter: blur(3px);
+  overflow-y: auto;
+}
+.sheet {
+  width: min(760px, 100%);
+  background: var(--panel-solid);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  padding: 22px clamp(16px, 4vw, 30px) 24px;
+  display: grid;
+  gap: 14px;
+}
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.sheet h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 1.4rem + 3vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+.sheet h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; text-wrap: balance; }
+.sheet p { margin: 0; color: var(--ink-2); max-width: 64ch; }
+.levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.level {
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.level:hover { border-color: #3d4b60; }
+.level[aria-checked="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.level b { font-family: var(--font-display); font-size: 1.05rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.level span { color: var(--ink-2); font-size: 0.78rem; }
+.level em { font-style: normal; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.btn {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.big { font-family: var(--font-display); font-size: 1.1rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 12px 22px; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.howto { color: var(--ink-2); }
+.howto summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+.howto ul { margin: 8px 0 0; padding-left: 1.2em; display: grid; gap: 4px; }
+#cv-reward { display: block; width: 100%; height: 220px; background: #070a0f; border: 1px solid var(--line); border-radius: 8px; }
+.facts { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; color: var(--ink-2); }
+.facts b { color: var(--ink); font-weight: 600; }
+.big-time { font-family: var(--font-mono); font-size: clamp(2.6rem, 2rem + 3vw, 4rem); color: var(--accent); line-height: 1; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--good); color: #04210f; font-weight: 600; font-size: 0.75rem; margin-left: 8px; vertical-align: middle; }
+table.splits { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.splits th, .splits td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.splits th { color: var(--muted); font-weight: 500; font-size: 0.75rem; }
+.splits td.num { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.splits th.num { text-align: right; }
+.table-wrap { overflow-x: auto; }
+
+.board { display: grid; gap: 6px; }
+.board-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.board h3 { margin: 0; font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
+.splits tr.me td { color: var(--accent); font-weight: 600; }
+.board th:first-child, .board td:first-child { width: 3em; }
+.board th:nth-child(3), .board td:nth-child(3) { width: 6em; }
+.board th:nth-child(4), .board td:nth-child(4) { width: 7.5em; }
+.splits td.empty { color: var(--muted); text-align: center; }
+.linkish { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 0.75rem; }
+.linkish:hover { color: var(--ink); }
+.linkish.armed { color: var(--bad); }
+.save { display: grid; gap: 6px; }
+.save label { font-weight: 600; }
+.save-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.save-row input {
+  flex: 1 1 200px;
+  min-width: 0;
+  background: #070a0f;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1rem;
+}
+.save-row input:focus { border-color: var(--accent); outline: none; }
+
+@media (max-width: 1000px) {
+  .bench { grid-template-columns: minmax(0, 1fr); grid-template-areas: "view" "spec" "mirror" "stage"; }
+}
+@media (max-width: 640px) {
+  .levels { grid-template-columns: minmax(0, 1fr); }
+  .mirror .hw { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .mirror .hw > .axis-group { width: 100%; }
+  .card-inset { width: 96px; }
+  .scene-keys { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand i { box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hud">
+    <div class="brand"><i aria-hidden="true"></i>Find the Overlap</div>
+    <div class="hud-stats">
+      <div class="stat"><span>Beam</span><b id="hud-round">1 / 3</b></div>
+      <div class="stat"><span>Time</span><b class="clock" id="hud-clock">0:00.0</b></div>
+      <div class="stat"><span>Level</span><b id="hud-level">Medium</b></div>
+      <div class="sample" id="hud-sample"></div>
+    </div>
+    <button class="btn" id="btn-quit" type="button">Quit</button>
+  </header>
+
+  <main class="bench">
+    <section class="panel view" aria-labelledby="view-title">
+      <div class="panel-head">
+        <h2 id="view-title">Crossing plane</h2>
+        <p>Top view of the sample. Pulses loop like a 1 kHz laser.</p>
+      </div>
+      <div class="scene">
+        <canvas id="cv-main" aria-label="Top view of the pump and probe beams crossing in the sample"></canvas>
+        <div class="scene-keys">
+          <span><i id="key-pump"></i>Pump</span>
+          <span><i id="key-probe"></i>Probe</span>
+          <span><i style="background:#fff"></i>Signal</span>
+        </div>
+        <div class="card-inset"><canvas id="cv-card" aria-label="Beam spots on an alignment card at the sample"></canvas><span>Card</span></div>
+      </div>
+    </section>
+
+    <section class="panel spec" aria-labelledby="spec-title">
+      <div class="panel-head">
+        <h2 id="spec-title">Spectrometer</h2>
+        <p id="spec-sub">Stimulated Raman of cyclohexane</p>
+      </div>
+      <div class="spec-body">
+        <canvas id="cv-spec" aria-label="Live spectrum. Peaks grow as the overlap improves."></canvas>
+        <canvas id="cv-trend" aria-label="Main peak height over the last 20 seconds"></canvas>
+        <p class="spec-note" id="spec-note"></p>
+      </div>
+    </section>
+
+    <section class="panel mirror" aria-labelledby="mirror-title">
+      <div class="panel-head">
+        <h2 id="mirror-title">Pump steering mirror</h2>
+        <p>Turn the knobs or slide to tilt.</p>
+      </div>
+      <div class="hw">
+        <svg id="mount" viewBox="0 0 260 250" aria-label="Kinematic mirror mount">
+          <defs>
+            <linearGradient id="anod" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#28303c"/>
+              <stop offset="1" stop-color="#141920"/>
+            </linearGradient>
+            <radialGradient id="mirrorGrad" cx="0.35" cy="0.3" r="0.9">
+              <stop offset="0" stop-color="#f2f5f9"/>
+              <stop offset="0.5" stop-color="#9aa5b4"/>
+              <stop offset="1" stop-color="#3a4250"/>
+            </radialGradient>
+            <filter id="glow" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="3"/></filter>
+          </defs>
+          <rect class="plate" x="40" y="30" width="150" height="150" rx="12"/>
+          <circle class="screw" cx="174" cy="164" r="5"/>
+          <circle class="pivot" cx="58" cy="48" r="5"/>
+          <circle class="ring" cx="115" cy="105" r="55"/>
+          <circle cx="115" cy="105" r="48" fill="url(#mirrorGrad)"/>
+          <circle id="mirror-spot-glow" cx="115" cy="105" r="11" filter="url(#glow)"/>
+          <circle id="mirror-spot" cx="115" cy="105" r="5"/>
+          <g class="knob" id="knob-x" transform="translate(222 52)" tabindex="0" role="slider" aria-label="Mirror X tilt knob">
+            <circle class="knob-body" r="24"/>
+            <g class="knob-rot"><g class="knurl"></g><line class="knob-mark" x1="0" y1="-4" x2="0" y2="-19"/></g>
+          </g>
+          <text class="lbl" x="222" y="96">X tilt</text>
+          <g class="knob" id="knob-y" transform="translate(58 214)" tabindex="0" role="slider" aria-label="Mirror Y tilt knob">
+            <circle class="knob-body" r="24"/>
+            <g class="knob-rot"><g class="knurl"></g><line class="knob-mark" x1="0" y1="-4" x2="0" y2="-19"/></g>
+          </g>
+          <text class="lbl" x="122" y="218">Y tilt</text>
+        </svg>
+        <div class="axis-group" style="display:grid;gap:12px">
+          <div class="axis-ctl">
+            <label for="sl-x">X tilt · in the crossing plane</label>
+            <div class="axis-row">
+              <button class="step" type="button" data-axis="x" data-dir="-1" aria-label="Tilt X down one step">−</button>
+              <input type="range" id="sl-x" min="-100" max="100" step="0.1" value="0">
+              <button class="step" type="button" data-axis="x" data-dir="1" aria-label="Tilt X up one step">+</button>
+            </div>
+          </div>
+          <div class="axis-ctl">
+            <label for="sl-y">Y tilt · out of the plane</label>
+            <div class="axis-row">
+              <button class="step" type="button" data-axis="y" data-dir="-1" aria-label="Tilt Y down one step">−</button>
+              <input type="range" id="sl-y" min="-100" max="100" step="0.1" value="0">
+              <button class="step" type="button" data-axis="y" data-dir="1" aria-label="Tilt Y up one step">+</button>
+            </div>
+          </div>
+          <p class="hw-note" id="mirror-note">One knob turn moves the pump 40 µm at the sample. Shift + arrow keys for bigger steps.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel stage" aria-labelledby="stage-title">
+      <div class="panel-head">
+        <h2 id="stage-title">Pump delay stage</h2>
+        <p>1 mm of travel = 6.67 ps of delay (the retroreflector doubles the path).</p>
+      </div>
+      <div class="hw">
+        <svg id="stage-svg" viewBox="0 0 660 172" aria-label="Linear delay stage with a retroreflector"></svg>
+        <div class="stage-row">
+          <div class="readout" id="stage-readout" aria-live="off">0.000 <small>mm</small></div>
+          <div class="stage-steps">
+            <button class="step" type="button" data-stage="-10">−10×</button>
+            <button class="step" type="button" data-stage="-1">−</button>
+            <button class="step" type="button" data-stage="1">+</button>
+            <button class="step" type="button" data-stage="10">+10×</button>
+          </div>
+          <p class="hw-note" id="stage-note"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="ov-title">
+  <div class="sheet">
+    <p class="eyebrow">An ultrafast alignment game</p>
+    <h1>Find the Overlap</h1>
+    <p>Your pump and probe beams miss each other. Steer the pump with the mirror and slide the delay stage until the two pulses meet in the sample at the same place and the same time. The cyclohexane spectrum grows as you get closer. Hold 95% overlap to lock in each beam. Three beams; your score is the total time.</p>
+    <div class="levels" role="radiogroup" aria-label="Difficulty" id="levels">
+      <button class="level" type="button" role="radio" data-level="easy">
+        <b>Easy</b>
+        <span>Coumarin 153 in cyclohexane. The dye stays excited for 4.3 ns, so any delay after time zero works. Big beams, ~150 fs pulses.</span>
+        <em id="best-easy">No best time yet</em>
+      </button>
+      <button class="level" type="button" role="radio" data-level="medium">
+        <b>Medium</b>
+        <span>Cyclohexane Raman bands that last 1–2.5 ps. Pulses of 200–400 fs.</span>
+        <em id="best-medium">No best time yet</em>
+      </button>
+      <button class="level" type="button" role="radio" data-level="hard">
+        <b>Hard</b>
+        <span>50 fs pulses, short-lived Raman bands (0.25–0.6 ps) and small beams. No target line on the spectrum.</span>
+        <em id="best-hard">No best time yet</em>
+      </button>
+    </div>
+    <div class="btn-row"><button class="btn primary big" id="btn-play" type="button">Play</button></div>
+    <section class="board" aria-labelledby="title-board-h">
+      <div class="board-head">
+        <h3 id="title-board-h">Scoreboard · Medium</h3>
+        <button class="linkish" id="btn-clear" type="button">Clear scoreboard</button>
+      </div>
+      <div class="table-wrap">
+        <table class="splits">
+          <thead><tr><th scope="col" class="num">#</th><th scope="col">Name</th><th scope="col" class="num">Time</th><th scope="col">Date</th></tr></thead>
+          <tbody id="title-board"></tbody>
+        </table>
+      </div>
+      <p class="hw-note">Scores are kept in this browser only.</p>
+    </section>
+    <details class="howto">
+      <summary>How to play</summary>
+      <ul>
+        <li><b>Mirror</b>: drag a knob around to turn it, scroll over it, or use the sliders and ± buttons. X moves the pump in the crossing plane, Y moves it out of the plane (watch the card).</li>
+        <li><b>Delay stage</b>: drag the carriage for big moves, turn the micrometer or use the ± buttons for fine steps. The amber bracket is your ruler estimate of where time zero is.</li>
+        <li><b>Spectrometer</b>: the bands only appear when the pulses overlap. Maximise them. The trend strip shows the main peak over time, which helps while scanning.</li>
+        <li>Hold at least 95% overlap for a moment to lock in. Then you see how your pulses sat in time against the sample's single-exponential response.</li>
+      </ul>
+    </details>
+  </div>
+</div>
+
+<div class="overlay" id="ov-win" hidden>
+  <div class="sheet">
+    <p class="eyebrow" id="win-eyebrow">Beam 1 of 3 · overlap locked</p>
+    <h2 id="win-title">Overlap found</h2>
+    <canvas id="cv-reward" aria-label="Pump pulse, probe pulse and the sample's single-exponential response in time"></canvas>
+    <ul class="facts" id="win-facts"></ul>
+    <div class="btn-row"><button class="btn primary" id="btn-next" type="button">Next beam</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-score" hidden>
+  <div class="sheet">
+    <p class="eyebrow" id="score-eyebrow">Medium · 3 beams aligned</p>
+    <h2>Total time</h2>
+    <div><span class="big-time" id="score-total">0:00.0</span><span class="badge" id="score-badge" hidden>New best</span></div>
+    <p id="score-best"></p>
+    <div class="table-wrap">
+      <table class="splits">
+        <thead><tr><th scope="col">Beam</th><th scope="col">Sample response</th><th scope="col" class="num">Overlap</th><th scope="col" class="num">Time</th></tr></thead>
+        <tbody id="score-rows"></tbody>
+      </table>
+    </div>
+    <form class="save" id="save-form" autocomplete="on">
+      <label for="player-name">Name for the scoreboard</label>
+      <div class="save-row">
+        <input id="player-name" name="nickname" maxlength="24" autocomplete="nickname" placeholder="Your name" required>
+        <button class="btn primary" type="submit" id="btn-save">Save score</button>
+      </div>
+      <p class="hw-note" id="save-note">Scores are kept in this browser only.</p>
+    </form>
+    <section class="board" aria-labelledby="score-board-h">
+      <div class="board-head"><h3 id="score-board-h">Scoreboard · Medium</h3></div>
+      <div class="table-wrap">
+        <table class="splits">
+          <thead><tr><th scope="col" class="num">#</th><th scope="col">Name</th><th scope="col" class="num">Time</th><th scope="col">Date</th></tr></thead>
+          <tbody id="score-board"></tbody>
+        </table>
+      </div>
+    </section>
+    <div class="btn-row">
+      <button class="btn" id="btn-again" type="button">Play again</button>
+      <button class="btn" id="btn-menu" type="button">Change level</button>
+    </div>
+  </div>
+</div>
+
+<script src="overlap.js"></script>
+<script src="game-core.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

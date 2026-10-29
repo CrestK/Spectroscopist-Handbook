@@ -1,21 +1,31 @@
-// Checks index.html: previews exist and stay small, every entry links consistently, the page loads nothing from
-// elsewhere, and no file in the repository holds anything that should not be on a public page.
-//   node tests/validate.mjs
+// Checks the handbook: the home page, its previews and links, the copied pages, and that no file in the repository
+// holds anything that should not be on a public page. Also runs the copied pages' own tests.
+//   node tests/validate.mjs            # about 17 s
+//   node tests/validate.mjs --quick    # skip the copied pages' own tests
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const quick = process.argv.includes("--quick");
 
-// public repositories the page may link to
+// public repositories any page may link to
 const PUBLIC_REPOS = ["Franck-Condon-Factor", "Gaussian-Intensity-Weighted-Focal-Overlap-Public", "Beam-Overlap-Game-Public",
   "Solvent-subtraction", "Spectroscopist-Handbook"];
+// the copied pages, and the ones that bring their own tests
+const COPIES = ["franck-condon", "focal-overlap", "overlap-game", "screensaver", "solvent-subtraction"];
+const COPY_TESTS = ["franck-condon/tests/validate.mjs", "solvent-subtraction/tests/validate.mjs"];
 const PREVIEW_PX = 256, PREVIEW_MAX = 20 * 1024, PREVIEWS_TOTAL_MAX = 60 * 1024, PAGE_MAX = 20 * 1024;
 
 let fails = 0;
 const check = (name, ok, info) => { console.log(`${ok ? "PASS" : "FAIL"}  ${name}${info ? "  " + info : ""}`); if (!ok) fails++; };
 const attr = (tag, name) => (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) || [])[1];
+const isRemote = u => /^(https?:)?\/\//.test(u);
+const files = [], walk = d => { for (const f of fs.readdirSync(d)) { if (f === ".git") continue; const p = path.join(d, f); fs.statSync(p).isDirectory() ? walk(p) : files.push(p); } };
+walk(root);
+const rel = f => path.relative(root, f).split(path.sep).join("/");
 
 // width and height of a WebP file (lossy VP8, lossless VP8L or extended VP8X)
 function webpSize(b) {
@@ -48,54 +58,108 @@ function webpChunks(b) {
     if (chunks.includes("EXIF") || chunks.includes("XMP ")) bad.push(`${src}: has metadata`);
     if (attr(tag, "width") !== "128" || attr(tag, "height") !== "128") bad.push(`${src}: width/height attributes`);
   }
-  check("1 previews are 256 × 256 WebP, no metadata, ≤ 20 KB each", imgs.length >= 4 && bad.length === 0,
+  check("1 previews are 256 × 256 WebP, no metadata, ≤ 20 KB each", imgs.length === COPIES.length && bad.length === 0,
     `${imgs.length} images, ${(total / 1024).toFixed(1)} KB in all${bad.length ? "; " + bad.join("; ") : ""}`);
-  const dir = path.join(root, "previews"), files = fs.readdirSync(dir), dirTotal = files.reduce((s, f) => s + fs.statSync(path.join(dir, f)).size, 0);
-  const unused = files.filter(f => !html.includes(`previews/${f}`));
+  const dir = path.join(root, "previews"), names = fs.readdirSync(dir), dirTotal = names.reduce((s, f) => s + fs.statSync(path.join(dir, f)).size, 0);
+  const unused = names.filter(f => !html.includes(`previews/${f}`));
   check("2 previews/ holds only images the page uses, ≤ 60 KB in all", unused.length === 0 && dirTotal <= PREVIEWS_TOTAL_MAX,
-    `${files.length} files, ${(dirTotal / 1024).toFixed(1)} KB${unused.length ? "; unused: " + unused.join(", ") : ""}`);
+    `${names.length} files, ${(dirTotal / 1024).toFixed(1)} KB${unused.length ? "; unused: " + unused.join(", ") : ""}`);
 }
 
-// 3. every entry has a unique id, a preview square and a title, both linking to the same page
+// 3. every entry has a unique id, a preview and a title, both linking to its copy in this repository
 {
   const entries = [...html.matchAll(/<div class="entry" id="([^"]+)">([\s\S]*?)<\/h3>/g)];
   const ids = entries.map(m => m[1]), bad = [];
   for (const [, id, body] of entries) {
     const thumb = (body.match(/<a class="thumb[^"]*" href="([^"]+)"/) || [])[1], title = (body.match(/<h3><a href="([^"]+)"/) || [])[1];
-    if (!thumb || !title || thumb !== title) bad.push(`${id}: preview ${thumb} vs title ${title}`);
+    if (!thumb || thumb !== title) bad.push(`${id}: preview ${thumb} vs title ${title}`);
+    else if (thumb !== `${id}/index.html`) bad.push(`${id}: links to ${thumb}, not ${id}/index.html`);
   }
-  check("3 each entry: preview and title link to the same page", entries.length === 5 && new Set(ids).size === ids.length && bad.length === 0,
+  const same = ids.length === COPIES.length && COPIES.every(c => ids.includes(c));
+  check("3 each entry: preview and title link to its copy, <id>/index.html", same && new Set(ids).size === ids.length && bad.length === 0,
     `${entries.length} entries (${ids.join(", ")})${bad.length ? "; " + bad.join("; ") : ""}`);
 }
 
-// 4. links: https only, and GitHub links only to the public repositories above
+// 4. home page links: local ones resolve, remote ones are https
 {
   const hrefs = [...html.matchAll(/\shref="([^"]+)"/g)].map(m => m[1]);
-  const notHttps = hrefs.filter(h => !h.startsWith("https://")), gh = hrefs.filter(h => /github\.com/.test(h));
-  const other = gh.filter(h => !PUBLIC_REPOS.some(r => h === `https://github.com/CrestK/${r}` || h.startsWith(`https://github.com/CrestK/${r}/`)));
-  check("4 links are https; GitHub links go to public repositories only", notHttps.length === 0 && other.length === 0,
-    `${hrefs.length} links, ${gh.length} to GitHub${notHttps.length ? "; not https: " + notHttps.join(", ") : ""}${other.length ? "; other: " + other.join(", ") : ""}`);
+  const local = hrefs.filter(h => !isRemote(h)), missing = local.filter(h => !fs.existsSync(path.join(root, h.split("#")[0])));
+  const notHttps = hrefs.filter(h => isRemote(h) && !h.startsWith("https://"));
+  check("4 home page: local links resolve, remote links are https", missing.length === 0 && notHttps.length === 0,
+    `${local.length} local, ${hrefs.length - local.length} remote${missing.length ? "; missing: " + missing.join(", ") : ""}${notHttps.length ? "; not https: " + notHttps.join(", ") : ""}`);
 }
 
-// 5. the page loads nothing from elsewhere and needs no script
+// 5. the home page loads nothing from elsewhere and needs no script
 {
   const ext = [...html.matchAll(/<(script|link|img|iframe|source|video|audio)\b[^>]*\s(src|href)="(https?:)?\/\/[^"]*"/g)].map(m => m[0]);
   const scripts = (html.match(/<script\b/g) || []).length, styles = (html.match(/<link\b[^>]*stylesheet/g) || []).length;
-  check("5 no external resources, no scripts, page ≤ 20 KB", ext.length === 0 && scripts === 0 && styles === 0 && html.length <= PAGE_MAX,
+  check("5 home page: no external resources, no scripts, ≤ 20 KB", ext.length === 0 && scripts === 0 && styles === 0 && html.length <= PAGE_MAX,
     `${ext.length} external, ${scripts} scripts, ${styles} stylesheets, ${(html.length / 1024).toFixed(1)} KB`);
 }
 
-// 6. nothing private in any text file: no email addresses, no local paths, no chat or session links
+// 6. every copy has its index.html, every relative script, stylesheet, font and image it names exists, and no CNAME
 {
-  const files = [], walk = d => { for (const f of fs.readdirSync(d)) { if (f === ".git") continue; const p = path.join(d, f); fs.statSync(p).isDirectory() ? walk(p) : files.push(p); } };
-  walk(root);
+  const bad = [];
+  let refs = 0;
+  for (const c of COPIES) {
+    const dir = path.join(root, c), page = path.join(dir, "index.html");
+    if (!fs.existsSync(page)) { bad.push(`${c}: no index.html`); continue; }
+    if (fs.existsSync(path.join(dir, "CNAME"))) bad.push(`${c}: has a CNAME`);
+    const s = fs.readFileSync(page, "utf8");
+    const named = [...s.matchAll(/<(?:script|link|img)\b[^>]*\s(?:src|href)="([^"#]+)"/g)].map(m => [page, m[1]]);
+    const urls = s => [...s.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map(m => m[1]).filter(u => !u.startsWith("data:") && !isRemote(u));
+    for (const css of files.filter(f => f.startsWith(dir + path.sep) && f.endsWith(".css"))) {
+      const s = fs.readFileSync(css, "utf8");
+      // an @font-face lists fallbacks (woff2, woff, ttf); the browser takes the first it can use, so one must exist
+      for (const m of s.matchAll(/@font-face\s*\{[^}]*\}/g)) {
+        const u = urls(m[0]);
+        refs++;
+        if (u.length && !u.some(x => fs.existsSync(path.join(path.dirname(css), x)))) bad.push(`${rel(css)}: none of ${u.join(", ")}`);
+      }
+      for (const u of urls(s.replace(/@font-face\s*\{[^}]*\}/g, ""))) named.push([css, u]);
+    }
+    for (const [from, u] of named) {
+      if (isRemote(u)) continue;
+      refs++;
+      if (!fs.existsSync(path.join(path.dirname(from), u))) bad.push(`${rel(from)}: ${u} missing`);
+    }
+  }
+  check("6 copies: index.html and every relative script, stylesheet, font and image present, no CNAME", bad.length === 0,
+    `${COPIES.length} copies, ${refs} local references${bad.length ? "; " + bad.join("; ") : ""}`);
+}
+
+// 7. nothing private in any text file: no email addresses, local paths, file URLs, chat or session links, and GitHub
+//    links only to the public repositories above
+{
   const text = files.filter(f => /\.(html|md|mjs|js|css|txt|json)$/.test(f) || !path.extname(f));
   const rules = [["email address", /[\w.+-]+@[\w-]+\.[a-z]{2,}/i], ["local path", /(^|[\s"'(])(\/home|\/root|\/tmp|\/Users|[A-Z]:\\)[\\/]/m],
     ["file URL", /file:\/\//], ["chat or session link", /claude\.ai|session_[A-Za-z0-9]{6,}/]];
   const hits = [];
-  for (const f of text) { const s = fs.readFileSync(f, "utf8"); for (const [what, re] of rules) if (re.test(s)) hits.push(`${path.relative(root, f)}: ${what}`); }
-  check("6 no email addresses, local paths or session links in the repository", hits.length === 0,
-    `${text.length} text files${hits.length ? "; " + hits.join("; ") : ""}`);
+  let gh = 0;
+  for (const f of text) {
+    const s = fs.readFileSync(f, "utf8");
+    for (const [what, re] of rules) if (re.test(s)) hits.push(`${rel(f)}: ${what}`);
+    for (const m of s.matchAll(/github\.com\/([\w.-]+)(?:\/([\w.-]+))?/gi)) {
+      gh++;
+      if (m[1].toLowerCase() !== "crestk" || !PUBLIC_REPOS.some(r => r.toLowerCase() === (m[2] || "").toLowerCase())) hits.push(`${rel(f)}: links ${m[0]}`);
+    }
+  }
+  check("7 no email addresses, local paths or session links; GitHub links to public repositories only", hits.length === 0,
+    `${text.length} text files, ${gh} GitHub links${hits.length ? "; " + hits.join("; ") : ""}`);
+}
+
+// 8. the copied pages' own tests still pass where they now live
+if (quick) console.log("skip  8 copied pages' own tests (--quick)");
+else {
+  const out = [];
+  let ok = true;
+  for (const t of COPY_TESTS) {
+    const t0 = Date.now(), r = spawnSync(process.execPath, [path.join(root, t)], { encoding: "utf8" });
+    const lines = (r.stdout || "").trim().split("\n"), passes = lines.filter(l => l.startsWith("PASS")).length;
+    ok = ok && r.status === 0;
+    out.push(`${t}: ${passes} PASS, ${lines[lines.length - 1]} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
+  }
+  check("8 copied pages' own tests pass", ok, out.join("; "));
 }
 
 console.log(fails ? `${fails} FAILED` : "all passed");

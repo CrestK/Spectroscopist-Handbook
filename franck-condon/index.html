@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Franck–Condon Overlap Factors</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<style>
+  /* Plain page: white, black text, system font, native controls. Layout only. */
+  :root { color-scheme: light; }
+  body { margin: 0; background: #fff; color: #000; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; padding-block: 16px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 8px; }
+  h3 { font-size: 15px; margin: 14px 0 4px; }
+  p { margin: 0 0 8px; }
+  section { border-top: 1px solid #bbb; padding-block: 16px; }
+  .caption { color: #333; font-size: 14px; max-width: 80ch; margin-top: 8px; }
+  .note { color: #555; font-size: 13px; }
+  .error { color: #b00000; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-block: 8px; }
+  .sliders { display: grid; grid-template-columns: max-content minmax(120px, 1fr) 7.5em max-content; gap: 6px 10px; align-items: center; margin-block: 8px; max-width: 820px; }
+  .sliders input[type=range] { width: 100%; margin: 0; }
+  .sliders input[type=number] { width: 100%; box-sizing: border-box; }
+  .sliders .unit { color: #444; font-size: 13px; }
+  .sliders .wide { grid-column: 2 / 3; }
+  .sliders .span2 { grid-column: 2 / 4; min-width: 0; max-width: 100%; font: inherit; font-size: 14px; }
+  input[aria-invalid=true] { outline: 2px solid #b00000; }
+  .num { font-variant-numeric: tabular-nums; }
+  .split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
+  .figs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; align-items: start; }
+  .plotbox { min-width: 0; }
+  #integSel { max-width: 100%; min-width: 0; font: inherit; font-size: 14px; }
+  .plotbox canvas { display: block; width: 100%; }
+  #pesCanvas, #stickCanvas { cursor: pointer; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; margin-bottom: 2px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .swatch { display: inline-block; width: 11px; height: 11px; vertical-align: -1px; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 4px 7px; text-align: right; white-space: nowrap; vertical-align: middle; }
+  th { background: #f2f2f2; font-weight: 600; }
+  td.l, th.l { text-align: left; }
+  td.f { white-space: normal; min-width: 11em; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover td { background: #f7f7f7; }
+  tbody tr.active td { background: #fff4c2; }
+  tr.sum td { background: #f2f2f2; font-weight: 600; cursor: default; }
+  .tag { display: inline-block; font-size: 11px; line-height: 1.3; padding: 0 5px; border: 1px solid; border-radius: 3px; margin: 2px 4px 0 0; white-space: nowrap; }
+  .tag.parity { color: #b00000; border-color: #b00000; }
+  .tag.orth { color: #444; border-color: #888; }
+  .key { font-size: 13px; margin: 8px 0 0; padding-left: 1.2em; }
+  .key li { margin-block: 3px; }
+  .eq { overflow-x: auto; overflow-y: hidden; margin: 4px 0 10px; padding-block: 2px; }
+  .raw { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; white-space: pre-wrap; color: #333; }
+  ol.eqs { padding-left: 1.6em; margin: 0; }
+  ol.eqs > li { margin-block: 14px; }
+  ol.eqs > li > p:first-child { font-weight: 600; margin-bottom: 2px; }
+  @media (max-width: 920px) { .split { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 760px) { .figs { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) {
+    .sliders { grid-template-columns: minmax(0, 1fr) 6.5em max-content; }
+    .sliders label { grid-column: 1 / -1; margin-top: 4px; }
+    .sliders .wide { grid-column: 1 / 2; }
+    .sliders .span2 { grid-column: 1 / 3; }
+    th, td { padding: 3px 4px; }
+    td.f { min-width: 6.5em; }
+  }
+  :focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+<h1>Franck–Condon overlap factors</h1>
+<p>Two harmonic potential energy surfaces, a ground state <i>g</i> and an excited state <i>e</i>. Set the two vibrational
+frequencies, the displacement and the starting level; the page recalculates every overlap ⟨χ′<sub>v′</sub>|χ″<sub>v″</sub>⟩,
+the Franck–Condon factors and their share of the whole transition. Equations are at the bottom.</p>
+<noscript><p class="error">This page needs JavaScript.</p></noscript>
+
+<section id="inputs">
+  <h2>Inputs</h2>
+  <div class="sliders">
+    <label for="wgR">ω<sub>g</sub>, ground-state frequency</label><input autocomplete="off" type="range" id="wgR" min="100" max="4000" step="1"><input autocomplete="off" type="number" id="wgN" min="10" max="10000" step="any"><span class="unit">cm⁻¹</span>
+    <label for="weR">ω<sub>e</sub>, excited-state frequency</label><input autocomplete="off" type="range" id="weR" min="100" max="4000" step="1"><input autocomplete="off" type="number" id="weN" min="10" max="10000" step="any"><span class="unit">cm⁻¹</span>
+    <label for="dR">d, displacement R<sub>e,0</sub> − R<sub>g,0</sub></label><input autocomplete="off" type="range" id="dR" min="-0.3" max="0.3" step="0.001"><input autocomplete="off" type="number" id="dN" min="-5" max="5" step="any"><span class="unit">Å</span>
+    <label for="muN">μ, reduced mass</label><span class="wide note">k = μω² follows from it</span><input autocomplete="off" type="number" id="muN" min="0.1" max="1000" step="any"><span class="unit">amu</span>
+    <label for="vgN">Start from v″ (ground or hot state)</label><select id="vgN" class="span2" autocomplete="off"></select><span class="unit"></span>
+    <label for="nEN">Excited levels shown</label><span class="wide note">v′ = 0 … this − 1 (table rows)</span><input autocomplete="off" type="number" id="nEN" min="1" max="25" step="1"><span class="unit"></span>
+  </div>
+  <div class="row">
+    <button type="button" id="swap">Swap ω<sub>g</sub> ↔ ω<sub>e</sub></button>
+    <span class="note">Examples:</span>
+    <button type="button" data-preset="mchale">Same R₀, different ω</button>
+    <button type="button" data-preset="shifted">Displaced, same ω</button>
+    <button type="button" data-preset="both">Displaced and different ω</button>
+    <button type="button" data-preset="same">Identical states</button>
+    <button type="button" id="reset">Reset</button>
+  </div>
+  <p id="inErr" class="error" role="alert" hidden></p>
+  <p id="derived" class="num note"></p>
+</section>
+
+<section id="results">
+  <h2>Potential energy surfaces and overlaps</h2>
+  <div class="split">
+    <div>
+      <div class="legend" aria-hidden="true">
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#000" stroke-width="1.5"/></svg>PES and levels</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#c65a12" stroke-width="1.5"/></svg>χ<sub>v</sub> on its level</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#2b7bd6" stroke-width="3"/><path d="M20 1 L26 5 L20 9 Z" fill="#2b7bd6"/></svg>excitation, width ∝ FCF</span>
+        <span><span class="swatch" style="background:rgba(43,123,214,0.45)"></span>χ′χ″ &gt; 0</span>
+        <span><span class="swatch" style="background:rgba(224,0,0,0.38)"></span>χ′χ″ &lt; 0</span>
+      </div>
+      <div id="pes" class="plotbox"><canvas id="pesCanvas" role="img" aria-label="Ground and excited potential energy surfaces with vibrational levels, wavefunctions and excitation arrows"></canvas></div>
+      <p class="caption">Vertical arrows are the Franck–Condon (vertical) excitations from v″; each arrow's width follows its FCF. Every
+      excited level is shaded with its overlap integrand χ′<sub>v′</sub>χ″<sub>v″</sub> (blue where it adds, red where it cancels), all on one
+      scale; the selected level (click a level, a table row, or use the menu below) is shaded darker. The excited state sits
+      T<sub>e</sub> above the ground state; that gap is not to scale (axis break). Click a ground level to start from it (a hot state).</p>
+    </div>
+    <div>
+      <div class="tablewrap"><table id="fcTable"></table></div>
+      <p id="sumNote" class="note"></p>
+      <ul id="key" class="key"></ul>
+      <p id="checkNote" class="note"></p>
+    </div>
+  </div>
+  <div class="figs">
+    <div>
+      <h3 id="integTitle">Overlap integrand</h3>
+      <div class="row"><label for="integSel">Show the integrand for</label><select id="integSel" autocomplete="off"></select></div>
+      <div class="legend" aria-hidden="true">
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#555" stroke-width="1.5" stroke-dasharray="5 3"/></svg>χ″<sub>v″</sub> (ground)</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#c65a12" stroke-width="1.5"/></svg>χ′<sub>v′</sub> (excited)</span>
+        <span><span class="swatch" style="background:rgba(43,123,214,0.45)"></span><span class="swatch" style="background:rgba(224,0,0,0.38)"></span>χ′χ″</span>
+      </div>
+      <div id="integ" class="plotbox"><canvas id="integCanvas" role="img" aria-label="The two wavefunctions and their product for the selected transition"></canvas></div>
+      <p class="caption">The overlap is the net area under χ′χ″ (blue minus red). Equal blue and red areas give zero: the two wavefunctions are orthogonal.</p>
+    </div>
+    <div>
+      <h3>Vibronic progression</h3>
+      <div id="stick" class="plotbox"><canvas id="stickCanvas" role="img" aria-label="Stick spectrum of Franck–Condon factors against transition wavenumber"></canvas></div>
+      <p class="caption">Each line sits at ν̃ − ν̃₀₀ = v′ω<sub>e</sub> − v″ω<sub>g</sub> with height FCF: the band shape of the electronic
+      transition in the harmonic, Condon approximation. Click a line to select it.</p>
+    </div>
+  </div>
+</section>
+
+<section id="equations">
+  <h2>Equations</h2>
+  <p class="note">Notation follows J. L. McHale, <i>Molecular Spectroscopy</i>, 2nd ed. (CRC Press, 2017): ″ marks the ground state (g), ′ the
+  excited state (e); q = R − R₀ is the ground-state displacement coordinate.</p>
+  <ol class="eqs">
+    <li>
+      <p>Harmonic potentials and force constants</p>
+      <div class="eq">V_g(R) = \tfrac12 \mu\omega_g^2 (R-R_0)^2, \qquad V_e(R) = T_e + \tfrac12 \mu\omega_e^2 (R-R_0-d)^2, \qquad k = \mu\omega^2 = \mu\,(2\pi c\,\tilde\omega)^2</div>
+    </li>
+    <li>
+      <p>Vibrational energy levels</p>
+      <div class="eq">E_v = \hbar\omega\left(v+\tfrac12\right), \qquad G(v) = \tilde\omega\left(v+\tfrac12\right)\ \text{in cm}^{-1}</div>
+    </li>
+    <li>
+      <p>Harmonic-oscillator wavefunctions</p>
+      <div class="eq">\chi_v(q) = N_v\, H_v\!\left(\alpha^{1/2} q\right) e^{-\alpha q^2/2}, \qquad \alpha = \frac{\mu\omega}{\hbar}, \qquad N_v = \left(\frac{\alpha^{1/2}}{2^v\, v!\, \pi^{1/2}}\right)^{1/2}</div>
+      <div class="eq">H_0 = 1,\quad H_1 = 2y,\quad H_2 = 4y^2-2,\quad H_3 = 8y^3-12y,\qquad H_{v+1}(y) = 2y\,H_v(y) - 2v\,H_{v-1}(y)</div>
+      <p class="note">In laboratory units, α [Å⁻²] = μ [amu] · ω̃ [cm⁻¹] / 33.715. The excited-state functions are centred at q = d.</p>
+    </li>
+    <li>
+      <p>Franck–Condon factor (Condon approximation)</p>
+      <div class="eq">\langle \psi_e \chi'_{v'} | \hat\mu | \psi_g \chi''_{v''} \rangle \approx \mu_{eg}\, \langle \chi'_{v'} | \chi''_{v''} \rangle, \qquad I_{v' \leftarrow v''} \propto |\mu_{eg}|^2\, \mathrm{FC}_{v'v''}, \qquad \mathrm{FC}_{v'v''} = \left| \int_{-\infty}^{\infty} \chi'_{v'}(q)\, \chi''_{v''}(q)\, dq \right|^2</div>
+    </li>
+    <li>
+      <p>Sum rule, the "% of total" column</p>
+      <div class="eq">\sum_{v'=0}^{\infty} \mathrm{FC}_{v'v''} = \sum_{v'} \langle \chi''_{v''} | \chi'_{v'} \rangle \langle \chi'_{v'} | \chi''_{v''} \rangle = \langle \chi''_{v''} | \chi''_{v''} \rangle = 1 \quad\Rightarrow\quad \%\ \text{of total} = 100\, \mathrm{FC}_{v'v''}</div>
+      <p class="note">The excited-state functions form a complete set, so the whole transition from v″ adds up to 100 %. What the shown rows miss goes to higher v′.</p>
+    </li>
+    <li>
+      <p>Parity selection rule (d = 0)</p>
+      <div class="eq">H_v(-y) = (-1)^v H_v(y) \;\Rightarrow\; \chi_v(-q) = (-1)^v \chi_v(q), \qquad d = 0:\ \ \chi'_{v'}\chi''_{v''}\ \text{has parity}\ (-1)^{v'+v''}</div>
+      <div class="eq">v'+v''\ \text{odd}:\quad \int_{-\infty}^{\infty} (\text{even})\times(\text{odd})\, dq = 0 \quad\Rightarrow\quad \text{parity forbidden}</div>
+      <p class="note">With d ≠ 0 the integrand has no definite parity, so no transition is parity forbidden.</p>
+    </li>
+    <li>
+      <p>Orthogonality (identical states)</p>
+      <div class="eq">\omega_e = \omega_g,\ d = 0:\quad \langle \chi'_{v'} | \chi''_{v''} \rangle = \delta_{v'v''}</div>
+      <p class="note">Both sets are eigenfunctions of the same Hamiltonian, so different levels are orthogonal and only v′ = v″ survives. The table also
+      marks an overlap "≈ orthogonal" when its FCF falls below 10⁻⁶ for any other reason (nearly identical states, or a node in the overlap at these parameters).</p>
+    </li>
+    <li>
+      <p>Same R₀, different frequencies, from v″ = 0 (McHale's problem)</p>
+      <div class="eq">\langle \chi'_0 | \chi''_0 \rangle = N'_0 N''_0 \int_{-\infty}^{\infty} e^{-\bar\alpha q^2} dq = N'_0 N''_0 \sqrt{\frac{\pi}{\bar\alpha}}, \qquad \bar\alpha = \frac{\alpha_g+\alpha_e}{2}</div>
+      <div class="eq">= \left(\frac{\alpha_g^{1/2}\alpha_e^{1/2}}{\pi}\right)^{1/2} \left(\frac{2\pi}{\alpha_g+\alpha_e}\right)^{1/2} = \left(\frac{2(\omega_g\omega_e)^{1/2}}{\omega_g+\omega_e}\right)^{1/2} \quad\Rightarrow\quad \mathrm{FC}_{00} = \frac{2(\omega_g\omega_e)^{1/2}}{\omega_g+\omega_e}</div>
+      <div class="eq">\mathrm{FC}_{10} = 0 \quad (\text{parity: } \textstyle\int \text{even}\times\text{odd} = 0)</div>
+      <div class="eq">\langle \chi'_2 | \chi''_0 \rangle = N'_2 N''_0 \int_{-\infty}^{\infty} \left(4\alpha_e q^2 - 2\right) e^{-\bar\alpha q^2} dq, \qquad \int_{-\infty}^{\infty} q^2 e^{-\bar\alpha q^2} dq = \frac{1}{2\bar\alpha}\sqrt{\frac{\pi}{\bar\alpha}}</div>
+      <div class="eq">= \left(\frac{(\omega_g\omega_e)^{1/2}}{\omega_e+\omega_g}\right)^{1/2} \frac{\omega_e-\omega_g}{\omega_e+\omega_g} \quad\Rightarrow\quad \mathrm{FC}_{20} = \frac{(\omega_g\omega_e)^{1/2}}{\omega_e+\omega_g} \left(\frac{\omega_e-\omega_g}{\omega_e+\omega_g}\right)^2</div>
+      <div class="eq">\text{in general:}\quad \langle \chi'_{2n} | \chi''_0 \rangle = \left(\frac{2(\omega_g\omega_e)^{1/2}}{\omega_g+\omega_e}\right)^{1/2} \frac{\sqrt{(2n)!}}{2^n\, n!} \left(\frac{\omega_e-\omega_g}{\omega_e+\omega_g}\right)^{n}, \qquad \langle \chi'_{2n+1} | \chi''_0 \rangle = 0</div>
+      <p class="note">FC₀₀ is 1 at ω<sub>e</sub> = ω<sub>g</sub> (the two functions overlap completely) and falls as the frequencies separate. FC₂₀ is zero at
+      ω<sub>e</sub> = ω<sub>g</sub> (orthogonality) and grows with the frequency difference: only even v′ appear, a progression in steps of 2ω<sub>e</sub>.</p>
+    </li>
+    <li>
+      <p>Displaced, same frequency, from v″ = 0 (Poisson progression)</p>
+      <div class="eq">\mathrm{FC}_{v'0} = e^{-S}\, \frac{S^{v'}}{v'!}, \qquad S = \frac{\alpha d^2}{2} = \frac{\Delta^2}{2}\ \ (\text{Huang--Rhys factor}), \qquad \Delta = \alpha^{1/2} d</div>
+    </li>
+    <li>
+      <p>General case: displaced and different frequencies, any v″ (the table's analytical column)</p>
+      <div class="eq">\langle \chi'_{m} | \chi''_{n} \rangle = I_{00} \sqrt{\frac{m!\, n!}{2^{m+n}}} \sum_{k=0}^{\min(m,n)} \frac{\gamma^k}{k!}\, P_{m-k}\, Q_{n-k}</div>
+      <div class="eq">P_j = \sum_{i=0}^{\lfloor j/2 \rfloor} \frac{\rho^{\,i}\, b'^{\,j-2i}}{i!\,(j-2i)!}, \qquad Q_j = \sum_{i=0}^{\lfloor j/2 \rfloor} \frac{(-\rho)^{i}\, b''^{\,j-2i}}{i!\,(j-2i)!}</div>
+      <div class="eq">\rho = \frac{\omega_e-\omega_g}{\omega_e+\omega_g}, \quad \gamma = \frac{4(\omega_g\omega_e)^{1/2}}{\omega_g+\omega_e} = 2\sqrt{1-\rho^2}, \quad b' = -\frac{2\alpha_e^{1/2}\alpha_g\, d}{\alpha_g+\alpha_e}, \quad b'' = \frac{2\alpha_g^{1/2}\alpha_e\, d}{\alpha_g+\alpha_e}</div>
+      <div class="eq">I_{00} = \langle \chi'_0 | \chi''_0 \rangle = \left(\frac{2(\omega_g\omega_e)^{1/2}}{\omega_g+\omega_e}\right)^{1/2} \exp\!\left(-\frac{\alpha_g\alpha_e\, d^2}{2(\alpha_g+\alpha_e)}\right)</div>
+      <p class="note">Derivation: insert the Hermite generating function Σ<sub>v</sub> H<sub>v</sub>(y) s<sup>v</sup>/v! = e<sup>2ys − s²</sup> for both
+      states and do the Gaussian integral over q:</p>
+      <div class="eq">\int_{-\infty}^{\infty} e^{2\alpha_e^{1/2}(q-d)s - s^2}\, e^{2\alpha_g^{1/2} q t - t^2}\, e^{-\alpha_e (q-d)^2/2 - \alpha_g q^2/2}\, dq = \sqrt{\frac{\pi}{\bar\alpha}}\; e^{-\alpha_g\alpha_e d^2/2(\alpha_g+\alpha_e)}\; e^{\rho s^2 - \rho t^2 + b' s + b'' t + \gamma s t}</div>
+      <p class="note">The coefficient of s<sup>m</sup>t<sup>n</sup>, times N′<sub>m</sub>N″<sub>n</sub> m! n!, is the overlap above. With d = 0 (b′ = b″ = 0)
+      it reduces to eq. 8; with ω<sub>e</sub> = ω<sub>g</sub> (ρ = 0, γ = 2) and n = 0 to eq. 9.</p>
+    </li>
+    <li>
+      <p>Numerical check and transition wavenumbers</p>
+      <div class="eq">\langle \chi'_{v'} | \chi''_{v''} \rangle \approx h \sum_i{}' \chi'_{v'}(q_i)\, \chi''_{v''}(q_i) \quad (\text{trapezoid rule, 6001 points}), \qquad \tilde\nu_{v'v''} - \tilde\nu_{00} = v'\tilde\omega_e - v''\tilde\omega_g</div>
+      <p class="note">The page evaluates eq. 10 for every row and also integrates the two wavefunctions numerically; the note under the table gives the largest difference.</p>
+    </li>
+  </ol>
+</section>
+</main>
+
+<!-- KaTeX renders the equations. If it is missing, the page still works and shows the LaTeX source. -->
+<script src="vendor/katex/katex.min.js"></script>
+<script id="core">
+"use strict";
+/* Franck–Condon core. Harmonic ground state (ωg) at R0, harmonic excited state (ωe) at R0 + d.
+   McHale's notation: χ_v(q) = N_v H_v(α^{1/2} q) exp(−α q²/2), α = μω/ħ, N_v = (α^{1/2} / (2^v v! π^{1/2}))^{1/2}.
+   Units: ω in cm⁻¹, μ in amu, q and d in Å, α in Å⁻². */
+const PHYS = { hbar: 1.054571817e-34, amu: 1.66053906660e-27, c: 2.99792458e10 /* cm/s */ };
+// 1/α = A_CONST / (μ ω̃): ħ / (amu · 2πc), in Å²·cm⁻¹·amu (33.715)
+const A_CONST = PHYS.hbar / (PHYS.amu * 2 * Math.PI * PHYS.c) * 1e20;
+const LIMITS = { wMin: 10, wMax: 10000, muMin: 0.1, muMax: 1000, dMax: 5, vgMax: 15, nEMax: 25 };
+
+const FACT = [1];
+for (let i = 1; i <= 170; i++) FACT[i] = FACT[i - 1] * i;
+
+// Every derived quantity the page shows, from the five inputs.
+function derive(inp) {
+  const { wg, we, mu, d } = inp;
+  const ag = mu * wg / A_CONST, ae = mu * we / A_CONST, s = ag + ae;
+  const k = w => mu * PHYS.amu * Math.pow(2 * Math.PI * PHYS.c * w, 2);     // N/m
+  return {
+    ...inp, ag, ae,
+    kg: k(wg), ke: k(we),
+    rho: (ae - ag) / s,                                   // (ωe − ωg)/(ωe + ωg)
+    bE: -2 * Math.sqrt(ae) * ag * d / s,                  // b′
+    bG: 2 * ae * Math.sqrt(ag) * d / s,                   // b″
+    gam: 4 * Math.sqrt(ag * ae) / s,                      // γ = 2(1 − ρ²)^{1/2}
+    I00: Math.sqrt(2 * Math.sqrt(ag * ae) / s) * Math.exp(-ag * ae * d * d / (2 * s)),
+    DeltaG: Math.sqrt(ag) * d,                            // displacement in ground-state length units
+    HR: ag * d * d / 2,                                   // Huang–Rhys S (ground-state frequency)
+    sameW: wg === we, sameR: d === 0,
+  };
+}
+
+// P_j = [s^j] exp(ρ s² + b′ s), Q_j = [t^j] exp(−ρ t² + b″ t)
+function coeffSeries(n, a2, b) {
+  const P = [1];
+  for (let j = 1; j <= n; j++) P[j] = (b * P[j - 1] + (j >= 2 ? 2 * a2 * P[j - 2] : 0)) / j;
+  return P;
+}
+
+// ⟨χ′_m | χ″_n⟩ from the generating function (closed form, any ωg, ωe, d)
+function overlapAnalytic(m, n, D) {
+  const P = coeffSeries(m, D.rho, D.bE), Q = coeffSeries(n, -D.rho, D.bG);
+  let sum = 0;
+  for (let k = 0; k <= Math.min(m, n); k++) sum += Math.pow(D.gam, k) / FACT[k] * P[m - k] * Q[n - k];
+  return D.I00 * Math.sqrt(FACT[m] * FACT[n] / Math.pow(2, m + n)) * sum;
+}
+
+// Normalized Hermite functions φ_0..φ_nmax at y (stable three-term recurrence)
+function hermiteFns(nmax, y) {
+  const out = new Float64Array(nmax + 1);
+  out[0] = Math.pow(Math.PI, -0.25) * Math.exp(-y * y / 2);
+  if (nmax >= 1) out[1] = Math.SQRT2 * y * out[0];
+  for (let v = 1; v < nmax; v++) out[v + 1] = Math.sqrt(2 / (v + 1)) * y * out[v] - Math.sqrt(v / (v + 1)) * out[v - 1];
+  return out;
+}
+// χ_v(x) for v = 0..nmax, oscillator with α centred at x0
+function chiAll(nmax, alpha, x0, x) {
+  const f = hermiteFns(nmax, Math.sqrt(alpha) * (x - x0)), s = Math.pow(alpha, 0.25);
+  for (let v = 0; v <= nmax; v++) f[v] *= s;
+  return f;
+}
+function chi(v, alpha, x0, x) { return chiAll(v, alpha, x0, x)[v]; }
+
+// Thermal (Boltzmann) population of level v of a harmonic oscillator: (1 − x) x^v, x = exp(−hcω̃ / kT)
+const HC_K = 1.438776877;                                   // second radiation constant hc/k, cm·K
+function boltzmannPop(v, w, T) { const x = Math.exp(-HC_K * w / T); return (1 - x) * Math.pow(x, v); }
+
+// Turning point half-width of level v (Å): ½ k x² = (v + ½) ħω  →  x = ((2v + 1)/α)^{1/2}
+function turningHalfWidth(v, alpha) { return Math.sqrt((2 * v + 1) / alpha); }
+
+// ∫ χ′_m χ″_n dq for all m ≤ mMax, n ≤ nMax, by the trapezoid rule on a fine grid
+// (spectrally accurate for these smooth, decaying functions). Returns M[m][n].
+function overlapMatrixNumeric(mMax, nMax, D, npts) {
+  const wE = turningHalfWidth(mMax, D.ae) + 12 / Math.sqrt(D.ae), wG = turningHalfWidth(nMax, D.ag) + 12 / Math.sqrt(D.ag);
+  const a = Math.min(-wG, D.d - wE), b = Math.max(wG, D.d + wE);
+  const N = npts || 6001, h = (b - a) / (N - 1);
+  const M = Array.from({ length: mMax + 1 }, () => new Float64Array(nMax + 1));
+  for (let i = 0; i < N; i++) {
+    const x = a + i * h, w = (i === 0 || i === N - 1) ? 0.5 * h : h;
+    const fe = chiAll(mMax, D.ae, D.d, x), fg = chiAll(nMax, D.ag, 0, x);
+    for (let m = 0; m <= mMax; m++) { const t = w * fe[m]; if (t !== 0) for (let n = 0; n <= nMax; n++) M[m][n] += t * fg[n]; }
+  }
+  return M;
+}
+
+// Why an overlap vanishes, if it does
+function zeroReason(m, n, D, S) {
+  const parity = D.sameR && (m + n) % 2 === 1;
+  const sameOsc = D.sameR && D.sameW && m !== n;
+  return {
+    parity,                                   // d = 0, v′ + v″ odd: even × odd integrand
+    orthogonal: parity || sameOsc,            // exactly zero by symmetry
+    sameOsc,                                  // ωe = ωg and d = 0: eigenfunctions of one Hamiltonian
+    nearZero: !(parity || sameOsc) && S * S < 1e-6,
+  };
+}
+
+// One row per excited level v′ = 0..nE−1, from ground level vg
+function franckCondonTable(D) {
+  const rows = [], M = overlapMatrixNumeric(D.nE - 1, D.vg, D);
+  for (let m = 0; m < D.nE; m++) {
+    let S = overlapAnalytic(m, D.vg, D);
+    const Snum = M[m][D.vg];
+    const z = zeroReason(m, D.vg, D, S);
+    if (z.orthogonal) S = 0;
+    rows.push({ vE: m, vG: D.vg, S, Snum, F: S * S, pct: 100 * S * S, dnu: m * D.we - D.vg * D.wg, ...z });
+  }
+  return rows;
+}
+
+/* ---------- symbolic form of one overlap, for the table ---------- */
+const bgcd = (a, b) => { a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b) [a, b] = [b, a % b]; return a; };
+const BF = [1n];
+for (let i = 1; i <= 60; i++) BF[i] = BF[i - 1] * BigInt(i);
+function rat(n, d) { if (d < 0n) { n = -n; d = -d; } const g = bgcd(n, d) || 1n; return [n / g, d / g]; }
+const rmul = (a, b) => rat(a[0] * b[0], a[1] * b[1]);
+const radd = (a, b) => rat(a[0] * b[1] + b[0] * a[1], a[1] * b[1]);
+
+// √(m! n! / 2^{m+n}) = (num/den) √rad with rad square-free
+function sqrtFactorPrefactor(m, n) {
+  const ex = new Map();                        // prime exponents of m! n! 2^{m+n}
+  const add = (p, e) => ex.set(p, (ex.get(p) || 0) + e);
+  for (const f of [m, n]) for (let i = 2; i <= f; i++) { let x = i; for (let p = 2; p * p <= x; p++) while (x % p === 0) { add(p, 1); x /= p; } if (x > 1) add(x, 1); }
+  add(2, m + n);
+  // √(m! n! / 2^{m+n}) = √(m! n! 2^{m+n}) / 2^{m+n}
+  let out = 1n, rad = 1n;
+  for (const [p, e] of ex) { out *= BigInt(p) ** BigInt(e >> 1); if (e & 1) rad *= BigInt(p); }
+  return { r: rat(out, 2n ** BigInt(m + n)), rad };
+}
+
+// Polynomial in ρ, b′, b″, γ: Map "i,j,k,l" → rational
+function overlapPoly(m, n, D) {
+  const poly = new Map();
+  for (let k = 0; k <= Math.min(m, n); k++) {
+    const jm = m - k, jn = n - k;
+    for (let i = 0; 2 * i <= jm; i++) for (let i2 = 0; 2 * i2 <= jn; i2++) {
+      const ra = i + i2, pb = jm - 2 * i, qb = jn - 2 * i2;
+      if (D.sameW && ra > 0) continue;              // ρ = 0
+      if (D.sameR && (pb > 0 || qb > 0)) continue;  // b′ = b″ = 0
+      const sign = i2 % 2 ? -1n : 1n;
+      const c = rat(sign, BF[k] * BF[i] * BF[jm - 2 * i] * BF[i2] * BF[jn - 2 * i2]);
+      const key = [ra, pb, qb, k].join(",");
+      poly.set(key, poly.has(key) ? radd(poly.get(key), c) : c);
+    }
+  }
+  for (const [key, c] of poly) if (c[0] === 0n) poly.delete(key);
+  return poly;
+}
+
+function texOverlap(m, n, D) {
+  const z = zeroReason(m, n, D, 1);
+  if (z.orthogonal) return "0";
+  if (D.sameW && D.sameR) return "1";                 // same oscillator, v′ = v″
+  const poly = overlapPoly(m, n, D);
+  if (!poly.size) return "0";
+  if (poly.size > 8) {                                 // too long to write out: the sum it comes from
+    return `I_{00}\\sqrt{\\frac{${m}!\\,${n}!}{2^{${m + n}}}}\\sum_{k=0}^{${Math.min(m, n)}}\\frac{\\gamma^{k}}{k!}\\,P_{${m}-k}\\,Q_{${n}-k}`;
+  }
+  const pre = sqrtFactorPrefactor(m, n);
+  const terms = [...poly].map(([key, c]) => ({ e: key.split(",").map(Number), c: rmul(c, pre.r) }))
+    .sort((a, b) => (a.e[0] + a.e[1] + a.e[2] + a.e[3]) - (b.e[0] + b.e[1] + b.e[2] + b.e[3]) || b.e[0] - a.e[0] || b.e[3] - a.e[3]);
+  const sym = ["\\rho", "b'", "b''", "\\gamma"];
+  const mono = e => e.map((p, i) => p === 0 ? "" : p === 1 ? sym[i] : `${sym[i]}^{${p}}`).filter(Boolean).join("\\,");
+  const root = pre.rad === 1n ? "" : `\\sqrt{${pre.rad}}`;
+  if (terms.length === 1) {                            // one term: fold the root into its coefficient
+    const t = terms[0], neg = t.c[0] < 0n, a = neg ? -t.c[0] : t.c[0], den = t.c[1], ms = mono(t.e);
+    const top = a === 1n && root ? root : `${a}${root}`;
+    const coef = den === 1n ? (top === "1" ? "" : top) : `\\frac{${top}}{${den}}`;
+    return `${neg ? "-" : ""}I_{00}${coef ? "\\," + coef : ""}${ms ? "\\," + ms : ""}`;
+  }
+  const body = terms.map((t, idx) => {
+    const neg = t.c[0] < 0n, a = neg ? -t.c[0] : t.c[0], ms = mono(t.e);
+    const coef = t.c[1] === 1n ? (a === 1n && ms ? "" : `${a}`) : `\\tfrac{${a}}{${t.c[1]}}`;
+    return (idx === 0 ? (neg ? "-" : "") : (neg ? " - " : " + ")) + coef + (coef && ms ? "\\," : "") + ms;
+  }).join("");
+  return `I_{00}${root ? "\\," + root : ""}\\,\\bigl[${body}\\bigr]`;
+}
+</script>
+
+<script>
+"use strict";
+(function () {
+const $ = id => document.getElementById(id);
+const COL = { pes: "#000", psi: "#c65a12", arrow: "43,123,214", sel: "#0033dd", pos: "rgba(43,123,214,0.45)", neg: "rgba(224,0,0,0.38)",
+              posLight: "rgba(43,123,214,0.24)", negLight: "rgba(224,0,0,0.2)", grey: "#888", ground: "#555" };
+const FONT = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+const DEFAULTS = { wg: 1000, we: 500, d: 0, mu: 7, vg: 0, nE: 6 };
+const PRESETS = {
+  mchale: { wg: 1000, we: 500, d: 0 },
+  shifted: { wg: 1000, we: 1000, d: 0.1 },
+  both: { wg: 1000, we: 700, d: 0.08 },
+  same: { wg: 1000, we: 1000, d: 0 },
+};
+const FIELDS = [
+  { key: "wg", num: "wgN", range: "wgR", min: LIMITS.wMin, max: LIMITS.wMax, msg: `ωg must be between ${LIMITS.wMin} and ${LIMITS.wMax} cm⁻¹.` },
+  { key: "we", num: "weN", range: "weR", min: LIMITS.wMin, max: LIMITS.wMax, msg: `ωe must be between ${LIMITS.wMin} and ${LIMITS.wMax} cm⁻¹.` },
+  { key: "d", num: "dN", range: "dR", min: -LIMITS.dMax, max: LIMITS.dMax, msg: `d must be between −${LIMITS.dMax} and ${LIMITS.dMax} Å.` },
+  { key: "mu", num: "muN", min: LIMITS.muMin, max: LIMITS.muMax, msg: `μ must be between ${LIMITS.muMin} and ${LIMITS.muMax} amu.` },
+  { key: "vg", num: "vgN", min: 0, max: LIMITS.vgMax, int: true, msg: `v″ must be a whole number from 0 to ${LIMITS.vgMax}.` },
+  { key: "nE", num: "nEN", min: 1, max: LIMITS.nEMax, int: true, msg: `Excited levels shown must be a whole number from 1 to ${LIMITS.nEMax}.` },
+];
+let state = { ...DEFAULTS }, D = null, rows = null, sel = null, maxDiff = 0, pesLayout = null, stickLayout = null;
+
+/* ---------- formatting ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const minus = s => s.replace(/^-/, "−").replace(/e-/, "e−");
+function fmtV(v) {
+  if (v === 0) return "0";
+  const a = Math.abs(v);
+  return minus(a < 1e-5 ? v.toExponential(2) : v.toFixed(5));
+}
+function fmtPct(p) {
+  if (p === 0) return "0 %";
+  return (p >= 0.01 ? p.toFixed(2) : minus(p.toExponential(1))) + " %";
+}
+function fmtG(v, n) { return minus(Number(v.toPrecision(n || 4)).toString()); }
+function niceStep(range, n) {
+  const raw = range / Math.max(1, n), p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+}
+function fmtNum(v, step) {
+  const d = Math.max(0, -Math.floor(Math.log10(step) + 1e-9));
+  const s = v.toFixed(Math.min(d, 6));
+  return minus(/^-0\.?0*$/.test(s) ? s.slice(1) : s);
+}
+
+/* ---------- LaTeX: KaTeX if it loaded, the source text otherwise ---------- */
+const hasTex = () => typeof katex !== "undefined" && katex && typeof katex.renderToString === "function";
+function texHTML(src, display) {
+  if (hasTex()) { try { return katex.renderToString(src, { throwOnError: false, displayMode: !!display }); } catch (_) { /* fall through */ } }
+  return `<code class="raw">${esc(src)}</code>`;
+}
+function renderStaticTex() {
+  document.querySelectorAll(".eq").forEach(el => {
+    if (el.dataset.done) return;
+    const src = el.textContent.trim();
+    if (!hasTex()) { el.classList.add("raw"); return; }
+    try { katex.render(src, el, { throwOnError: false, displayMode: true }); el.dataset.done = "1"; el.classList.remove("raw"); }
+    catch (_) { el.classList.add("raw"); }
+  });
+}
+
+/* ---------- canvas helpers ---------- */
+function prepCanvas(host, canvas, H) {
+  const W = Math.max(260, host.clientWidth), dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  }
+  canvas.style.height = H + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+  ctx.font = FONT; ctx.lineJoin = "round";
+  return { ctx, W };
+}
+function yTicks(ctx, L, top, bot, lo, hi, ymap, every) {
+  ctx.strokeStyle = "#000"; ctx.fillStyle = "#000"; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(L - 0.5, top); ctx.lineTo(L - 0.5, bot); ctx.stroke();
+  const st = niceStep(hi - lo, Math.max(2, Math.floor((bot - top) / (every || 34))));
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let v = Math.ceil(lo / st - 1e-9) * st; v <= hi + 1e-9 * st; v += st) {
+    const py = Math.round(ymap(v)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(L - 5, py); ctx.lineTo(L, py); ctx.stroke();
+    ctx.fillText(fmtNum(v, st), L - 7, py);
+  }
+}
+function xTicks(ctx, L, R, B, lo, hi, xmap, label) {
+  ctx.strokeStyle = "#000"; ctx.fillStyle = "#000"; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(L, B + 0.5); ctx.lineTo(R, B + 0.5); ctx.stroke();
+  const st = niceStep(hi - lo, Math.max(3, Math.floor((R - L) / 80)));
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let v = Math.ceil(lo / st - 1e-9) * st; v <= hi + 1e-9 * st; v += st) {
+    const px = Math.round(xmap(v)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(px, B); ctx.lineTo(px, B + 5); ctx.stroke();
+    ctx.fillText(fmtNum(v, st), px, B + 7);
+  }
+  ctx.fillText(label, (L + R) / 2, B + 22);
+}
+function yLabel(ctx, x, top, bot, text) {
+  ctx.save(); ctx.translate(x, (top + bot) / 2); ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#000"; ctx.fillText(text, 0, 0); ctx.restore();
+}
+function arrowHead(ctx, x, y, size) {
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - size * 0.6, y + size); ctx.lineTo(x + size * 0.6, y + size); ctx.closePath(); ctx.fill();
+}
+// fill between a baseline and baseline − amp·f (f ≥ 0 part in one colour, f < 0 in another)
+function signedFill(ctx, xs, f, xmap, base, amp, light) {
+  for (const [sgn, col] of [[1, light ? COL.posLight : COL.pos], [-1, light ? COL.negLight : COL.neg]]) {
+    ctx.beginPath(); ctx.moveTo(xmap(xs[0]), base);
+    for (let i = 0; i < xs.length; i++) { const v = sgn > 0 ? Math.max(f[i], 0) : Math.min(f[i], 0); ctx.lineTo(xmap(xs[i]), base - amp * v); }
+    ctx.lineTo(xmap(xs[xs.length - 1]), base); ctx.closePath();
+    ctx.fillStyle = col; ctx.fill();
+  }
+}
+function linspace(a, b, n) { const x = new Float64Array(n); for (let i = 0; i < n; i++) x[i] = a + (b - a) * i / (n - 1); return x; }
+
+/* ---------- PES diagram ---------- */
+function drawPES() {
+  const host = $("pes"), canvas = $("pesCanvas");
+  const hw = Math.max(260, host.clientWidth);
+  const H = Math.round(Math.min(640, Math.max(hw < 520 ? 500 : 420, hw * 0.86)));
+  const { ctx, W } = prepCanvas(host, canvas, H);
+  const narrow = W < 520;
+  const L = narrow ? 54 : 60, R = W - (narrow ? 104 : 172), T = 10, B = H - 40, gap = 30;
+  const nG = Math.max(D.vg + 2, 3);
+  const EgTop = (nG + 0.35) * D.wg, EeTop = (D.nE + 0.35) * D.we;
+  const avail = B - T - gap, fE = Math.min(0.75, Math.max(0.4, EeTop / (EgTop + EeTop)));
+  const hE = avail * fE, hG = avail - hE, sG = hG / EgTop, sE = hE / EeTop;
+  const gTop = B - hG, eBot = gTop - gap, eTop = T;
+  const yG = E => B - E * sG, yE = E => eBot - E * sE;
+  const tpG = v => Math.sqrt((2 * v + 1) / D.ag), tpE = v => Math.sqrt((2 * v + 1) / D.ae);
+  const xgTop = Math.sqrt(2 * EgTop / (D.wg * D.ag)), xeTop = Math.sqrt(2 * EeTop / (D.we * D.ae));
+  let xa = Math.min(-xgTop, D.d - xeTop), xb = Math.max(xgTop, D.d + xeTop);
+  const pad = 0.04 * (xb - xa); xa -= pad; xb += pad;
+  const xm = x => L + (x - xa) / (xb - xa) * (R - L);
+  pesLayout = { eTop, eBot, sE, gTop, B, sG, nG };
+
+  // axes
+  ctx.strokeStyle = "#000"; ctx.fillStyle = "#000";
+  yTicks(ctx, L, eTop, eBot, 0, EeTop, yE, 30);
+  yTicks(ctx, L, gTop, B, 0, EgTop, yG, 30);
+  ctx.lineWidth = 1; ctx.strokeStyle = "#000";
+  for (const yb of [eBot + 5, gTop - 5]) { ctx.beginPath(); ctx.moveTo(L - 6, yb + 3); ctx.lineTo(L + 6, yb - 3); ctx.stroke(); }
+  yLabel(ctx, 11, T, B, narrow ? "Energy above minimum (cm⁻¹)" : "Energy above each minimum (cm⁻¹)");
+  xTicks(ctx, L, R, B, xa, xb, xm, "R − R₀ (Å)");
+
+  // samples
+  const NX = Math.max(400, Math.min(1600, Math.round((R - L) * 2)));
+  const xs = linspace(xa, xb, NX);
+  const fg = [], fe = [];
+  for (let i = 0; i < NX; i++) { fg.push(chiAll(nG - 1, D.ag, 0, xs[i])); fe.push(chiAll(D.nE - 1, D.ae, D.d, xs[i])); }
+  const colMax = (arr, v) => { let m = 0; for (const f of arr) m = Math.max(m, Math.abs(f[v])); return m || 1; };
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(L, T - 4, R - L, B - T + 4); ctx.clip();
+
+  // potentials
+  ctx.strokeStyle = COL.pes; ctx.lineWidth = 1.5;
+  const well = (ymap, cen, xTop, w, a) => {
+    ctx.beginPath();
+    for (let j = 0; j <= 240; j++) { const x = cen + xTop * (2 * j / 240 - 1), E = w * a * (x - cen) * (x - cen) / 2; j ? ctx.lineTo(xm(x), ymap(E)) : ctx.moveTo(xm(x), ymap(E)); }
+    ctx.stroke();
+  };
+  well(yG, 0, xgTop, D.wg, D.ag);
+  well(yE, D.d, xeTop, D.we, D.ae);
+
+  // levels
+  for (let v = 0; v < nG; v++) {
+    const y = Math.round(yG((v + 0.5) * D.wg)) + 0.5;
+    ctx.lineWidth = v === D.vg ? 2 : 1; ctx.strokeStyle = v === D.vg ? "#000" : "#777";
+    ctx.beginPath(); ctx.moveTo(xm(-tpG(v)), y); ctx.lineTo(xm(tpG(v)), y); ctx.stroke();
+  }
+  for (let v = 0; v < D.nE; v++) {
+    const y = Math.round(yE((v + 0.5) * D.we)) + 0.5;
+    ctx.lineWidth = v === sel ? 2 : 1; ctx.strokeStyle = "#000";
+    ctx.beginPath(); ctx.moveTo(xm(D.d - tpE(v)), y); ctx.lineTo(xm(D.d + tpE(v)), y); ctx.stroke();
+  }
+
+  // overlap integrand χ′_v′ χ″_v″ on every excited level, one common scale so the levels compare; the selected one darker
+  const ampG = 0.42 * D.wg * sG, ampE = 0.42 * D.we * sE;
+  {
+    const prods = [];
+    let pm = 0;
+    for (let v = 0; v < D.nE; v++) {
+      const p = new Float64Array(NX);
+      for (let i = 0; i < NX; i++) { p[i] = fe[i][v] * fg[i][D.vg]; pm = Math.max(pm, Math.abs(p[i])); }
+      prods.push(p);
+    }
+    if (pm > 0) for (let v = 0; v < D.nE; v++) signedFill(ctx, xs, prods[v].map(q => q / pm), xm, yE((v + 0.5) * D.we), ampE * 0.95, v !== sel);
+  }
+
+  // wavefunctions, drawn where they are not negligible
+  const psi = (arr, v, cen, a, base, amp, alpha, lw) => {
+    const m = colMax(arr, v), lim = Math.sqrt((2 * v + 1) / a) + 1.8 / Math.sqrt(a);
+    ctx.globalAlpha = alpha; ctx.strokeStyle = COL.psi; ctx.lineWidth = lw; ctx.beginPath();
+    let pen = false;
+    for (let i = 0; i < NX; i++) {
+      if (Math.abs(xs[i] - cen) > lim) { pen = false; continue; }
+      const px = xm(xs[i]), py = base - amp * arr[i][v] / m;
+      pen ? ctx.lineTo(px, py) : ctx.moveTo(px, py); pen = true;
+    }
+    ctx.stroke(); ctx.globalAlpha = 1;
+  };
+  for (let v = 0; v < nG; v++) psi(fg, v, 0, D.ag, yG((v + 0.5) * D.wg), ampG, v === D.vg ? 1 : 0.3, v === D.vg ? 1.6 : 1.2);
+  for (let v = 0; v < D.nE; v++) psi(fe, v, D.d, D.ae, yE((v + 0.5) * D.we), ampE, 1, v === sel ? 1.8 : 1.2);
+
+  // excitation arrows, selected one last
+  const tp0 = tpG(D.vg), y0 = yG((D.vg + 0.5) * D.wg);
+  const order = rows.map((r, k) => k).filter(k => k !== sel).concat([sel]);
+  for (const k of order) {
+    const r = rows[k], x = xm(-0.75 * tp0 + 1.5 * tp0 * (k + 0.5) / D.nE), y1 = yE((k + 0.5) * D.we);
+    if (r.orthogonal) {
+      ctx.strokeStyle = k === sel ? "#000" : COL.grey; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1 + 6); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(x - 4, y1 + 2); ctx.lineTo(x + 4, y1 + 10); ctx.moveTo(x + 4, y1 + 2); ctx.lineTo(x - 4, y1 + 10); ctx.stroke();
+      continue;
+    }
+    const lw = 1 + 7 * r.F, head = 6 + lw;
+    const col = k === sel ? COL.sel : `rgba(${COL.arrow},${(0.3 + 0.7 * Math.sqrt(r.F)).toFixed(3)})`;
+    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = lw; ctx.lineCap = "butt";
+    ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1 + head - 1); ctx.stroke();
+    arrowHead(ctx, x, y1, head);
+  }
+  ctx.restore();
+
+  // right-hand labels
+  ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  const lx = R + 8, spE = D.we * sE, spG = D.wg * sG;
+  ctx.font = "bold " + FONT; ctx.fillStyle = "#000";
+  ctx.fillText("excited state e", lx, eTop + 7);
+  ctx.fillText("ground state g", lx, gTop + 7);
+  ctx.font = "11px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+  for (let k = 0; k < D.nE; k++) {
+    if (spE < 12 && k !== sel && k % 5 !== 0) continue;
+    const r = rows[k], tag = r.parity ? "parity forbidden" : r.orthogonal ? "orthogonal" : r.nearZero ? "≈ orthogonal" : "";
+    let s = `v′=${k}  ${fmtPct(r.pct)}`;
+    if (tag) s = narrow ? `v′=${k}  ${r.parity ? "forbidden" : "⊥"}` : `v′=${k}  ${fmtPct(r.pct)}  ${tag}`;
+    ctx.fillStyle = r.parity ? "#b00000" : "#000";
+    ctx.font = (k === sel ? "bold " : "") + "11px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+    ctx.fillText(s, lx, yE((k + 0.5) * D.we));
+  }
+  for (let v = 0; v < nG; v++) {
+    if (spG < 12 && v !== D.vg && v % 5 !== 0) continue;
+    ctx.fillStyle = v === D.vg ? "#000" : "#777";
+    ctx.font = (v === D.vg ? "bold " : "") + "11px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+    ctx.fillText(`v″=${v}${v === D.vg ? (v ? "  start (hot)" : "  start") : ""}`, lx, yG((v + 0.5) * D.wg));
+  }
+  ctx.font = FONT;
+}
+
+/* ---------- overlap integrand for the selected pair ---------- */
+function drawIntegrand() {
+  const host = $("integ"), canvas = $("integCanvas"), H = 300;
+  const { ctx, W } = prepCanvas(host, canvas, H);
+  const m = sel, n = D.vg, r = rows[m];
+  $("integTitle").textContent = `Overlap integrand, v″ = ${n} → v′ = ${m}`;
+  const L = W < 480 ? 50 : 60, R = W - 12, T = 22, B = H - 40, mid = (T + B) / 2;
+  const top1 = T, bot1 = mid - 8, top2 = mid + 8, bot2 = B;
+  const se = 1 / Math.sqrt(D.ae), sg = 1 / Math.sqrt(D.ag);
+  let xa = Math.min(-Math.sqrt((2 * n + 1) / D.ag) - 3 * sg, D.d - Math.sqrt((2 * m + 1) / D.ae) - 3 * se);
+  let xb = Math.max(Math.sqrt((2 * n + 1) / D.ag) + 3 * sg, D.d + Math.sqrt((2 * m + 1) / D.ae) + 3 * se);
+  const xm = x => L + (x - xa) / (xb - xa) * (R - L);
+  const NX = 900, xs = linspace(xa, xb, NX);
+  const ce = new Float64Array(NX), cg = new Float64Array(NX), pr = new Float64Array(NX);
+  let m1 = 0, m2 = 0, pos = 0, neg = 0;
+  for (let i = 0; i < NX; i++) {
+    ce[i] = chi(m, D.ae, D.d, xs[i]); cg[i] = chi(n, D.ag, 0, xs[i]); pr[i] = ce[i] * cg[i];
+    m1 = Math.max(m1, Math.abs(ce[i]), Math.abs(cg[i])); m2 = Math.max(m2, Math.abs(pr[i]));
+    const w = (i === 0 || i === NX - 1 ? 0.5 : 1) * (xb - xa) / (NX - 1);
+    if (pr[i] > 0) pos += w * pr[i]; else neg += w * pr[i];
+  }
+  m1 = (m1 || 1) * 1.12; m2 = (m2 || 1) * 1.12;
+  const y1 = v => (top1 + bot1) / 2 - v / m1 * (bot1 - top1) / 2;
+  const y2 = v => (top2 + bot2) / 2 - v / m2 * (bot2 - top2) / 2;
+
+  // zero lines and the product fill
+  ctx.strokeStyle = "#bbb"; ctx.lineWidth = 1;
+  for (const y of [y1(0), y2(0)]) { ctx.beginPath(); ctx.moveTo(L, Math.round(y) + 0.5); ctx.lineTo(R, Math.round(y) + 0.5); ctx.stroke(); }
+  signedFill(ctx, xs, pr, xm, y2(0), (y2(0) - y2(1)));
+  ctx.strokeStyle = "#000"; ctx.lineWidth = 1;
+  ctx.beginPath(); xs.forEach((x, i) => i ? ctx.lineTo(xm(x), y2(pr[i])) : ctx.moveTo(xm(x), y2(pr[i]))); ctx.stroke();
+  // the two wavefunctions
+  ctx.lineWidth = 1.5; ctx.strokeStyle = COL.ground; ctx.setLineDash([5, 3]);
+  ctx.beginPath(); xs.forEach((x, i) => i ? ctx.lineTo(xm(x), y1(cg[i])) : ctx.moveTo(xm(x), y1(cg[i]))); ctx.stroke();
+  ctx.setLineDash([]); ctx.strokeStyle = COL.psi;
+  ctx.beginPath(); xs.forEach((x, i) => i ? ctx.lineTo(xm(x), y1(ce[i])) : ctx.moveTo(xm(x), y1(ce[i]))); ctx.stroke();
+
+  yTicks(ctx, L, top1, bot1, -m1, m1, y1, 26);
+  yTicks(ctx, L, top2, bot2, -m2, m2, y2, 26);
+  yLabel(ctx, 11, top1, bot1, "χ (Å^−1/2)");
+  yLabel(ctx, 11, top2, bot2, "χ′χ″ (Å⁻¹)");
+  xTicks(ctx, L, R, B, xa, xb, xm, "R − R₀ (Å)");
+  ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillStyle = "#000";
+  const tag = r.parity ? "  parity forbidden" : r.orthogonal ? "  orthogonal" : r.nearZero ? "  ≈ orthogonal" : "";
+  ctx.fillText(`∫ χ′χ″ dq = ${fmtV(r.S)}   FCF = ${fmtV(r.F)}${tag}`, L + 4, T - 12);
+  ctx.font = "11px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif"; ctx.fillStyle = "#333";
+  ctx.fillText(`blue ${fmtV(pos)}   red ${fmtV(neg)}`, L + 4, top2 + 8);
+  ctx.font = FONT;
+}
+
+/* ---------- stick spectrum ---------- */
+function drawSticks() {
+  const host = $("stick"), canvas = $("stickCanvas"), H = 300;
+  const { ctx, W } = prepCanvas(host, canvas, H);
+  const L = W < 480 ? 50 : 60, R = W - 12, T = 22, B = H - 40;
+  let lo = Infinity, hi = -Infinity, fmax = 0;
+  for (const r of rows) { lo = Math.min(lo, r.dnu); hi = Math.max(hi, r.dnu); fmax = Math.max(fmax, r.F); }
+  const padx = 0.7 * D.we; lo -= padx; hi += padx;
+  const ytop = fmax > 0 ? fmax * 1.15 : 1;
+  const xm = x => L + (x - lo) / (hi - lo) * (R - L), ym = v => B - v / ytop * (B - T);
+  stickLayout = { xm, L, R };
+  yTicks(ctx, L, T, B, 0, ytop, ym, 34);
+  yLabel(ctx, 11, T, B, "Franck–Condon factor");
+  xTicks(ctx, L, R, B, lo, hi, xm, "ν̃ − ν̃₀₀ (cm⁻¹)");
+  const spacing = (R - L) * D.we / (hi - lo);
+  ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  rows.forEach((r, k) => {
+    const px = Math.round(xm(r.dnu)) + 0.5;
+    if (r.orthogonal || r.F === 0) {
+      ctx.strokeStyle = COL.grey; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px - 3, B - 9); ctx.lineTo(px + 3, B - 3); ctx.moveTo(px + 3, B - 9); ctx.lineTo(px - 3, B - 3); ctx.stroke();
+    } else {
+      ctx.strokeStyle = k === sel ? COL.sel : `rgb(${COL.arrow})`; ctx.lineWidth = k === sel ? 4 : 3;
+      ctx.beginPath(); ctx.moveTo(px, B); ctx.lineTo(px, Math.min(B - 1, ym(r.F))); ctx.stroke();
+    }
+    if (spacing >= 16 || k === sel) {
+      ctx.fillStyle = k === sel ? "#000" : "#444"; ctx.font = (k === sel ? "bold " : "") + "11px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+      ctx.fillText(String(k), px, Math.min(B - 11, ym(r.F) - 3));
+    }
+  });
+  ctx.font = FONT; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillStyle = "#333";
+  ctx.fillText(`numbers: v′  (from v″ = ${D.vg})`, L + 4, T - 12);
+}
+
+/* ---------- table, key, derived constants ---------- */
+function renderTable() {
+  const h = [];
+  h.push(`<thead><tr><th>v′</th><th class="l">${texHTML("\\langle\\chi'_{v'}|\\chi''_{" + D.vg + "}\\rangle")} analytical</th><th>value</th><th>FCF</th><th>% of total</th></tr></thead><tbody>`);
+  let sum = 0;
+  for (const r of rows) {
+    sum += r.F;
+    const tags = (r.parity ? `<span class="tag parity">parity forbidden</span>` : "") +
+      (r.orthogonal ? `<span class="tag orth">orthogonal</span>` : "") +
+      (r.nearZero ? `<span class="tag orth">≈ orthogonal</span>` : "");
+    h.push(`<tr data-v="${r.vE}" tabindex="0"${r.vE === sel ? ' class="active" aria-selected="true"' : ""}>` +
+      `<td>${r.vE}</td><td class="l f">${texHTML(r.tex)}${tags ? "<br>" + tags : ""}</td>` +
+      `<td>${fmtV(r.S)}</td><td>${fmtV(r.F)}</td><td>${fmtPct(r.pct)}</td></tr>`);
+  }
+  h.push(`<tr class="sum"><td>Σ</td><td class="l">v′ = 0–${D.nE - 1}</td><td></td><td>${fmtV(sum)}</td><td>${fmtPct(100 * sum)}</td></tr></tbody>`);
+  $("fcTable").innerHTML = h.join("");
+  const rest = Math.max(0, 100 - 100 * sum);
+  $("sumNote").textContent = `All v′ together give 100 % (eq. 5), so % of total = 100 × FCF. The rows above hold ${fmtPct(100 * sum)}` +
+    (rest >= 0.005 ? `; the other ${fmtPct(rest)} goes to v′ ≥ ${D.nE}.` : ".");
+
+  const key = [];
+  key.push(texHTML(`I_{00} = \\left(\\tfrac{2\\sqrt{\\omega_g\\omega_e}}{\\omega_g+\\omega_e}\\right)^{1/2} e^{-\\alpha_g\\alpha_e d^2/2(\\alpha_g+\\alpha_e)} = ${D.I00.toFixed(5)}`));
+  key.push(texHTML(`\\rho = \\tfrac{\\omega_e-\\omega_g}{\\omega_e+\\omega_g} = ${D.rho.toFixed(5)}`));
+  if (D.vg > 0) key.push(texHTML(`\\gamma = 2\\sqrt{1-\\rho^2} = ${D.gam.toFixed(5)}`));
+  if (!D.sameR) key.push(texHTML(`b' = -\\tfrac{2\\alpha_e^{1/2}\\alpha_g d}{\\alpha_g+\\alpha_e} = ${D.bE.toFixed(5)},\\quad b'' = \\tfrac{2\\alpha_g^{1/2}\\alpha_e d}{\\alpha_g+\\alpha_e} = ${D.bG.toFixed(5)}`));
+  if (rows.some(r => r.tex.includes("P_{"))) key.push("P<sub>j</sub>, Q<sub>j</sub>: eq. 10 below (written as the sum when the expansion is long)");
+  $("key").innerHTML = key.map(s => `<li>${s}</li>`).join("");
+  $("checkNote").textContent = maxDiff <= 1e-8
+    ? `Check: the trapezoid integral ∫χ′χ″ dq agrees with every analytical value to ${maxDiff.toExponential(1).replace("e-", "e−")}.`
+    : `Check: the analytical and numerical overlaps differ by up to ${maxDiff.toExponential(1)}; the table shows the numerical values.`;
+}
+function renderDerived() {
+  $("derived").innerHTML = `k<sub>g</sub> = ${fmtG(D.kg)} N/m, k<sub>e</sub> = ${fmtG(D.ke)} N/m · ` +
+    `α<sub>g</sub> = ${fmtG(D.ag)} Å⁻², α<sub>e</sub> = ${fmtG(D.ae)} Å⁻² · ` +
+    `Δ = α<sub>g</sub><sup>1/2</sup>d = ${fmtG(D.DeltaG)}, Huang–Rhys S = α<sub>g</sub>d²/2 = ${fmtG(D.HR)} · ` +
+    `zero-point widths α<sup>−1/2</sup>: ${fmtG(1 / Math.sqrt(D.ag))} Å (g), ${fmtG(1 / Math.sqrt(D.ae))} Å (e)`;
+}
+
+/* ---------- state ---------- */
+function compute() {
+  D = derive(state);
+  rows = franckCondonTable(D);
+  maxDiff = 0;
+  for (const r of rows) maxDiff = Math.max(maxDiff, Math.abs(r.S - r.Snum));
+  if (maxDiff > 1e-8) for (const r of rows) if (!r.orthogonal) { r.S = r.Snum; r.F = r.S * r.S; r.pct = 100 * r.F; }
+  for (const r of rows) r.tex = texOverlap(r.vE, r.vG, D);
+  if (sel == null || sel >= D.nE) { sel = 0; rows.forEach((r, k) => { if (r.F > rows[sel].F) sel = k; }); }
+}
+function drawAll() { drawPES(); drawIntegrand(); drawSticks(); }
+// menu of starting levels: v″ = 0 is the cold ground state, v″ ≥ 1 a hot state
+const T_ROOM = 298.15;
+function renderStartMenu() {
+  const s = $("vgN"), opts = [];
+  for (let v = 0; v <= LIMITS.vgMax; v++) {
+    const p = 100 * boltzmannPop(v, state.wg, T_ROOM);
+    opts.push(`<option value="${v}">v″ = ${v} · ${v ? "hot" : "ground (cold)"} · ${fmtPct(p)} at 298 K</option>`);
+  }
+  s.innerHTML = opts.join("");
+  s.value = String(state.vg);
+}
+// menu of every overlap integrand v″ → v′
+function renderMenu() {
+  const s = $("integSel");
+  s.innerHTML = rows.map(r => {
+    const tag = r.parity ? " · parity forbidden" : r.orthogonal ? " · orthogonal" : r.nearZero ? " · ≈ orthogonal" : "";
+    return `<option value="${r.vE}">v″ = ${r.vG} → v′ = ${r.vE}   (FCF ${fmtV(r.F)}, ${fmtPct(r.pct)}${tag})</option>`;
+  }).join("");
+  s.value = String(sel);
+}
+function update() {
+  try { compute(); renderStartMenu(); renderDerived(); renderTable(); renderMenu(); drawAll(); }
+  catch (err) { const e = $("inErr"); e.textContent = "Something went wrong: " + err.message; e.hidden = false; }
+}
+function select(k) {
+  if (k == null || k < 0 || k >= D.nE || k === sel) return;
+  sel = k; renderTable(); $("integSel").value = String(sel); drawAll();
+}
+function writeFields() {
+  for (const f of FIELDS) {
+    $(f.num).value = state[f.key]; $(f.num).removeAttribute("aria-invalid");
+    if (f.range) { const r = $(f.range); r.value = Math.min(Number(r.max), Math.max(Number(r.min), state[f.key])); }
+  }
+  $("inErr").hidden = true;
+}
+function readField(f) {
+  const s = $(f.num).value.trim(), v = Number(s);
+  if (s === "" || !isFinite(v) || v < f.min || v > f.max || (f.int && !Number.isInteger(v))) return null;
+  return v;
+}
+function onEdit(f, showError) {
+  const v = readField(f), err = $("inErr");
+  if (v == null) {
+    $(f.num).setAttribute("aria-invalid", "true");
+    if (showError) { err.textContent = f.msg; err.hidden = false; }
+    return;
+  }
+  $(f.num).removeAttribute("aria-invalid");
+  if (!FIELDS.some(g => $(g.num).getAttribute("aria-invalid"))) err.hidden = true;
+  if (f.range) { const r = $(f.range); r.value = Math.min(Number(r.max), Math.max(Number(r.min), v)); }
+  if (state[f.key] !== v) { state[f.key] = v; update(); }
+}
+function setState(patch) { Object.assign(state, patch); writeFields(); update(); }
+
+for (const f of FIELDS) {
+  $(f.num).addEventListener("input", () => onEdit(f, false));
+  $(f.num).addEventListener("change", () => onEdit(f, true));
+  if (f.range) $(f.range).addEventListener("input", () => { $(f.num).value = $(f.range).value; onEdit(f, true); });
+}
+$("swap").addEventListener("click", () => setState({ wg: state.we, we: state.wg }));
+$("reset").addEventListener("click", () => { sel = null; setState({ ...DEFAULTS }); });
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => { sel = null; setState({ ...PRESETS[b.dataset.preset] }); }));
+
+$("integSel").addEventListener("change", () => select(Number($("integSel").value)));
+$("fcTable").addEventListener("click", e => { const tr = e.target.closest("tr[data-v]"); if (tr) select(Number(tr.dataset.v)); });
+$("fcTable").addEventListener("keydown", e => {
+  const tr = e.target.closest("tr[data-v]");
+  if (!tr) return;
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(Number(tr.dataset.v)); }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    const k = Math.min(D.nE - 1, Math.max(0, Number(tr.dataset.v) + (e.key === "ArrowDown" ? 1 : -1)));
+    select(k); const next = $("fcTable").querySelector(`tr[data-v="${k}"]`); if (next) next.focus();
+  }
+});
+$("pesCanvas").addEventListener("click", e => {
+  const l = pesLayout; if (!l) return;
+  const y = e.clientY - $("pesCanvas").getBoundingClientRect().top;
+  if (y >= l.eTop - 8 && y <= l.eBot + 8) { select(Math.min(D.nE - 1, Math.max(0, Math.round((l.eBot - y) / l.sE / D.we - 0.5)))); return; }
+  if (y >= l.gTop - 8 && y <= l.B + 8) {
+    const v = Math.min(l.nG - 1, Math.max(0, Math.round((l.B - y) / l.sG / D.wg - 0.5)));
+    if (v !== state.vg) setState({ vg: v });
+  }
+});
+$("stickCanvas").addEventListener("click", e => {
+  const l = stickLayout; if (!l) return;
+  const x = e.clientX - $("stickCanvas").getBoundingClientRect().left;
+  let best = null, bd = Infinity;
+  rows.forEach((r, k) => { const dd = Math.abs(l.xm(r.dnu) - x); if (dd < bd) { bd = dd; best = k; } });
+  if (bd < 24) select(best);
+});
+
+for (const id of ["pes", "integ", "stick"]) {
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $(id).clientWidth; if (w !== lastW && D) { lastW = w; drawAll(); } }).observe($(id));
+}
+
+writeFields();
+update();
+renderStaticTex();
+})();
+</script>
+</body>
+</html>

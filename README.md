@@ -1,60 +1,92 @@
 # Spectroscopist Handbook
 
 `index.html` is the home page for a set of spectroscopy web pages: calculations and ideas first written in Igor Pro,
-moved into the browser so they are easy to use. It lists each page in two columns with a small square preview, a short
-description and a link to its source. The pages live in their own repositories; this one holds only the hub, so it stays
-small (the page is 6.6 KB, the four previews 18.5 KB).
+moved into the browser so they are easy to use. It lists each page in two columns with a small square preview and a
+short description. Every page is kept in this repository as a copy, in its own folder, so the handbook is one site on
+one domain. The originals stay in their own repositories and on their own sites.
 
 **Pages:**
 
-| page | live | source |
-|---|---|---|
-| Franck–Condon overlap factors | https://crestk.github.io/Franck-Condon-Factor/ | [Franck-Condon-Factor](https://github.com/CrestK/Franck-Condon-Factor) |
-| Gaussian beam focal overlap | https://beamoverlap.koemel.net/ | [Gaussian-Intensity-Weighted-Focal-Overlap-Public](https://github.com/CrestK/Gaussian-Intensity-Weighted-Focal-Overlap-Public) |
-| Find the overlap (game) | https://beamoverlap.game.koemel.net/ | [Beam-Overlap-Game-Public](https://github.com/CrestK/Beam-Overlap-Game-Public) |
-| Beam overlap screensaver | https://screensaver.overlap.koemel.net/ | — (preview and description to come) |
-| Solvent subtraction | https://crestk.github.io/Solvent-subtraction/ | [Solvent-subtraction](https://github.com/CrestK/Solvent-subtraction) |
+| folder | page | copied from | standalone site |
+|---|---|---|---|
+| `franck-condon/` | Franck–Condon overlap factors | [Franck-Condon-Factor](https://github.com/CrestK/Franck-Condon-Factor) at `94197c8` | — |
+| `focal-overlap/` | Gaussian beam focal overlap | [Gaussian-Intensity-Weighted-Focal-Overlap-Public](https://github.com/CrestK/Gaussian-Intensity-Weighted-Focal-Overlap-Public) at `ab0337d` | https://beamoverlap.koemel.net/ |
+| `overlap-game/` | Find the overlap (game) | [Beam-Overlap-Game-Public](https://github.com/CrestK/Beam-Overlap-Game-Public) at `a1a1261` | https://beamoverlap.game.koemel.net/ |
+| `screensaver/` | Beam overlap screensaver | a single `index.html`, added by hand | https://screensaver.overlap.koemel.net/ |
+| `solvent-subtraction/` | Solvent subtraction | [Solvent-subtraction](https://github.com/CrestK/Solvent-subtraction) at `19f2435` | — |
+
+Each copy holds only what the page needs to run (its `index.html`, scripts, and for Franck–Condon the bundled KaTeX),
+plus its tests where the original has them. READMEs, CNAME files and `package.json` stay in the originals. The copies
+are not edited, so they keep the look of the original pages, and the focal overlap and game pages still load their web
+fonts from Google Fonts. The game keeps best times per site in the browser, so scores set here and on its standalone
+site are separate.
 
 **Output:**
 
-- A two-column list (one column below 860 px wide): preview, title, two or three sentences on what the page does, and a
-  source link. The preview and the title both open the page.
-- A notes section: the pages run in the browser, are static sites, and where their tests are.
+- A two-column list (one column below 860 px wide): preview, title, a few sentences on what the page does, and links to
+  the source repository and the standalone site where there is one. The preview and the title both open the copy here.
+- A notes section: the pages run in the browser, are static folders, and where their tests are.
+
+## Updating a copy
+
+Copy the same files again from the original repository and record the new commit in the table above. For example:
+
+```
+git clone --depth 1 https://github.com/CrestK/Solvent-subtraction ../Solvent-subtraction
+cp ../Solvent-subtraction/index.html solvent-subtraction/ && cp -r ../Solvent-subtraction/tests solvent-subtraction/
+node tests/validate.mjs
+```
 
 ## Adding a page
 
-1. Take a screenshot of the page at 1280 × 900, crop a square around its main plot (text is unreadable at this size),
+1. Copy the page into a new folder named after it (no CNAME, README or `package.json`).
+2. Take a screenshot of the page at 1280 × 900, crop a square around its main plot (text is unreadable at this size),
    and save it as a 256 × 256 WebP (quality about 80, a few KB) in `previews/`.
-2. Copy one `<div class="entry">` block in `index.html`, give it a new `id`, and set the same `href` on the preview and
-   the title. Without a preview yet, use the screensaver's `<a class="thumb empty">` block.
-3. If the source link goes to a new GitHub repository, make sure that repository is public and add its name to
-   `PUBLIC_REPOS` in `tests/validate.mjs`.
-4. Run the tests.
+3. Copy one `<div class="entry">` block in `index.html`, set its `id` to the folder name and both links to
+   `<folder>/index.html`. Without a preview yet, use `<a class="thumb empty" href="…">preview to come</a>` in place of
+   the image link.
+4. Add the folder to `COPIES` in `tests/validate.mjs`, its tests to `COPY_TESTS` if it has them, and its repository to
+   `PUBLIC_REPOS` if the page links to it on GitHub (the repository must be public).
+5. Run the tests.
 
 ## Use
 
-Open `index.html` in a browser. It needs no server, no build step, no script and no network. To publish it, serve the
-repository root from any static host, for example GitHub Pages with "Deploy from a branch" set to the repository root.
+Open `index.html` in a browser. The home page needs no server, no build step, no script and no network, and so do the
+copies (they also open straight from disk; the links go to `<folder>/index.html` for that reason). To publish it, serve the
+repository root from any static host, for example GitHub Pages with "Deploy from a branch" set to the repository root;
+the pages are then at `…/franck-condon/index.html` and so on.
 
 ## Files
 
 | path | what |
 |---|---|
-| `index.html` | the page: markup and styles, no script |
+| `index.html` | the home page: markup and styles, no script |
 | `previews/` | the 256 × 256 WebP previews, shown at 128 px (96 px on a phone) |
-| `tests/validate.mjs` | checks the page, the previews and every text file in the repository |
+| `franck-condon/`, `focal-overlap/`, `overlap-game/`, `screensaver/`, `solvent-subtraction/` | the copied pages |
+| `tests/validate.mjs` | checks the home page, the previews, the copies and every text file in the repository |
+
+The home page is 7.4 KB and the five previews 19.5 KB; the copies are about 1.1 MB, most of it KaTeX (fonts and script)
+in `franck-condon/vendor/`.
 
 ## Tests
 
 ```
-node tests/validate.mjs     # under 0.1 s
+node tests/validate.mjs            # about 17 s
+node tests/validate.mjs --quick    # under 0.1 s, without the copied pages' own tests
 ```
 
-- Every preview is a 256 × 256 WebP with no EXIF or XMP metadata and at most 20 KB (4 files, 18.5 KB in all), and
+- Every preview is a 256 × 256 WebP with no EXIF or XMP metadata and at most 20 KB (5 files, 19.5 KB in all), and
   `previews/` holds nothing the page does not use.
-- All 5 entries have a unique id, and their preview and title link to the same page.
-- All 15 links are https; the 5 GitHub links go only to the public repositories listed in the test.
-- The page loads nothing from elsewhere (no scripts, stylesheets or remote images) and is 6.6 KB.
-- No text file in the repository holds an email address, a local file path, a file URL or a chat or session link.
-- A broken copy (a missing preview, an unlisted repository, a remote script, an email address, a local path and a
-  session link planted) fails checks 1, 2, 4, 5 and 6.
+- All 5 entries have a unique id matching their folder, and their preview and title link to `<folder>/index.html`.
+- All 10 local links on the home page resolve; the 8 remote links are https. The home page loads nothing from
+  elsewhere (no scripts, stylesheets or remote images).
+- Every copy has its `index.html` and no CNAME, and all 27 local references (scripts, stylesheets, images, and one font
+  file for each of KaTeX's 20 `@font-face` rules, which list woff2, woff and ttf as fallbacks; only woff2 is shipped)
+  exist.
+- No text file in the repository (18 files, copies included) holds an email address, a local file path, a file URL or
+  a chat or session link, and all 11 GitHub links go to the public repositories listed in the test.
+- The copied pages' own tests pass where they now live: Franck–Condon 11 checks (about 6 s), solvent subtraction 50
+  checks (about 10 s).
+- A broken copy of the repository (a missing preview, a link to an unlisted repository, a remote script, an email
+  address, a local path, a session link, a deleted script in a copy and a CNAME in a copy) fails checks 1, 2, 5, 6
+  and 7, each naming the problem.
