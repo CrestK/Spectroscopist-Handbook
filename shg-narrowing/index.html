@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BBO SHG Narrowing</title>
+<meta name="description" content="Second-harmonic spectral width after type-I SHG in a long BBO crystal, for narrowband FSRS Raman pump pulses.">
+<style>
+  /* Plain page: white, black text, system font, native controls. Layout only. */
+  :root { color-scheme: light; }
+  body { margin: 0; background: #fff; color: #000; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; padding-block: 16px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 8px; }
+  h3 { font-size: 15px; margin: 14px 0 4px; }
+  p { margin: 0 0 8px; }
+  section { border-top: 1px solid #bbb; padding-block: 16px; }
+  .caption { color: #333; font-size: 14px; max-width: 90ch; margin-top: 8px; }
+  .note { color: #555; font-size: 13px; }
+  .error { color: #b00000; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-block: 8px; }
+  .sliders { display: grid; grid-template-columns: 16em minmax(120px, 1fr) 8em max-content; gap: 6px 10px; align-items: center; margin-block: 8px; max-width: 860px; }
+  .sliders input[type=range] { width: 100%; margin: 0; }
+  .sliders input[type=number] { width: 100%; box-sizing: border-box; }
+  .sliders .unit { color: #444; font-size: 13px; }
+  input[aria-invalid=true] { outline: 2px solid #b00000; }
+  .num { font-variant-numeric: tabular-nums; }
+  .split { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
+  .split + .split { margin-top: 20px; }
+  .halves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; align-items: start; }
+  .plotbox { min-width: 0; }
+  .plotbox canvas { display: block; width: 100%; cursor: crosshair; touch-action: pan-y; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; margin: 8px 0 2px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .readout { font-size: 13px; min-height: 1.45em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; margin: 2px 0 0; }
+  .tablewrap { overflow-x: auto; }
+  .tablewrap + .tablewrap { margin-top: 12px; }
+  table { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
+  caption { text-align: left; font-weight: 600; font-size: 14px; padding-bottom: 4px; }
+  th, td { border: 1px solid #ccc; padding: 4px 7px; text-align: right; white-space: nowrap; }
+  th { background: #f2f2f2; font-weight: 600; }
+  td.l, th.l { text-align: left; }
+  td.wrap { white-space: normal; }
+  .flag { font-size: 14px; max-width: 90ch; margin-top: 10px; }
+  .eq { font-family: "Times New Roman", Times, serif; font-size: 17px; overflow-x: auto; margin: 4px 0 8px; padding-left: 1em; }
+  ol.eqs { padding-left: 1.6em; margin: 0; max-width: 100ch; }
+  ol.eqs > li { margin-block: 14px; }
+  ol.eqs > li > p:first-child { font-weight: 600; margin-bottom: 2px; }
+  ul.plain { margin: 0 0 8px; padding-left: 1.2em; max-width: 100ch; }
+  ul.plain > li { margin-block: 3px; }
+  ol.refs { margin: 0; padding-left: 1.6em; max-width: 100ch; }
+  ol.refs > li { margin-block: 4px; }
+  @media (max-width: 920px) { .split, .halves { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) {
+    .sliders { grid-template-columns: minmax(0, 1fr) 6.5em max-content; }
+    .sliders label { grid-column: 1 / -1; margin-top: 4px; }
+    th, td { padding: 3px 4px; }
+    td.l { white-space: normal; }
+  }
+  :focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+<h1>Spectral narrowing by SHG in BBO</h1>
+<p>Type-I second-harmonic generation (SHG) in a long β-BaB<sub>2</sub>O<sub>4</sub> (BBO) crystal narrows the spectrum: the
+second harmonic (SH) travels slower than the fundamental (FF), so only a narrow band of SH frequencies builds up over the
+crystal. This is the spectral-compression step that makes narrowband Raman pump pulses for femtosecond stimulated Raman
+spectroscopy (FSRS). Enter the FF wavelength, the crystal length and the FF pulse. The page gives the SH width in cm⁻¹, nm
+and GHz from an undepleted model with the exact BBO dispersion, shows the SH spectrum and pulse, compares the width with an
+etalon, and checks whether pump depletion or walk-off matter. Everything recalculates as you type. Equations are at the bottom.</p>
+<noscript><p class="error">This page needs JavaScript.</p></noscript>
+
+<section id="inputs">
+  <h2>Inputs</h2>
+  <h3>Wavelength and crystal</h3>
+  <div class="row">
+    <span>Enter the</span>
+    <label><input type="radio" name="wlMode" value="ff" checked> FF wavelength</label>
+    <label><input type="radio" name="wlMode" value="sh"> SH wavelength</label>
+  </div>
+  <div class="sliders">
+    <label for="wlN" id="wlLab">λ<sub>FF</sub>, fundamental</label><input type="range" id="wlR" min="400" max="2000" step="1" autocomplete="off" aria-label="wavelength"><input type="number" id="wlN" step="any" autocomplete="off"><span class="unit" id="wlOther">nm</span>
+    <label for="lenN"><i>L</i>, crystal length</label><input type="range" id="lenR" min="-1" max="1.4771" step="0.001" autocomplete="off" aria-label="crystal length"><input type="number" id="lenN" step="any" autocomplete="off"><span class="unit">mm</span>
+    <label for="cutN">θ<sub>cut</sub>, cut angle</label><span class="gap"></span><input type="number" id="cutN" step="any" autocomplete="off"><span class="unit">° (only for the tilt)</span>
+  </div>
+  <div class="row">
+    <span class="note">Crystals (Lorenzo et al. 2024):</span>
+    <button type="button" data-crystal="c2">2 mm, θ<sub>cut</sub> 23.4°</button>
+    <button type="button" data-crystal="c7">7 mm, θ<sub>cut</sub> 22.8°</button>
+    <button type="button" data-crystal="c25">25 mm, θ<sub>cut</sub> 21.1°</button>
+  </div>
+  <div class="row">
+    <label for="setSel">Sellmeier equations</label>
+    <select id="setSel">
+      <option value="kato">Kato 1986</option>
+      <option value="eimerl">Eimerl et al. 1987</option>
+      <option value="tamosauskas">Tamošauskas et al. 2018</option>
+    </select>
+    <span id="setNote" class="note"></span>
+  </div>
+
+  <h3>FF pulse</h3>
+  <div class="sliders">
+    <label for="tauN">τ, pulse FWHM (transform limit)</label><input type="range" id="tauR" min="1" max="3.30103" step="0.001" autocomplete="off" aria-label="pulse duration"><input type="number" id="tauN" step="any" autocomplete="off"><span class="unit">fs</span>
+    <label for="bwN">or bandwidth FWHM</label><span class="gap"></span><input type="number" id="bwN" step="any" autocomplete="off"><select id="bwUnit" aria-label="bandwidth unit"><option value="cm">cm⁻¹</option><option value="nm">nm</option></select>
+    <label for="gddN">GDD, chirp before the crystal</label><input type="range" id="gddR" min="-20000" max="20000" step="100" autocomplete="off" aria-label="group delay dispersion"><input type="number" id="gddN" step="any" autocomplete="off"><span class="unit">fs²</span>
+  </div>
+  <p id="pulseNote" class="note num"></p>
+  <div class="row">
+    <span class="note">Examples:</span>
+    <button type="button" data-example="carbide">OPA after CARBIDE: 1110 nm, 200 fs</button>
+    <button type="button" data-example="legend">OPA after Legend Elite: 800 nm, 35 fs</button>
+    <button type="button" id="reset">Reset all</button>
+  </div>
+
+  <h3>Etalon</h3>
+  <div class="sliders">
+    <label for="fsrN">FSR, free spectral range</label><span class="gap"></span><input type="number" id="fsrN" step="any" autocomplete="off"><span class="unit">cm⁻¹</span>
+    <label for="lwN">line width (FWHM)</label><span class="gap"></span><input type="number" id="lwN" step="any" autocomplete="off"><span class="unit">cm⁻¹</span>
+  </div>
+  <div class="row"><label><input type="checkbox" id="showEt" checked> Show the etalon on the spectrum</label></div>
+
+  <h3>Depletion check</h3>
+  <div class="sliders">
+    <label for="enN"><i>E</i>, FF pulse energy</label><span class="gap"></span><input type="number" id="enN" step="any" autocomplete="off"><span class="unit">µJ</span>
+    <label for="beamN"><i>d</i>, beam FWHM at the crystal</label><span class="gap"></span><input type="number" id="beamN" step="any" autocomplete="off"><span class="unit">mm</span>
+    <label for="deffN"><i>d</i><sub>eff</sub></label><span class="gap"></span><input type="number" id="deffN" step="any" autocomplete="off"><span class="unit">pm/V</span>
+  </div>
+  <p class="note">Measure <i>d</i> with an iris at the crystal: close it until the power meter reads half the open value. For a
+  Gaussian beam that iris diameter is the intensity FWHM. The peak intensity goes as 1/<i>d</i>², so a 20&nbsp;% error in
+  <i>d</i> is a 44&nbsp;% error in intensity. <i>d</i><sub>eff</sub> ≈ <i>d</i><sub>22</sub> cos θ for type-I BBO, with
+  <i>d</i><sub>22</sub> ≈ 2.2 pm/V; check it against your crystal's data sheet.</p>
+  <p id="inErr" class="error" role="alert" hidden></p>
+</section>
+
+<section id="results">
+  <h2>Result</h2>
+  <p id="pmErr" class="error" role="alert" hidden></p>
+  <div class="split">
+    <div>
+      <h3>SH spectrum</h3>
+      <div class="legend" aria-hidden="true">
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#000" stroke-width="2"/></svg>full model, length <i>L</i></span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#1f5fbf" stroke-width="1.5"/></svg>thin crystal</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d40000" stroke-width="1.5" stroke-dasharray="5 3"/></svg>GVM only</span>
+        <span class="etleg"><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#888" stroke-width="1.2" stroke-dasharray="2 2"/></svg>etalon transmission</span>
+        <span class="etleg"><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#c65a12" stroke-width="1.5"/></svg>SH after the etalon</span>
+      </div>
+      <div id="specBox" class="plotbox"><canvas id="specCanvas" role="img" aria-label="SH spectrum against detuning"></canvas></div>
+      <p id="specRead" class="readout"></p>
+      <div class="row">
+        <button type="button" id="specFull">Full range</button>
+        <span class="note">Drag across the plot to zoom, double-click to zoom out, hover to read values.</span>
+      </div>
+      <p class="caption">SH spectra normalised to 1 at their peaks, against the detuning from the SH centre frequency
+      (bottom axis); the top axis gives the SH wavelength. The thin-crystal spectrum is √2 wider than the FF. "GVM only" is
+      the simple sinc² times the thin-crystal spectrum: where it differs from the full model, FF dispersion matters. The
+      etalon is drawn with one order on the SH peak; the orange curve is what it passes, on the same scale as the SH.</p>
+    </div>
+    <div>
+      <div class="tablewrap"><table id="tWidths"></table></div>
+      <div class="tablewrap"><table id="tCrystal"></table></div>
+      <p id="setWarn" class="note" hidden></p>
+    </div>
+  </div>
+
+  <div class="split">
+    <div>
+      <h3>SH pulse</h3>
+      <div class="legend" aria-hidden="true">
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#000" stroke-width="2"/></svg>SH, full model</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d40000" stroke-width="1.5" stroke-dasharray="5 3"/></svg>SH, GVM only</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#1f5fbf" stroke-width="1.5"/></svg>FF at the crystal exit</span>
+      </div>
+      <div id="timeBox" class="plotbox"><canvas id="timeCanvas" role="img" aria-label="SH and FF intensity against time"></canvas></div>
+      <p id="timeRead" class="readout"></p>
+      <div class="row">
+        <button type="button" id="timeFull">Full range</button>
+        <span class="note">Drag to zoom, double-click to zoom out.</span>
+      </div>
+      <p class="caption">Intensities normalised to 1 at their peaks. Time runs in a frame that moves with the mean of the FF
+      and SH group velocities; later times are to the right. The FF leaves the crystal first, at −GDM/2; SH made at the
+      entrance face comes out last, at +GDM/2, so a long crystal gives a flat-top SH pulse about GDM long. This is the
+      undepleted shape: with strong conversion the FF is used up as it goes, and the real pulse has a steeper rise and an
+      exponential tail, which this page does not model. With short pulses (try 800 nm, 35 fs) the FF also stretches by its
+      own dispersion inside the crystal, so most of the SH is made in the first millimetres and comes out at the late edge;
+      the ripples there are SH from different depths adding with different phases as the FF chirps (they do not change when
+      the grids are refined).</p>
+    </div>
+    <div>
+      <div class="tablewrap"><table id="tDepl"></table></div>
+      <p id="deplFlag" class="flag"></p>
+      <p id="walkFlag" class="flag"></p>
+      <p class="note">The depletion flag assumes ideal phase matching, a Gaussian beam and pulse, and the <i>d</i><sub>eff</sub>
+      entered. Real efficiencies are usually lower, so the flag errs on the side of warning. Its levels come from split-step
+      simulations with depletion (1110 nm, 200 fs; see equation 11).</p>
+      <h3>Downloads</h3>
+      <div class="row">
+        <button type="button" id="dlSpec">SH spectrum (.csv)</button>
+        <button type="button" id="dlPulse">SH pulse (.csv)</button>
+        <button type="button" id="dlLen" disabled>FWHM against L (.csv)</button>
+      </div>
+      <p id="dlNote" class="note">Comma-separated text with a few lines starting with # that give the settings. The spectrum
+      file holds every computed point (denser near the peak): detuning (cm⁻¹), SH wavelength (nm), the full model, thin
+      crystal, GVM-only, etalon transmission and SH after the etalon. The pulse file holds time (ps) and the three curves of
+      the pulse plot. The length file holds the points of the plot below in cm⁻¹, nm and GHz.</p>
+    </div>
+  </div>
+
+  <h3>Against crystal length and FF wavelength</h3>
+  <p id="curveNote" class="note num">computing…</p>
+  <div class="halves">
+    <div>
+      <div class="legend" aria-hidden="true">
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#000" stroke-width="2"/><circle cx="13" cy="5" r="2.5" fill="#000"/></svg>full model</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d40000" stroke-width="1.5" stroke-dasharray="5 3"/></svg>simple formula 0.886/GDM</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#1f5fbf" stroke-width="1.5" stroke-dasharray="1.5 2.5"/></svg>thin crystal, √2 × FF</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#888" stroke-width="1.2" stroke-dasharray="6 3"/></svg>etalon FSR and line width</span>
+      </div>
+      <div id="lenBox" class="plotbox"><canvas id="lenCanvas" role="img" aria-label="SH FWHM against crystal length"></canvas></div>
+      <p id="lenRead" class="readout"></p>
+      <p class="caption">SH FWHM against crystal length, both axes logarithmic, for the FF wavelength and pulse above. The
+      grey verticals mark the 2, 7 and 25 mm crystals and the circle the length above. The simple formula is a lower bound:
+      it fails for short crystals, where the SH width is set by the FF bandwidth. For the etalon to do its job the SH should
+      sit between the two grey dashed lines: narrower than the FSR, so one order passes, but not much narrower than the
+      line width, or the etalon has nothing left to shape.</p>
+    </div>
+    <div>
+      <div class="legend" aria-hidden="true">
+        <span>Top:</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#000" stroke-width="2"/></svg>Kato 1986</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#c65a12" stroke-width="1.5"/></svg>Eimerl 1987</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#1f5fbf" stroke-width="1.5"/></svg>Tamošauskas 2018</span>
+        <span><svg width="14" height="10"><circle cx="7" cy="5" r="3.5" fill="none" stroke="#d40000" stroke-width="1.5"/></svg>values in the text of Pontecorvo 2013</span>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span>Bottom:</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#000" stroke-width="2"/><circle cx="13" cy="5" r="2.5" fill="#000"/></svg>full model</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d40000" stroke-width="1.5" stroke-dasharray="5 3"/></svg>simple formula</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#1f5fbf" stroke-width="1.5" stroke-dasharray="1.5 2.5"/></svg>thin crystal</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#888" stroke-width="1.2" stroke-dasharray="6 3"/></svg>etalon</span>
+      </div>
+      <div id="wlBox" class="plotbox"><canvas id="wlCanvas" role="img" aria-label="GVM and SH FWHM against FF wavelength"></canvas></div>
+      <p id="wlRead" class="readout"></p>
+      <p class="caption">Top: GVM against FF wavelength for the three Sellmeier sets (the selected one is drawn thicker).
+      Bottom: SH FWHM for the crystal length and pulse above, with the selected set. The GVM falls to zero near 1.5 µm,
+      where type-I BBO is almost group-velocity matched; there the simple formula blows up and the width is set by the FF
+      bandwidth and dispersion instead. The red circles are the "320 to 90 fs/mm from 660 to 1500 nm" of Pontecorvo et al.
+      2013: the 660 nm value reproduces, but 90 fs/mm belongs near 1030 nm (see the notes).</p>
+    </div>
+  </div>
+</section>
+
+<section id="equations">
+  <h2>Methods and equations</h2>
+  <p class="note">Type-I (ooe) SHG: the FF is an ordinary wave at λ, the SH an extraordinary wave at λ/2. BBO is negative
+  uniaxial. λ is in µm in the Sellmeier equations. Coupled-wave conventions follow Boyd, <i>Nonlinear Optics</i>.</p>
+  <ol class="eqs">
+    <li>
+      <p>Refractive indices (Sellmeier equations)</p>
+      <div class="eq">Kato 1986: <i>n</i><sub>o</sub>² = 2.7359 + 0.01878/(λ² − 0.01822) − 0.01354 λ²,&emsp;
+        <i>n</i><sub>e</sub>² = 2.3753 + 0.01224/(λ² − 0.01667) − 0.01516 λ²</div>
+      <div class="eq">Eimerl et al. 1987: <i>n</i><sub>o</sub>² = 2.7405 + 0.0184/(λ² − 0.0179) − 0.0155 λ²,&emsp;
+        <i>n</i><sub>e</sub>² = 2.3730 + 0.0128/(λ² − 0.0156) − 0.0044 λ²</div>
+      <div class="eq">Tamošauskas et al. 2018: <i>n</i><sub>o</sub>² = 1 + 0.90291 λ²/(λ² − 0.003926) + 0.83155 λ²/(λ² − 0.018786) + 0.76536 λ²/(λ² − 60.01),<br>
+        <i>n</i><sub>e</sub>² = 1 + 1.151075 λ²/(λ² − 0.007142) + 0.21803 λ²/(λ² − 0.02259) + 0.656 λ²/(λ² − 263)</div>
+      <p class="note">Fitted ranges: Kato 0.205–1.064 µm, Eimerl 0.22–1.06 µm, Tamošauskas 0.188–5.2 µm. Eimerl and
+      Tamošauskas coefficients as in the refractiveindex.info database; Kato's as in vendor data sheets. Kato's set is
+      the default. Above 1.064 µm Kato and Eimerl are extrapolated. Kato still gives a GVM within about 3&nbsp;% of Tamošauskas up to
+      1.3 µm, but Eimerl's GVM drifts away: 9&nbsp;% low at 1110 nm, 22&nbsp;% low at 1300 nm.</p>
+    </li>
+    <li>
+      <p>Extraordinary index at angle θ to the optic axis</p>
+      <div class="eq">1/<i>n</i><sub>e</sub>(θ, λ)² = cos²θ/<i>n</i><sub>o</sub>(λ)² + sin²θ/<i>n</i><sub>e</sub>(λ)²</div>
+    </li>
+    <li>
+      <p>Type-I phase matching</p>
+      <div class="eq"><i>n</i><sub>e</sub>(θ<sub>pm</sub>, λ/2) = <i>n</i><sub>o</sub>(λ)&emsp;⇒&emsp;sin²θ<sub>pm</sub> =
+        [<i>n</i><sub>o</sub>(λ)⁻² − <i>n</i><sub>o</sub>(λ/2)⁻²] / [<i>n</i><sub>e</sub>(λ/2)⁻² − <i>n</i><sub>o</sub>(λ/2)⁻²]</div>
+      <div class="eq">sin θ<sub>ext</sub> = <i>n</i><sub>o</sub>(λ) sin(θ<sub>pm</sub> − θ<sub>cut</sub>)</div>
+      <p class="note">There is no solution when the right side is above 1: below 409.5 nm FF with Kato's equations
+      (409.0 nm Eimerl, 409.9 nm Tamošauskas). θ<sub>ext</sub> is the tilt of the crystal face from normal incidence that
+      reaches θ<sub>pm</sub> with a crystal cut at θ<sub>cut</sub>.</p>
+    </li>
+    <li>
+      <p>Group index, group-velocity mismatch (GVM) and group-delay mismatch (GDM)</p>
+      <div class="eq"><i>n</i><sub>g</sub> = <i>n</i> − λ d<i>n</i>/dλ,&emsp; GVM = 1/<i>v</i><sub>g,SH</sub> − 1/<i>v</i><sub>g,FF</sub> =
+        (<i>n</i><sub>g,SH</sub> − <i>n</i><sub>g,FF</sub>)/<i>c</i>,&emsp; GDM = <i>L</i>·|GVM|</div>
+      <p class="note"><i>n</i><sub>g,FF</sub> from <i>n</i><sub>o</sub>(λ), <i>n</i><sub>g,SH</sub> from
+      <i>n</i><sub>e</sub>(θ<sub>pm</sub>, λ/2) with θ held fixed; the derivatives are analytic. GVM is positive (the SH is
+      slower) for FF below about 1.5 µm and crosses zero at 1541 nm (Kato), 1471 nm (Eimerl) or 1518 nm (Tamošauskas).
+      Below, δ = −GVM.</p>
+    </li>
+    <li>
+      <p>Simple bandwidth formula (GVM only, FF much broader than the acceptance)</p>
+      <div class="eq">Δ<i>k</i> ≈ δ·Ω,&emsp; <i>S</i>(Ω) ∝ sinc²(δΩ<i>L</i>/2),&emsp; sinc²(1.39156) = ½&emsp;⇒&emsp;
+        Δν<sub>SH</sub> = 2·1.39156/(π·GDM) = 0.886/GDM</div>
+      <div class="eq">Δν̃ = Δν/(100 <i>c</i>) in cm⁻¹,&emsp; Δλ = λ² Δν/<i>c</i>,&emsp; thin crystal: Δν<sub>SH</sub> = √2·Δν<sub>FF</sub></div>
+      <p class="note">Ω is the SH detuning; summed over the pairs of FF frequencies that add up to it, the mismatch depends on
+      Ω alone. This is a lower bound on the width: it fails when GDM is short compared with the FF pulse (thin crystals),
+      and when δ → 0 near 1.5 µm. "GVM only" on the spectrum plot is sinc²(δΩ<i>L</i>/2)·exp(−Ω²/4σ²), the same with the
+      finite FF spectrum. Nanometre widths use the linear conversion Δλ = λ²Δν/<i>c</i>.</p>
+    </li>
+    <li>
+      <p>Full undepleted model</p>
+      <div class="eq"><i>A</i>(Ω₁) = exp(−Ω₁²/4σ² + i·GDD·Ω₁²/2),&emsp; σ = √(2 ln 2)/τ,&emsp; Δν<sub>FF</sub> = 0.4413/τ</div>
+      <div class="eq">Δ<i>k</i>(Ω, Ω₁) = <i>k</i><sub>e</sub>(2ω₀ + Ω; θ<sub>pm</sub>) − <i>k</i><sub>o</sub>(ω₀ + Ω₁) − <i>k</i><sub>o</sub>(ω₀ + Ω − Ω₁),&emsp; <i>k</i> = <i>n</i>(ω) ω/<i>c</i></div>
+      <div class="eq"><i>E</i><sub>SH</sub>(Ω) ∝ ∫ <i>A</i>(Ω₁) <i>A</i>(Ω − Ω₁) · <i>L</i> sinc(Δ<i>kL</i>/2) e<sup>−iΔ<i>kL</i>/2</sup> dΩ₁,&emsp; <i>S</i>(Ω) = |<i>E</i><sub>SH</sub>(Ω)|²</div>
+      <p class="note">τ is the intensity FWHM of the transform-limited FF pulse, and GDD &gt; 0 is the sign that normal glass
+      adds. θ is held at θ<sub>pm</sub> of the centre wavelength, and the indices are the exact Sellmeier values, not a
+      Taylor expansion, so the model holds GVM, the FF dispersion (which sets the FF acceptance bandwidth, Marangoni et al.
+      2007), the chirp and the finite FF bandwidth. With Ω₁ = Ω/2 ± <i>u</i> the integrand is even in <i>u</i>; the page
+      integrates <i>u</i> from 0 to 6σ by the trapezoid rule, with steps that resolve the phases GDD·<i>u</i>² and
+      <i>k</i>″<i>Lu</i>², and finds the FWHM on an adaptive grid with 40–80 points across the peak. Limits: <i>L</i> → 0
+      gives √2·Δν<sub>FF</sub>; a long crystal gives the sinc² of equation 5. The FWHM is taken around the highest point,
+      out to the first half-maximum crossing on each side.</p>
+      <p class="note">Without a phase-matching filter a linear chirp factors out of <i>A</i>(Ω₁)<i>A</i>(Ω − Ω₁), so the
+      thin-crystal SH spectrum does not depend on it. In a long crystal the chirp acts only through the FF dispersion: for
+      200 fs at 1110 nm, ±20000 fs² changes the 25 mm width by less than 0.01&nbsp;%; for 35 fs at 800 nm, −1000 fs² (the
+      FF then compresses halfway through the crystal) broadens it from 6.17 to 6.51 cm⁻¹.</p>
+    </li>
+    <li>
+      <p>SH pulse in time</p>
+      <div class="eq"><i>E</i><sub>SH</sub>(<i>t</i>) = ∫ <i>E</i><sub>SH</sub>(Ω) e<sup>i[<i>k</i><sub>e</sub>(2ω₀+Ω) − <i>k</i><sub>e</sub>(2ω₀) − <i>k̄</i>′Ω]<i>L</i> + i·GDD·Ω²/4</sup> e<sup>−iΩ<i>t</i></sup> dΩ,&emsp;
+        <i>k̄</i>′ = (<i>n</i><sub>g,FF</sub> + <i>n</i><sub>g,SH</sub>)/2<i>c</i></div>
+      <div class="eq">GVM only: <i>E</i><sub>SH</sub>(<i>t</i>) ∝ ∫₀<sup><i>L</i></sup> <i>A</i>₁²(<i>t</i> − δ(<i>z</i> − <i>L</i>/2)) d<i>z</i></div>
+      <p class="note">A direct Fourier sum over the computed spectrum; the SH keeps its own dispersion and the chirp it
+      inherits from the FF. The SH pulse FWHM in the table is the FWHM of |<i>E</i><sub>SH</sub>(<i>t</i>)|². The GVM-only
+      pulse uses the chirped input FF and no dispersion inside the crystal. The FF at the exit is the input pulse with the
+      added GDD <i>k</i>″<sub>o</sub><i>L</i> of the crystal, at the time δ<i>L</i>/2.</p>
+    </li>
+    <li>
+      <p>Spatial walk-off</p>
+      <div class="eq">tan ρ = ½ <i>n</i><sub>e</sub>(θ)² [<i>n</i><sub>e</sub>⁻² − <i>n</i><sub>o</sub>⁻²] sin 2θ&emsp;at λ/2,&emsp;
+        walk-off over the crystal = <i>L</i> tan ρ,&emsp; <i>w</i> = <i>d</i>/√(2 ln 2) = 0.849 <i>d</i></div>
+      <p class="note">Not part of the bandwidth. <i>w</i> is the 1/e² intensity radius of a Gaussian beam with intensity FWHM
+      <i>d</i>. The page flags a walk-off larger than <i>w</i>, and notes one larger than <i>w</i>/2. Walk-off shortens the
+      length over which the SH builds up, which broadens the SH and weakens the depletion compared with the plane-wave
+      numbers here.</p>
+    </li>
+    <li>
+      <p>Etalon</p>
+      <div class="eq"><i>T</i>(ν̃) = 1/[1 + <i>F</i> sin²(πν̃/FSR)],&emsp; <i>F</i> = 1/sin²(π·δν̃/(2·FSR))</div>
+      <p class="note">An ideal lossless Airy etalon with free spectral range FSR and line width δν̃ (FWHM), with one order
+      centred on the SH peak. The table gives the FWHM of what passes, the fraction of the SH energy in that order and in
+      the other orders. Real etalons transmit less at the peak.</p>
+    </li>
+    <li>
+      <p>Peak intensity and the iris measurement</p>
+      <div class="eq"><i>I</i>₀ = 2√(ln 2/π) <i>E</i>/τ × 4 ln 2/(π<i>d</i>²) ≈ 0.829 <i>E</i>/(τ<i>d</i>²),&emsp;
+        τ<sub>chirped</sub> = τ √[1 + (4 ln 2·GDD/τ²)²]</div>
+      <div class="eq">fraction through an iris of diameter <i>D</i> = 1 − exp(−4 ln 2·(<i>D</i>/2)²/<i>d</i>²) = ½ at <i>D</i> = <i>d</i></div>
+      <p class="note">A pulse Gaussian in time (intensity FWHM τ) and space (intensity FWHM <i>d</i>). For 2 µJ, 200 fs and 2 mm,
+      <i>I</i>₀ = 2.07 × 10⁸ W/cm². The table shows <i>I</i>₀ of the chirped pulse.</p>
+    </li>
+    <li>
+      <p>Undepleted efficiency and the depletion flag</p>
+      <div class="eq">κ = 2ω₁<i>d</i><sub>eff</sub>/(<i>n c</i>),&emsp; <i>I</i> = 2<i>n</i>ε₀<i>c</i>|<i>A</i>|²,&emsp;
+        <i>E</i><sub>SH</sub>(Ω) = (iκ/2π) ∫ <i>Ã</i>(Ω₁) <i>Ã</i>(Ω − Ω₁) <i>L</i> sinc(Δ<i>kL</i>/2) e<sup>−iΔ<i>kL</i>/2</sup> dΩ₁</div>
+      <div class="eq">η<sub>peak</sub> = ∫|<i>E</i><sub>SH</sub>|² dΩ / ∫|<i>Ã</i>|² dΩ,&emsp; η<sub>beam</sub> = η<sub>peak</sub>/2</div>
+      <p class="note">Equation 6 made absolute, with <i>A</i>(<i>t</i>) = (1/2π)∫<i>Ã</i>(Ω) e<sup>−iΩ<i>t</i></sup> dΩ the FF field in V/m and Parseval for the energies. η<sub>peak</sub>
+      is the plane-wave efficiency at the beam centre and is linear in <i>I</i>₀; averaged over a Gaussian beam it halves,
+      because ∫<i>I</i>² d<i>A</i> = ½ <i>I</i>₀ ∫<i>I</i> d<i>A</i>. Without dispersion this is the textbook
+      η = 8π²<i>d</i><sub>eff</sub>²<i>L</i>²<i>I</i>/(ε₀<i>c n</i>³λ²) times 1/√2 for a Gaussian pulse. It is not a real
+      efficiency once it nears 1. The flag levels come from split-step simulations with depletion (plane wave and Gaussian
+      beam; 1110 nm, 200 fs, <i>d</i><sub>eff</sub> = 2 pm/V, 2, 7 and 25 mm):</p>
+      <div class="tablewrap" style="max-width: 820px">
+        <table>
+          <thead><tr><th class="l">undepleted η<sub>beam</sub></th><th class="l">what the simulations showed</th></tr></thead>
+          <tbody>
+            <tr><td class="l">&lt; 0.1</td><td class="l wrap">depletion negligible</td></tr>
+            <tr><td class="l">0.1–1</td><td class="l wrap">depletion likely; the efficiency estimate is too high, the SH width within about 7&nbsp;% (within 1&nbsp;% at 25 mm; 2 mm is the worst case)</td></tr>
+            <tr><td class="l">1–10</td><td class="l wrap">strong depletion; real efficiency saturates around 40–80&nbsp;%; width still within about 7&nbsp;%, slightly narrower for thin crystals, slightly broader at 25 mm</td></tr>
+            <tr><td class="l">&gt; 10</td><td class="l wrap">very strong depletion, possible back-conversion; the width can change by 10&nbsp;% or more (25&nbsp;% at the beam centre) and the spectrum can have structure</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Where GVM sets the width, depletion changes the efficiency a lot but the SH width only a little, until
+      the conversion is very high.</p>
+    </li>
+  </ol>
+</section>
+
+<section id="notes">
+  <h2>Notes</h2>
+  <h3>Not modelled</h3>
+  <ul class="plain">
+    <li>Pump depletion and back-conversion. The page estimates whether depletion is likely and flags it (equation 11); it
+    does not change the spectrum or the pulse. The steep rise and exponential tail of real long-crystal SH pulses come
+    from depletion.</li>
+    <li>Focusing, the angular acceptance and diffraction: the beams are plane waves at θ<sub>pm</sub>.</li>
+    <li>Spatial walk-off inside the model (it is only flagged), cascaded χ<sup>(2)</sup> effects, absorption and the crystal
+    temperature.</li>
+  </ul>
+  <h3>A number in the literature to watch</h3>
+  <p style="max-width: 100ch">Pontecorvo et al. 2013 write that the GVM of BBO goes "from 320 to 90 fs/mm when tuning the
+  fundamental from 660 to 1500 nm". The 320 fs/mm at 660 nm reproduces with all three Sellmeier sets (315–320 fs/mm), but
+  they all put 90 fs/mm near 1030 nm (Kato 94.8 fs/mm) and between −4 and +6 fs/mm at 1500 nm, where type-I BBO is
+  nearly group-velocity matched. The red circles on the GVM plot mark the two quoted values.</p>
+  <h3>References</h3>
+  <ol class="refs">
+    <li>G. Pontecorvo, C. Ferrante, C. G. Elles and T. Scopigno, "Spectrally tailored narrowband pulses for femtosecond
+    stimulated Raman spectroscopy in the range 330–750 nm", <i>Opt. Express</i> <b>21</b>, 6866 (2013),
+    <a href="https://doi.org/10.1364/OE.21.006866">doi:10.1364/OE.21.006866</a>, <a href="https://arxiv.org/abs/1212.4957">arXiv:1212.4957</a>.
+    The 0.886/GDM estimate for a 25 mm BBO after an OPA.</li>
+    <li>M. Marangoni, D. Brida, M. Quintavalle, G. Cirmi, F. M. Pigozzo, C. Manzoni, F. Baronio, A. D. Capobianco and
+    G. Cerullo, "Narrow-bandwidth picosecond pulses by spectral compression of femtosecond pulses in second-order nonlinear
+    crystals", <i>Opt. Express</i> <b>15</b>, 8884 (2007), <a href="https://doi.org/10.1364/OE.15.008884">doi:10.1364/OE.15.008884</a>.
+    The full theory: GVM bandwidth, FF acceptance from the sum frequencies of symmetric pairs, coupled-wave equations, chirp.</li>
+    <li>A. M. Weiner, "Effect of group velocity mismatch on the measurement of ultrashort optical pulses via second
+    harmonic generation", <i>IEEE J. Quantum Electron.</i> <b>19</b>, 1276 (1983). The sinc² transfer function with GVM.</li>
+    <li>G. Pontecorvo et al., "Femtosecond stimulated Raman spectrometer in the 320–520 nm range", <i>Opt. Express</i>
+    <b>19</b>, 1107 (2011). The first long-BBO implementation.</li>
+    <li>Lorenzo, Karki, White, Burns and Elles, <i>J. Chem. Phys.</i> <b>161</b>, 224201 (2024),
+    <a href="https://doi.org/10.1063/5.0237444">doi:10.1063/5.0237444</a>. Tunable FSRS with an etalon: the 2, 7 and 25 mm
+    crystals, the etalon (FSR 172 cm⁻¹, line width 15 cm⁻¹) and the warning that too much narrowing in the SHG cancels
+    the benefit of the etalon. Their supplementary Fig. S1 has measured SH spectra at 555 nm for the three crystals.</li>
+    <li>Quincy, Barclay, Caricato and Elles, <i>J. Phys. Chem. A</i> <b>122</b>, 8308 (2018). A 25 mm BBO
+    (θ<sub>cut</sub> = 21.1°) giving nearly picosecond SH pulses.</li>
+    <li>K. Kato, <i>IEEE J. Quantum Electron.</i> <b>22</b>, 1013 (1986), <a href="https://doi.org/10.1109/JQE.1986.1073097">doi:10.1109/JQE.1986.1073097</a>;
+    D. Eimerl, L. Davis, S. Velsko, E. K. Graham and A. Zalkin, <i>J. Appl. Phys.</i> <b>62</b>, 1968 (1987),
+    <a href="https://doi.org/10.1063/1.339536">doi:10.1063/1.339536</a>; G. Tamošauskas, G. Beresnevičius, D. Gadonas and
+    A. Dubietis, <i>Opt. Mater. Express</i> <b>8</b>, 1410 (2018), <a href="https://doi.org/10.1364/OME.8.001410">doi:10.1364/OME.8.001410</a>.
+    The Sellmeier equations.</li>
+    <li>R. W. Boyd, <i>Nonlinear Optics</i>, 3rd ed. (Academic Press, 2008). The coupled-wave conventions of equation 11.</li>
+  </ol>
+</section>
+</main>
+
+<script id="core">
+"use strict";
+/* Numerical core: pure functions, no DOM. tests/validate.mjs runs this script in Node.
+   Inside the core: wavelengths in µm, angular frequencies in rad/s, lengths in m and times in s, unless a name says
+   otherwise (…Nm, …Mm, …Fs, …Cm for cm⁻¹). */
+const C0 = 299792458, EPS0 = 8.8541878128e-12, LN2 = Math.LN2;
+const SINC2_HALF = 1.3915573782515103;          // sinc²(x) = 1/2 at x = 1.39156
+const GVM_BW = 2 * SINC2_HALF / Math.PI;         // 0.88589: Δν_SH · GDM for a sinc² spectrum
+const TBP = 2 * LN2 / Math.PI;                   // 0.44127: Δν · τ of a transform-limited Gaussian (intensity FWHMs)
+const FWHM_PER_SIGMA = 2 * Math.sqrt(2 * LN2);
+const TWO_PI_C_UM = 2 * Math.PI * C0 * 1e6;      // λ (µm) = TWO_PI_C_UM / ω
+const NU_MAX = 4000;                             // largest inner (Ω₁) grid
+
+// n² = a + lin·x + Σ b·x^m/(x − c), with x = λ² in µm² and m = 0 or 1
+const SELLMEIER = {
+  kato: { name: "Kato 1986", range: [0.205, 1.064],
+    o: { a: 2.7359, lin: -0.01354, poles: [[0.01878, 0, 0.01822]] },
+    e: { a: 2.3753, lin: -0.01516, poles: [[0.01224, 0, 0.01667]] } },
+  eimerl: { name: "Eimerl et al. 1987", range: [0.22, 1.06],
+    o: { a: 2.7405, lin: -0.0155, poles: [[0.0184, 0, 0.0179]] },
+    e: { a: 2.3730, lin: -0.0044, poles: [[0.0128, 0, 0.0156]] } },
+  tamosauskas: { name: "Tamošauskas et al. 2018", range: [0.188, 5.2],
+    o: { a: 1, lin: 0, poles: [[0.90291, 1, 0.003926], [0.83155, 1, 0.018786], [0.76536, 1, 60.01]] },
+    e: { a: 1, lin: 0, poles: [[1.151075, 1, 0.007142], [0.21803, 1, 0.02259], [0.656, 1, 263]] } },
+};
+function n2At(f, x) { let s = f.a + f.lin * x; for (const p of f.poles) s += p[0] * (p[1] ? x : 1) / (x - p[2]); return s; }
+function dn2dx(f, x) { let s = f.lin; for (const p of f.poles) { const d = x - p[2]; s -= p[0] * (p[1] ? p[2] : 1) / (d * d); } return s; }
+// principal indices squared and their derivatives d(n²)/dλ at λ (µm)
+function indices(set, l) {
+  const S = SELLMEIER[set], x = l * l;
+  return { no2: n2At(S.o, x), ne2: n2At(S.e, x), dno2: 2 * l * dn2dx(S.o, x), dne2: 2 * l * dn2dx(S.e, x) };
+}
+function nO(set, l) { return Math.sqrt(n2At(SELLMEIER[set].o, l * l)); }
+function nE(set, l, th) { const q = indices(set, l), c = Math.cos(th), s = Math.sin(th); return 1 / Math.sqrt(c * c / q.no2 + s * s / q.ne2); }
+// group index n − λ dn/dλ, analytic derivative
+function groupIndexO(set, l) { const q = indices(set, l), n = Math.sqrt(q.no2); return n - l * q.dno2 / (2 * n); }
+function groupIndexE(set, l, th) {
+  const q = indices(set, l), c2 = Math.cos(th) ** 2, s2 = Math.sin(th) ** 2;
+  const P = c2 / q.no2 + s2 / q.ne2, dP = -c2 * q.dno2 / (q.no2 * q.no2) - s2 * q.dne2 / (q.ne2 * q.ne2);
+  const n = 1 / Math.sqrt(P);
+  return n - l * (-0.5 * dP * n * n * n);
+}
+// type-I (ooe) phase matching: n_e(θ, λ/2) = n_o(λ); NaN when there is no solution
+function sin2PM(set, lf) { const a = indices(set, lf), b = indices(set, lf / 2); return (1 / a.no2 - 1 / b.no2) / (1 / b.ne2 - 1 / b.no2); }
+function thetaPM(set, lf) { const s = sin2PM(set, lf); return s >= 0 && s <= 1 ? Math.asin(Math.sqrt(s)) : NaN; }
+// spatial walk-off angle of the e-wave at λ (µm)
+function walkoff(set, l, th) { const q = indices(set, l), n = nE(set, l, th); return Math.atan(0.5 * n * n * (1 / q.ne2 - 1 / q.no2) * Math.sin(2 * th)); }
+function phaseMatch(set, lf) {
+  const th = thetaPM(set, lf);
+  if (!Number.isFinite(th)) return null;
+  const ls = lf / 2, ngF = groupIndexO(set, lf), ngS = groupIndexE(set, ls, th);
+  // delta = 1/v_FF − 1/v_SH (s/m), negative when the SH is slower; gvmFsMm = 1/v_SH − 1/v_FF in fs/mm
+  return { th, ls, nF: nO(set, lf), nS: nE(set, ls, th), ngF, ngS, delta: (ngF - ngS) / C0, gvmFsMm: (ngS - ngF) / C0 * 1e12, rho: walkoff(set, ls, th) };
+}
+function bisect(f, a, b, tol) {
+  let fa = f(a), fb = f(b);
+  if (!(fa * fb <= 0)) return NaN;
+  for (let i = 0; i < 200 && b - a > tol; i++) { const m = 0.5 * (a + b), fm = f(m); if (fa * fm <= 0) { b = m; fb = fm; } else { a = m; fa = fm; } }
+  return 0.5 * (a + b);
+}
+function pmLimit(set) { return bisect(lf => sin2PM(set, lf) - 1, 0.36, 0.8, 1e-10); }          // shortest FF (µm) that phase-matches
+function gvmZero(set) { return bisect(lf => { const p = phaseMatch(set, lf); return p ? p.delta : NaN; }, 1.2, 2.5, 1e-9); } // FF (µm) where GVM = 0
+function outsideRange(set, lf) { const r = SELLMEIER[set].range, out = []; if (lf > r[1] || lf < r[0]) out.push("FF"); if (lf / 2 < r[0] || lf / 2 > r[1]) out.push("SH"); return out; }
+
+/* ---------- units ---------- */
+function widthUnits(nuHz, lUm) { return { cm: nuHz / (100 * C0), nm: lUm * lUm * 1e-3 * nuHz / C0, ghz: nuHz / 1e9 }; } // Δλ = λ²Δν/c
+function cmToHz(v) { return v * 100 * C0; }
+function nmToHz(dlNm, lUm) { return dlNm * C0 / (lUm * lUm * 1e-3); }
+function bwFromTau(tauFs) { return TBP / (tauFs * 1e-15); }                  // Hz, transform limit
+function tauFromBw(nuHz) { return TBP / nuHz * 1e15; }                      // fs
+function chirpedTau(tauFs, gddFs2) { const r = 4 * LN2 * gddFs2 / (tauFs * tauFs); return tauFs * Math.sqrt(1 + r * r); }
+
+/* ---------- full undepleted model ----------
+   E(Ω) = ∫ A(Ω₁) A(Ω − Ω₁) L sinc(ΔkL/2) e^{−iΔkL/2} dΩ₁,  A(Ω₁) = exp(−Ω₁²/4σ² + i·GDD·Ω₁²/2),
+   Δk = k_e(2ω₀ + Ω; θ_pm) − k_o(ω₀ + Ω₁) − k_o(ω₀ + Ω − Ω₁).  With Ω₁ = Ω/2 ± u the integrand is even in u:
+   E(Ω) = e^{−Ω²/8σ² + i·GDD·Ω²/4} ∫ e^{−u²/2σ² + i·GDD·u²} L sinc(ΔkL/2) e^{−iΔkL/2} du over all u. */
+function makeModel(q) { // q: { set, lf (µm), tauFs (transform-limited FWHM), Lmm, gddFs2, res (grid refinement, default 1) }
+  const pm = phaseMatch(q.set, q.lf);
+  if (!pm) return null;
+  const S = SELLMEIER[q.set], c2 = Math.cos(pm.th) ** 2, s2 = Math.sin(pm.th) ** 2, So = S.o, Se = S.e;
+  const kO = w => { const l = TWO_PI_C_UM / w; return Math.sqrt(n2At(So, l * l)) * w / C0; };
+  const kE = w => { const l = TWO_PI_C_UM / w, x = l * l; return w / (C0 * Math.sqrt(c2 / n2At(So, x) + s2 / n2At(Se, x))); };
+  const w0 = TWO_PI_C_UM / q.lf, sig = Math.sqrt(2 * LN2) / (q.tauFs * 1e-15), L = q.Lmm * 1e-3, gdd = q.gddFs2 * 1e-30;
+  const h = 1e-3 * w0, k2 = (kO(w0 + h) - 2 * kO(w0) + kO(w0 - h)) / (h * h);   // FF group-velocity dispersion d²k/dω² (s²/m)
+  const ke0 = kE(2 * w0), kbar1 = (pm.ngS + pm.ngF) / (2 * C0);              // frame: mean of the FF and SH group delays
+  const wThin = Math.SQRT2 * FWHM_PER_SIGMA * sig;                            // SH FWHM (rad/s) from a thin crystal
+  const wGvm = Math.abs(pm.delta) > 0 && L > 0 ? 4 * SINC2_HALF / (Math.abs(pm.delta) * L) : Infinity; // sinc² FWHM (rad/s)
+  const wEst = 1 / Math.sqrt(1 / (wThin * wThin) + 1 / (wGvm * wGvm));
+  // inner grid u = 0 … 6σ: steps resolve the Gaussian and the phases GDD·u² and k″Lu² up to u = 5σ
+  const qmax = Math.abs(gdd) + Math.abs(k2) * L, res = q.res || 1;
+  let du = Math.min(sig / 8, qmax > 0 ? 0.125 / (qmax * 5 * sig) : Infinity) / res, nu = Math.ceil(6 * sig / du) + 1;
+  const capped = nu > NU_MAX * res;
+  nu = Math.max(41 * res, Math.min(NU_MAX * res, nu)); du = 6 * sig / (nu - 1);
+  const up = new Float64Array(nu), gr = new Float64Array(nu), gi = new Float64Array(nu);
+  for (let i = 0; i < nu; i++) {
+    const u = i * du, wt = (i === 0 || i === nu - 1 ? 1 : 2) * du, a = Math.exp(-u * u / (2 * sig * sig)) * wt, ph = gdd * u * u; // trapezoid on [−6σ, 6σ], folded
+    up[i] = u; gr[i] = a * Math.cos(ph); gi[i] = a * Math.sin(ph);
+  }
+  function field(om) { // complex SH field [re, im] at detuning Ω (rad/s), with the SH's own propagation phase
+    const ke = kE(2 * w0 + om), base = w0 + om / 2;
+    let re = 0, im = 0;
+    for (let i = 0; i < nu; i++) {
+      const y = (ke - kO(base + up[i]) - kO(base - up[i])) * L;          // ΔkL; sinc(y/2)e^{−iy/2} = sin y/y + i(cos y − 1)/y
+      let fr, fi;
+      if (Math.abs(y) < 1e-4) { fr = 1 - y * y / 6; fi = -0.5 * y; } else { fr = Math.sin(y) / y; fi = (Math.cos(y) - 1) / y; }
+      re += gr[i] * fr - gi[i] * fi; im += gr[i] * fi + gi[i] * fr;
+    }
+    const env = L * Math.exp(-om * om / (8 * sig * sig)), ps = gdd * om * om / 4 + (ke - ke0 - kbar1 * om) * L;
+    const cr = Math.cos(ps), ci = Math.sin(ps);
+    return [env * (re * cr - im * ci), env * (re * ci + im * cr)];
+  }
+  return { q, pm, w0, sig, L, gdd, k2, wThin, wGvm, wEst, nu, res, capped, field, gdm: L * Math.abs(pm.delta) };
+}
+function intensityAt(model, om) { const e = model.field(om); return e[0] * e[0] + e[1] * e[1]; }
+// FWHM around the highest sample (searched between indices i0 and i1): walk out to the first half-maximum crossing on
+// each side (linear interpolation)
+function halfWidth(x, y, i0, i1) {
+  const a0 = i0 || 0, a1 = i1 === undefined ? y.length - 1 : i1;
+  let ip = a0;
+  for (let i = a0 + 1; i <= a1; i++) if (y[i] > y[ip]) ip = i;
+  let peak = y[ip];
+  if (ip > 0 && ip < y.length - 1) { const a = y[ip - 1], b = y[ip], c = y[ip + 1], den = a - 2 * b + c; if (den < 0) peak = b - (a - c) * (a - c) / (8 * den); }
+  const h = peak / 2;
+  let i = ip; while (i > 0 && y[i] > h) i--;
+  let j = ip; while (j < y.length - 1 && y[j] > h) j++;
+  if (!(peak > 0) || y[i] > h || y[j] > h) return { ok: false, peak, xpk: x[ip] };
+  const lo = x[i] + (h - y[i]) * (x[i + 1] - x[i]) / (y[i + 1] - y[i]), hi = x[j - 1] + (h - y[j - 1]) * (x[j] - x[j - 1]) / (y[j] - y[j - 1]);
+  return { ok: true, fwhm: hi - lo, lo, hi, peak, xpk: x[ip] };
+}
+// spectral FWHM (rad/s) on an adaptive grid with 40–80 points across the peak (times res)
+function shFwhm(model) {
+  let c = 0, h = 3 * model.wEst, r = null;
+  for (let it = 0; it < 12; it++) {
+    const n = 1 + 160 * model.res, x = new Float64Array(n), y = new Float64Array(n);
+    for (let i = 0; i < n; i++) { x[i] = c - h + 2 * h * i / (n - 1); y[i] = intensityAt(model, x[i]); }
+    r = halfWidth(x, y);
+    if (!r.ok) { h *= 2; continue; }
+    if (r.fwhm < h / 2) { c = 0.5 * (r.lo + r.hi); h = 1.5 * r.fwhm; continue; }
+    return r;
+  }
+  return r;
+}
+function fwhmCm(q) { const m = makeModel(q); if (!m) return NaN; const r = shFwhm(m); return r && r.ok ? r.fwhm / (2 * Math.PI * 100 * C0) : NaN; }
+function trapz(x, y) { let s = 0; for (let i = 1; i < x.length; i++) s += 0.5 * (y[i] + y[i - 1]) * (x[i] - x[i - 1]); return s; }
+
+// time window (s) that holds the SH, centred on the mean group delay, and the FF at the exit
+function timeWindow(model) {
+  const tau = model.q.tauFs * 1e-15, tc = chirpedTau(model.q.tauFs, model.q.gddFs2) * 1e-15;
+  const tx = chirpedTau(model.q.tauFs, model.q.gddFs2 + model.k2 * model.L * 1e30) * 1e-15;
+  return model.gdm / 2 + 2.5 * Math.max(tau, tc, tx);
+}
+// spectrum on a merged grid (fine near the peak, coarse out to ±6σ), its integral for the efficiency, and the SH pulse in time
+function shSpectrum(model, fw) {
+  const sig = model.sig, W = fw.fwhm, xc = 0.5 * (fw.lo + fw.hi), span = 6 * sig, T = timeWindow(model);
+  const pts = [], nf = 1 + 320 * model.res;
+  for (let i = 0; i < nf; i++) pts.push(xc - 4 * W + 8 * W * i / (nf - 1));
+  const step = Math.min(model.wThin / 60, W / 6, 2 * Math.PI / (6 * T)) / model.res, nc = Math.min(6000 * model.res + 1, Math.ceil(2 * span / step) + 1);
+  for (let i = 0; i < nc; i++) pts.push(-span + 2 * span * i / (nc - 1));
+  pts.sort((a, b) => a - b);
+  const om = [];
+  for (const v of pts) if (!om.length || v - om[om.length - 1] > 1e-9 * step) om.push(v);
+  const n = om.length, re = new Float64Array(n), im = new Float64Array(n), S = new Float64Array(n), x = Float64Array.from(om);
+  for (let i = 0; i < n; i++) { const e = model.field(x[i]); re[i] = e[0]; im[i] = e[1]; S[i] = e[0] * e[0] + e[1] * e[1]; }
+  return { om: x, re, im, S, integral: trapz(x, S), T };
+}
+// SH intensity in time by a direct Fourier sum, A(t) = Σ w_j E(Ω_j) e^{−iΩ_j t}, on nt points over ±T
+function shPulse(spec, nt) {
+  const { om, re, im, T } = spec, n = om.length, t = new Float64Array(nt), ar = new Float64Array(nt), ai = new Float64Array(nt), dt = 2 * T / (nt - 1);
+  for (let k = 0; k < nt; k++) t[k] = -T + k * dt;
+  for (let j = 0; j < n; j++) {
+    const w = 0.5 * ((j < n - 1 ? om[j + 1] : om[j]) - (j > 0 ? om[j - 1] : om[j])), er = re[j] * w, ei = im[j] * w;
+    let pr = Math.cos(om[j] * T), pi = Math.sin(om[j] * T);   // e^{−iΩt} at t = −T
+    const sr = Math.cos(om[j] * dt), si = -Math.sin(om[j] * dt);
+    for (let k = 0; k < nt; k++) {
+      ar[k] += er * pr - ei * pi; ai[k] += er * pi + ei * pr;
+      const npr = pr * sr - pi * si; pi = pr * si + pi * sr; pr = npr;
+    }
+  }
+  const I = new Float64Array(nt);
+  for (let k = 0; k < nt; k++) I[k] = ar[k] * ar[k] + ai[k] * ai[k];
+  return { t, I, fw: halfWidth(t, I) };
+}
+// GVM-only SH pulse in time: A₂(t) ∝ ∫₀ᴸ A₁²(t − t_z) dz with t_z = δ(z − L/2), the chirped input pulse A₁ and no dispersion
+// in the crystal. A₁(t) ∝ exp(−p t²) with p = 1/(4D), D = 1/(4a) − i·GDD/2, a = 2 ln 2/τ².
+function gvmOnlyPulse(model, t) {
+  const tau = model.q.tauFs * 1e-15, a = 2 * LN2 / (tau * tau), dr = 1 / (4 * a), di = -model.gdd / 2, den = 4 * (dr * dr + di * di);
+  const Pr = dr / den, Pi = -di / den, nz = 400, d = model.pm.delta, L = model.L, out = new Float64Array(t.length);
+  for (let k = 0; k < t.length; k++) {
+    let sr = 0, si = 0;
+    for (let i = 0; i < nz; i++) {
+      const s = t[k] - d * (L * (i + 0.5) / nz - L / 2), m = Math.exp(-2 * Pr * s * s), ph = 2 * Pi * s * s;   // A₁² = exp(−2p s²)
+      sr += m * Math.cos(ph); si -= m * Math.sin(ph);
+    }
+    out[k] = sr * sr + si * si;
+  }
+  return out;
+}
+// FF intensity at the crystal exit: the input chirp plus the crystal's GVD, at the FF group delay δL/2 in this frame
+function ffExitPulse(model, t) {
+  const tauX = chirpedTau(model.q.tauFs, model.q.gddFs2 + model.k2 * model.L * 1e30) * 1e-15, t0 = model.pm.delta * model.L / 2;
+  return Float64Array.from(t, v => Math.exp(-4 * LN2 * (v - t0) * (v - t0) / (tauX * tauX)));
+}
+
+/* ---------- etalon, beam, flags ---------- */
+// Airy transmission of a lossless etalon with free spectral range fsr and line width (FWHM) lw, at detuning d from a peak (all cm⁻¹)
+function etalonT(d, fsr, lw) { const s1 = Math.sin(Math.PI * lw / (2 * fsr)), s = Math.sin(Math.PI * d / fsr); return 1 / (1 + s * s / (s1 * s1)); }
+function interpSorted(x, y, v) {
+  if (v <= x[0]) return y[0];
+  const n = x.length;
+  if (v >= x[n - 1]) return y[n - 1];
+  let a = 0, b = n - 1;
+  while (b - a > 1) { const m = (a + b) >> 1; if (x[m] <= v) a = m; else b = m; }
+  return y[a] + (y[b] - y[a]) * (v - x[a]) / (x[b] - x[a]);
+}
+// SH spectrum S(ν̃) through one etalon order centred at c: resampled finely enough for the etalon line
+function etalonFilter(nu, S, c, fsr, lw) {
+  const a = nu[0], b = nu[nu.length - 1], n = Math.min(40001, Math.ceil((b - a) / Math.min(lw / 20, (b - a) / 2000)) + 1);
+  const x = new Float64Array(n), s = new Float64Array(n), t = new Float64Array(n), st = new Float64Array(n);
+  let total = 0, through = 0, central = 0;
+  for (let i = 0; i < n; i++) { x[i] = a + (b - a) * i / (n - 1); s[i] = interpSorted(nu, S, x[i]); t[i] = etalonT(x[i] - c, fsr, lw); st[i] = s[i] * t[i]; }
+  for (let i = 1; i < n; i++) {
+    const dx = x[i] - x[i - 1], ds = 0.5 * (s[i] + s[i - 1]) * dx, dst = 0.5 * (st[i] + st[i - 1]) * dx;
+    total += ds; through += dst;
+    if (Math.abs(0.5 * (x[i] + x[i - 1]) - c) <= fsr / 2) central += dst;
+  }
+  let i0 = 0, i1 = n - 1;                                  // the central order: |x − c| ≤ FSR/2
+  while (i0 < n - 1 && x[i0] < c - fsr / 2) i0++;
+  while (i1 > 0 && x[i1] > c + fsr / 2) i1--;
+  const fw = halfWidth(x, st, i0, Math.max(i0, i1));
+  return { x, t, st, fraction: through / total, central: central / total, neighbours: (through - central) / total, fwhm: fw.ok ? fw.fwhm : NaN };
+}
+// peak intensity (W/cm²) of a pulse Gaussian in time and space: energy E (µJ), intensity FWHM τ (fs) and beam FWHM d (mm)
+function peakIntensity(Euj, tauFs, dMm) { return 2 * Math.sqrt(LN2 / Math.PI) * Euj * 1e-6 / (tauFs * 1e-15) * 4 * LN2 / (Math.PI * (dMm * 0.1) ** 2); }
+// fraction of a Gaussian beam (intensity FWHM d) through an iris of diameter D
+function irisFraction(D, d) { return 1 - Math.exp(-LN2 * D * D / (d * d)); }
+// undepleted plane-wave efficiency at the beam centre per unit peak intensity of the transform-limited pulse (per W/cm²),
+// from ∫|E(Ω)|²dΩ of the full model; κ = 2ω₁d_eff/(nc) and I = 2nε₀c|A|² (Boyd)
+function etaPerIntensity(model, integral, deffPmV) {
+  const n = model.pm.nF, kap = 2 * model.w0 * deffPmV * 1e-12 / (n * C0);
+  return kap * kap / (2 * n * EPS0 * C0) * integral / (4 * Math.PI * Math.sqrt(2 * Math.PI) * model.sig ** 3) * 1e4;
+}
+function depletionLevel(etaBeam) { return etaBeam < 0.1 ? 0 : etaBeam < 1 ? 1 : etaBeam < 10 ? 2 : 3; }
+function walkLevel(walk, w) { return walk <= 0.5 * w ? 0 : walk <= w ? 1 : 2; }
+// FWHM of exp(−Ω²/4σ²)·sinc²(δΩL/2): GVM only, with the finite FF spectrum (rad/s)
+function gvmOnlyFwhm(model) {
+  const s = model.sig, b = Math.abs(model.pm.delta) * model.L / 2;
+  const f = w => { const x = b * w; return Math.exp(-w * w / (4 * s * s)) * (x === 0 ? 1 : (Math.sin(x) / x) ** 2) - 0.5; };
+  return 2 * bisect(f, 0, b > 0 ? Math.min(Math.PI / b, 20 * s) : 20 * s, 1e-9 * s);
+}
+
+/* ---------- everything the page shows, from the inputs as typed ---------- */
+// p: { set, lfNm, Lmm, cut (°), tauFs, gddFs2, fsr, lw (cm⁻¹), Euj, dMm, deff (pm/V) }
+function analyse(p) {
+  const lf = p.lfNm / 1000, ls = lf / 2, model = makeModel({ set: p.set, lf, tauFs: p.tauFs, Lmm: p.Lmm, gddFs2: p.gddFs2 });
+  const base = { p, lf, ls, limitNm: pmLimit(p.set) * 1000, zeroNm: gvmZero(p.set) * 1000, outside: outsideRange(p.set, lf) };
+  if (!model) return Object.assign(base, { ok: false });
+  const pm = model.pm, toCm = w => w / (2 * Math.PI * 100 * C0), toHz = w => w / (2 * Math.PI);
+  const fw = shFwhm(model), spec = shSpectrum(model, fw), pulse = shPulse(spec, 801);
+  const nuFF = bwFromTau(p.tauFs), centre = toCm(0.5 * (fw.lo + fw.hi));
+  const nu = Float64Array.from(spec.om, toCm), peak = Math.max(...spec.S), S = Float64Array.from(spec.S, v => v / peak);
+  const sig = model.sig, b = Math.abs(pm.delta) * model.L / 2;
+  const thin = Float64Array.from(spec.om, w => Math.exp(-w * w / (4 * sig * sig)));
+  const gvmOnly = Float64Array.from(spec.om, (w, i) => { const x = b * w; return thin[i] * (x === 0 ? 1 : (Math.sin(x) / x) ** 2); });
+  const et = etalonFilter(nu, S, centre, p.fsr, p.lw);
+  const tPs = Float64Array.from(pulse.t, v => v * 1e12), Ipk = pulse.fw.peak || Math.max(...pulse.I);
+  const g = gvmOnlyPulse(model, pulse.t), gpk = Math.max(...g);
+  const w = (hz) => widthUnits(hz, ls), fullHz = toHz(fw.fwhm);
+  const etaI = etaPerIntensity(model, spec.integral, p.deff), I0tl = peakIntensity(p.Euj, p.tauFs, p.dMm);
+  const etaPeak = etaI * I0tl, etaBeam = etaPeak / 2;
+  const walkMm = p.Lmm * Math.tan(pm.rho), wMm = p.dMm / Math.sqrt(2 * LN2), tilt = Math.asin(pm.nF * Math.sin(pm.th - p.cut * Math.PI / 180));
+  return Object.assign(base, {
+    ok: true, model, pm, fw, capped: model.capped,
+    thetaDeg: pm.th * 180 / Math.PI, tiltDeg: tilt * 180 / Math.PI, gvmFsMm: pm.gvmFsMm, gdmPs: model.gdm * 1e12,
+    widths: { ff: widthUnits(nuFF, lf), thin: w(Math.SQRT2 * nuFF), simple: w(model.gdm > 0 ? GVM_BW / model.gdm : Infinity),
+      gvm: w(toHz(gvmOnlyFwhm(model))), full: w(fullHz), etalon: w(cmToHz(et.fwhm)) },
+    tauShFs: pulse.fw.ok ? pulse.fw.fwhm * 1e15 : NaN, compression: Math.SQRT2 * nuFF / fullHz,
+    rhoMrad: pm.rho * 1e3, walkMm, wMm, walkLevel: walkLevel(walkMm, wMm),
+    fsrRatio: toCm(fw.fwhm) / p.fsr, lwRatio: toCm(fw.fwhm) / p.lw, etalon: et, centreCm: centre,
+    tauChirpFs: chirpedTau(p.tauFs, p.gddFs2), I0: I0tl * p.tauFs / chirpedTau(p.tauFs, p.gddFs2), I0tl,
+    etaPerI: etaI, etaPeak, etaBeam, depletionLevel: depletionLevel(etaBeam),
+    spec: { nu, S, thin, gvmOnly, nuSH: 1e4 / ls },
+    time: { tPs, sh: Float64Array.from(pulse.I, v => v / Ipk), ff: ffExitPulse(model, pulse.t), gvmOnly: Float64Array.from(g, v => v / gpk) },
+  });
+}
+
+/* ---------- files ---------- */
+function fmtCsv(v) { return Number.isFinite(v) ? String(Number(v.toPrecision(7))) : ""; }
+function csvHeader(r) {
+  const p = r.p;
+  return [`# BBO type-I SHG, undepleted model. Sellmeier ${SELLMEIER[p.set].name}.`,
+    `# FF ${p.lfNm} nm, L ${p.Lmm} mm, tau ${p.tauFs} fs (transform limit), GDD ${p.gddFs2} fs^2, theta_pm ${r.thetaDeg.toFixed(3)} deg, GVM ${r.gvmFsMm.toFixed(2)} fs/mm`];
+}
+function csvSpectrum(r) {
+  const s = r.spec, lines = csvHeader(r);
+  lines.push(`# SH FWHM ${r.widths.full.cm.toPrecision(5)} cm-1 (full model), ${r.widths.thin.cm.toPrecision(5)} cm-1 (thin crystal). Etalon FSR ${r.p.fsr} cm-1, line width ${r.p.lw} cm-1, one order at ${r.centreCm.toPrecision(4)} cm-1.`);
+  lines.push("# Each spectrum is normalised to 1 at its peak; after_etalon = full_model x etalon_T. Points are denser near the peak.");
+  lines.push("detuning_cm-1,SH_wavelength_nm,full_model,thin_crystal,gvm_only,etalon_T,after_etalon");
+  for (let i = 0; i < s.nu.length; i++) {
+    const T = etalonT(s.nu[i] - r.centreCm, r.p.fsr, r.p.lw);
+    lines.push([s.nu[i], 1e7 / (s.nuSH + s.nu[i]), s.S[i], s.thin[i], s.gvmOnly[i], T, s.S[i] * T].map(fmtCsv).join(","));
+  }
+  return lines.join("\n") + "\n";
+}
+function csvPulse(r) {
+  const s = r.time, lines = csvHeader(r);
+  lines.push(`# SH FWHM ${r.tauShFs.toPrecision(5)} fs (full model); GDM ${r.gdmPs.toPrecision(5)} ps. Time in the frame moving at the mean of the FF and SH group velocities.`);
+  lines.push("# Undepleted: each curve normalised to 1 at its peak.");
+  lines.push("time_ps,SH_full_model,FF_at_exit,SH_gvm_only");
+  for (let i = 0; i < s.tPs.length; i++) lines.push([s.tPs[i], s.sh[i], s.ff[i], s.gvmOnly[i]].map(fmtCsv).join(","));
+  return lines.join("\n") + "\n";
+}
+// rows: [{ Lmm, full (cm⁻¹) }]
+function csvLength(r, rows) {
+  const lines = csvHeader(r).slice(0, 1);
+  lines.push(`# FF ${r.p.lfNm} nm, tau ${r.p.tauFs} fs (transform limit), GDD ${r.p.gddFs2} fs^2. SH FWHM against crystal length.`);
+  lines.push("L_mm,full_model_cm-1,full_model_nm,full_model_GHz,simple_formula_cm-1,thin_crystal_cm-1");
+  const ls = r.ls, gvm = Math.abs(r.pm.delta);
+  for (const row of rows) {
+    const hz = cmToHz(row.full), wu = widthUnits(hz, ls), simple = widthUnits(GVM_BW / (row.Lmm * 1e-3 * gvm), ls).cm;
+    lines.push([row.Lmm, row.full, wu.nm, wu.ghz, simple, r.widths.thin.cm].map(fmtCsv).join(","));
+  }
+  return lines.join("\n") + "\n";
+}
+</script>
+
+<script>
+"use strict";
+(function () {
+const $ = id => document.getElementById(id);
+const FONT = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+const COL = { data: "#000", blue: "#1f5fbf", red: "#d40000", orange: "#c65a12", grey: "#888", mark: "#bbb", zero: "#999" };
+const SET_COL = { kato: "#000", eimerl: "#c65a12", tamosauskas: "#1f5fbf" };
+const DEFAULTS = { mode: "ff", lfNm: 1110, Lmm: 25, cut: 21.1, set: "kato", tauFs: 200, bwUnit: "cm", gddFs2: 0, fsr: 172, lw: 15, Euj: 2, dMm: 2, deff: 2, showEt: true };
+const CRYSTALS = { c2: { Lmm: 2, cut: 23.4 }, c7: { Lmm: 7, cut: 22.8 }, c25: { Lmm: 25, cut: 21.1 } };
+const EXAMPLES = { carbide: { lfNm: 1110, tauFs: 200, gddFs2: 0 }, legend: { lfNm: 800, tauFs: 35, gddFs2: 0 } };
+const MARK_L = [2, 7, 25];
+const L_GRID = Array.from({ length: 34 }, (_, i) => 0.1 * Math.pow(300, i / 33));
+const W_GRID = Array.from({ length: 41 }, (_, i) => 600 + 25 * i);
+let state = { ...DEFAULTS }, R = null, layoutRight = 0;
+const view = { spec: null, time: null };
+const hover = { spec: null, time: null, len: null, wl: null };
+const layouts = {};
+
+/* ---------- formatting ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const minus = s => s.replace(/^-/, "−").replace(/e-/, "e−");
+function fmtG(v, n) {
+  if (v === undefined || v === null || Number.isNaN(v)) return "—";
+  if (!Number.isFinite(v)) return "∞";
+  if (v === 0) return "0";
+  const a = Math.abs(v);
+  return minus(a >= 1e-4 && a < 1e6 ? String(Number(v.toPrecision(n || 5))) : v.toExponential((n || 5) - 1));
+}
+const SUP = { "-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+function fmtSci(v, n) { // 2.07 × 10⁸
+  if (!Number.isFinite(v) || v === 0) return fmtG(v, n);
+  const e = Math.floor(Math.log10(Math.abs(v)));
+  if (e >= -2 && e < 5) return fmtG(v, n);
+  let m = Number((v / Math.pow(10, e)).toPrecision(n || 3)), ee = e;
+  if (Math.abs(m) >= 10) { m /= 10; ee += 1; }
+  return `${minus(String(m))} × 10${String(ee).split("").map(c => SUP[c]).join("")}`;
+}
+function niceStep(range, n) {
+  const raw = range / Math.max(1, n), p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+}
+function fmtNum(v, step) {
+  const d = Math.max(0, -Math.floor(Math.log10(step) + 1e-9)), s = v.toFixed(Math.min(d, 8));
+  return minus(/^-0\.?0*$/.test(s) ? s.slice(1) : s);
+}
+const pct = v => `${fmtG(100 * v, 3)} %`;
+
+/* ---------- canvas helpers ---------- */
+function prepCanvas(host, canvas, H) {
+  const W = Math.max(260, host.clientWidth), dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); }
+  canvas.style.height = H + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+  ctx.font = FONT; ctx.lineJoin = "round";
+  return { ctx, W };
+}
+function axis(lo, hi, a, b, log) {
+  const t = log ? Math.log10 : (v => v), t0 = t(lo), t1 = t(hi);
+  const f = v => a + (t(v) - t0) / (t1 - t0) * (b - a);
+  f.inv = p => { const u = t0 + (p - a) / (b - a) * (t1 - t0); return log ? Math.pow(10, u) : u; };
+  f.lo = lo; f.hi = hi; f.log = log;
+  return f;
+}
+function ticks(ax, nTarget) {
+  if (!ax.log) {
+    const st = niceStep(ax.hi - ax.lo, nTarget), out = [];
+    for (let v = Math.ceil(ax.lo / st - 1e-9) * st; v <= ax.hi + 1e-9 * st; v += st) out.push({ v, label: fmtNum(v, st) });
+    return out;
+  }
+  const span = Math.log10(ax.hi / ax.lo), lab = span <= 1.2 ? [1, 2, 3, 5] : span <= 3.2 ? [1, 2, 5] : [1], out = [];
+  for (let d = Math.floor(Math.log10(ax.lo)); d <= Math.ceil(Math.log10(ax.hi)); d++) for (let m = 1; m <= 9; m++) {
+    const v = m * Math.pow(10, d);
+    if (v < ax.lo * (1 - 1e-9) || v > ax.hi * (1 + 1e-9)) continue;
+    out.push({ v, label: lab.includes(m) ? fmtG(Number(v.toPrecision(2)), 3) : null });
+  }
+  return out;
+}
+function xAxis(ctx, ax, y, L, R, label, top) {
+  ctx.strokeStyle = "#000"; ctx.fillStyle = "#000"; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(L, y + 0.5); ctx.lineTo(R, y + 0.5); ctx.stroke();
+  ctx.textAlign = "center"; ctx.textBaseline = top ? "bottom" : "top";
+  let last = -1e9;
+  for (const tk of ticks(ax, Math.max(3, Math.floor((R - L) / 80)))) {
+    const px = Math.round(ax(tk.v)) + 0.5, len = tk.label === null ? 3 : 5;
+    ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(px, top ? y - len : y + len); ctx.stroke();
+    if (tk.label !== null && px - last > 34) { ctx.fillText(tk.label, px, top ? y - 7 : y + 7); last = px; }
+  }
+  if (label) ctx.fillText(label, (L + R) / 2, top ? y - 22 : y + 22);
+}
+function yAxis(ctx, ay, x, T, B, label) {
+  ctx.strokeStyle = "#000"; ctx.fillStyle = "#000"; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x - 0.5, T); ctx.lineTo(x - 0.5, B); ctx.stroke();
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  let last = 1e9;
+  for (const tk of ticks(ay, Math.max(2, Math.floor((B - T) / 40)))) {
+    const py = Math.round(ay(tk.v)) + 0.5, len = tk.label === null ? 3 : 5;
+    ctx.beginPath(); ctx.moveTo(x - len, py); ctx.lineTo(x, py); ctx.stroke();
+    if (tk.label !== null && last - py > 14) { ctx.fillText(tk.label, x - 7, py); last = py; }
+  }
+  if (label) { ctx.save(); ctx.translate(12, (T + B) / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, 0, 0); ctx.restore(); }
+}
+// series: { x, y, color, width, dash, dots }
+function drawSeries(ctx, ax, ay, s) {
+  ctx.strokeStyle = s.color; ctx.lineWidth = s.width || 1.4; ctx.setLineDash(s.dash || []);
+  ctx.beginPath();
+  let pen = false;
+  for (let i = 0; i < s.x.length; i++) {
+    const xv = s.x[i], yv = s.y[i];
+    if (!Number.isFinite(xv) || !Number.isFinite(yv) || (ay.log && yv <= 0) || (ax.log && xv <= 0)) { pen = false; continue; }
+    const px = ax(xv), py = Math.max(-1e4, Math.min(1e4, ay(yv)));
+    if (pen) ctx.lineTo(px, py); else { ctx.moveTo(px, py); pen = true; }
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+  if (s.dots) { ctx.fillStyle = s.color; for (let i = 0; i < s.x.length; i++) if (Number.isFinite(s.y[i]) && s.y[i] > 0) { ctx.beginPath(); ctx.arc(ax(s.x[i]), ay(s.y[i]), 2.2, 0, 2 * Math.PI); ctx.fill(); } }
+}
+function hLine(ctx, ay, v, L, R, color, dash, label) {
+  if (!(v > ay.lo && v < ay.hi)) return;
+  const py = Math.round(ay(v)) + 0.5;
+  ctx.strokeStyle = color; ctx.lineWidth = 1.2; ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(L, py); ctx.lineTo(R, py); ctx.stroke(); ctx.setLineDash([]);
+  if (label) { ctx.fillStyle = "#555"; ctx.textAlign = "left"; ctx.textBaseline = "bottom"; ctx.fillText(label, L + 4, py - 2); }
+}
+function vLine(ctx, ax, v, T, B, color, dash, label) {
+  if (!(v >= ax.lo && v <= ax.hi)) return;
+  const px = Math.round(ax(v)) + 0.5;
+  ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.setLineDash(dash || []); ctx.beginPath(); ctx.moveTo(px, T); ctx.lineTo(px, B); ctx.stroke(); ctx.setLineDash([]);
+  if (label) { const tw = ctx.measureText(label).width; ctx.fillStyle = "#555"; ctx.textAlign = "center"; ctx.textBaseline = "bottom"; ctx.fillText(label, Math.min(px, layoutRight - tw / 2 - 1), T - 2); }
+}
+function yRange(series, xlo, xhi, log, pad) {
+  let lo = Infinity, hi = -Infinity;
+  for (const s of series) for (let i = 0; i < s.x.length; i++) {
+    const v = s.y[i];
+    if (s.x[i] < xlo || s.x[i] > xhi || !Number.isFinite(v) || (log && v <= 0)) continue;
+    lo = Math.min(lo, v); hi = Math.max(hi, v);
+  }
+  if (!(hi > lo)) { lo = log ? 1 : 0; hi = log ? 10 : 1; }
+  if (log) return [lo / (pad || 1.4), hi * (pad || 1.4)];
+  const p = (pad || 0.05) * (hi - lo);
+  return [lo - p, hi + p];
+}
+const interp = (x, y, v) => interpSorted(x, y, v);
+
+/* ---------- plot 1: SH spectrum ---------- */
+function specSeries() {
+  const s = R.spec, out = [
+    { x: s.nu, y: s.thin, color: COL.blue, width: 1.4, name: "thin" },
+    { x: s.nu, y: s.gvmOnly, color: COL.red, width: 1.4, dash: [5, 3], name: "GVM only" },
+    { x: s.nu, y: s.S, color: COL.data, width: 2, name: "full" },
+  ];
+  if (state.showEt) {
+    out.unshift({ x: R.etalon.x, y: R.etalon.t, color: COL.grey, width: 1.1, dash: [2, 2], name: "etalon" });
+    out.push({ x: R.etalon.x, y: R.etalon.st, color: COL.orange, width: 1.5, name: "after etalon" });
+  }
+  return out;
+}
+function specDefaultView() {
+  const s = R.spec, half = Math.max(1.25 * R.widths.thin.cm, 4 * R.widths.full.cm, state.showEt ? 1.1 * state.fsr : 0);
+  return [Math.max(s.nu[0], R.centreCm - half), Math.min(s.nu[s.nu.length - 1], R.centreCm + half)];
+}
+function drawSpec() {
+  const host = $("specBox"), canvas = $("specCanvas"), H = 340, { ctx, W } = prepCanvas(host, canvas, H);
+  const L = W < 480 ? 46 : 56, Rr = W - 12, T = 44, B = H - 40;
+  if (!R || !R.ok) { layouts.spec = null; ctx.fillStyle = "#555"; ctx.textAlign = "center"; ctx.fillText("No phase matching at this wavelength", W / 2, H / 2); return; }
+  const [lo, hi] = view.spec || specDefaultView(), ax = axis(lo, hi, L, Rr, false), ay = axis(-0.03, 1.08, B, T, false);
+  layouts.spec = { L, R: Rr, ax };
+  yAxis(ctx, ay, L, T, B, "SH intensity (norm.)");
+  xAxis(ctx, ax, B, L, Rr, "detuning from the SH centre (cm⁻¹)");
+  // top axis: SH wavelength in nm, ticks placed exactly
+  const nu0 = R.spec.nuSH, lamA = 1e7 / (nu0 + hi), lamB = 1e7 / (nu0 + lo), st = niceStep(lamB - lamA, Math.max(3, Math.floor((Rr - L) / 90)));
+  ctx.strokeStyle = "#000"; ctx.fillStyle = "#000"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, T + 0.5); ctx.lineTo(Rr, T + 0.5); ctx.stroke();
+  ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  for (let v = Math.ceil(lamA / st - 1e-9) * st; v <= lamB + 1e-9 * st; v += st) { const px = Math.round(ax(1e7 / v - nu0)) + 0.5; ctx.beginPath(); ctx.moveTo(px, T); ctx.lineTo(px, T - 5); ctx.stroke(); ctx.fillText(fmtNum(v, st), px, T - 7); }
+  ctx.fillText("SH wavelength (nm)", (L + Rr) / 2, T - 24);
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T, Rr - L, B - T); ctx.clip();
+  hLine(ctx, ay, 0, L, Rr, COL.zero, [4, 3]);
+  hLine(ctx, ay, 0.5, L, Rr, "#ddd", [2, 3]);
+  for (const s of specSeries()) drawSeries(ctx, ax, ay, s);
+  drawDrag(ctx, "spec", T, B);
+  if (hover.spec !== null) vLine(ctx, ax, hover.spec, T, B, "#888");
+  ctx.restore();
+}
+function readSpec(x) {
+  if (x === null || !R || !R.ok) { $("specRead").textContent = ""; return; }
+  const lam = 1e7 / (R.spec.nuSH + x), dl = lam - 1e7 / (R.spec.nuSH + R.centreCm);
+  const parts = [`Δν̃ = ${fmtG(x, 4)} cm⁻¹`, `λ = ${fmtG(lam, 6)} nm (Δλ = ${fmtG(dl, 3)} nm)`];
+  for (const s of specSeries()) parts.push(`${s.name} ${fmtG(interp(s.x, s.y, x), 3)}`);
+  $("specRead").textContent = parts.join("   ");
+}
+
+/* ---------- plot 2: SH pulse in time ---------- */
+function timeSeries() {
+  const s = R.time;
+  return [{ x: s.tPs, y: s.ff, color: COL.blue, width: 1.4, name: "FF" }, { x: s.tPs, y: s.gvmOnly, color: COL.red, width: 1.4, dash: [5, 3], name: "SH, GVM only" }, { x: s.tPs, y: s.sh, color: COL.data, width: 2, name: "SH" }];
+}
+function drawTime() {
+  const host = $("timeBox"), canvas = $("timeCanvas"), H = 300, { ctx, W } = prepCanvas(host, canvas, H);
+  const L = W < 480 ? 46 : 56, Rr = W - 12, T = 16, B = H - 40;
+  if (!R || !R.ok) { layouts.time = null; ctx.fillStyle = "#555"; ctx.textAlign = "center"; ctx.fillText("No phase matching at this wavelength", W / 2, H / 2); return; }
+  const t = R.time.tPs, [lo, hi] = view.time || [t[0], t[t.length - 1]], ax = axis(lo, hi, L, Rr, false), ay = axis(-0.03, 1.08, B, T, false);
+  layouts.time = { L, R: Rr, ax };
+  yAxis(ctx, ay, L, T, B, "intensity (norm.)");
+  xAxis(ctx, ax, B, L, Rr, "time (ps)");
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T, Rr - L, B - T); ctx.clip();
+  hLine(ctx, ay, 0, L, Rr, COL.zero, [4, 3]);
+  hLine(ctx, ay, 0.5, L, Rr, "#ddd", [2, 3]);
+  for (const v of [-R.gdmPs / 2, R.gdmPs / 2]) vLine(ctx, ax, v, T, B, COL.mark, [3, 3]);
+  for (const s of timeSeries()) drawSeries(ctx, ax, ay, s);
+  drawDrag(ctx, "time", T, B);
+  if (hover.time !== null) vLine(ctx, ax, hover.time, T, B, "#888");
+  ctx.restore();
+}
+function readTime(x) {
+  if (x === null || !R || !R.ok) { $("timeRead").textContent = ""; return; }
+  $("timeRead").textContent = [`t = ${fmtG(x, 4)} ps`].concat(timeSeries().map(s => `${s.name} ${fmtG(interp(s.x, s.y, x), 3)}`)).join("   ");
+}
+
+/* ---------- plot 3: FWHM against L ---------- */
+const curves = { lenKey: "", len: [], wlKey: "", wl: [] };
+function simpleCm(Lmm, lfNm) { const pm = phaseMatch(state.set, lfNm / 1000); return pm && pm.delta ? widthUnits(GVM_BW / (Lmm * 1e-3 * Math.abs(pm.delta)), lfNm / 2000).cm : NaN; }
+function drawLen() {
+  const host = $("lenBox"), canvas = $("lenCanvas"), H = 320, { ctx, W } = prepCanvas(host, canvas, H);
+  const L = W < 480 ? 54 : 58, Rr = W - 12, T = 18, B = H - 40;
+  if (!R || !R.ok) { layouts.len = null; ctx.fillStyle = "#555"; ctx.textAlign = "center"; ctx.fillText("No phase matching at this wavelength", W / 2, H / 2); return; }
+  const ax = axis(0.1, 30, L, Rr, true), Ls = Array.from({ length: 121 }, (_, i) => 0.1 * Math.pow(300, i / 120));
+  const thin = R.widths.thin.cm, simple = { x: Ls, y: Ls.map(v => simpleCm(v, state.lfNm)), color: COL.red, width: 1.4, dash: [5, 3] };
+  const full = { x: curves.len.map(r => r.Lmm), y: curves.len.map(r => r.full), color: COL.data, width: 2, dots: true };
+  const vals = full.y.filter(v => v > 0).concat([thin, state.lw, state.fsr, R.widths.full.cm]);
+  const ay = axis(Math.min(...vals) / 1.5, Math.max(...vals) * 1.6, B, T, true);
+  layouts.len = { L, R: Rr, ax, ay };
+  yAxis(ctx, ay, L, T, B, "SH FWHM (cm⁻¹)");
+  xAxis(ctx, ax, B, L, Rr, "crystal length L (mm)");
+  layoutRight = Rr;
+  for (const m of MARK_L) vLine(ctx, ax, m, T, B, COL.mark, [], `${m} mm`);
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T, Rr - L, B - T); ctx.clip();
+  hLine(ctx, ay, state.fsr, L, Rr, COL.grey, [6, 3], `FSR ${fmtG(state.fsr, 4)}`);
+  hLine(ctx, ay, state.lw, L, Rr, COL.grey, [6, 3], `line width ${fmtG(state.lw, 4)}`);
+  hLine(ctx, ay, thin, L, Rr, COL.blue, [1.5, 2.5]);
+  drawSeries(ctx, ax, ay, simple);
+  if (full.x.length) drawSeries(ctx, ax, ay, full);
+  if (state.Lmm >= 0.1 && state.Lmm <= 30) { ctx.strokeStyle = COL.red; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ax(state.Lmm), ay(R.widths.full.cm), 5, 0, 2 * Math.PI); ctx.stroke(); }
+  if (hover.len !== null) vLine(ctx, ax, hover.len, T, B, "#888");
+  ctx.restore();
+}
+function readLen(x) {
+  if (x === null || !R || !R.ok) { $("lenRead").textContent = ""; return; }
+  const c = curves.len, full = c.length > 1 ? Math.exp(interp(c.map(r => Math.log(r.Lmm)), c.map(r => Math.log(r.full)), Math.log(x))) : NaN;
+  $("lenRead").textContent = `L = ${fmtG(x, 3)} mm   full model ${fmtG(full, 4)} cm⁻¹   simple formula ${fmtG(simpleCm(x, state.lfNm), 4)} cm⁻¹   thin crystal ${fmtG(R.widths.thin.cm, 4)} cm⁻¹`;
+}
+
+/* ---------- plot 4: GVM and FWHM against FF wavelength ---------- */
+const GVM_LAMS = Array.from({ length: 201 }, (_, i) => 600 + 5 * i);
+const GVM_CURVES = {};
+for (const k of Object.keys(SELLMEIER)) GVM_CURVES[k] = GVM_LAMS.map(l => { const p = phaseMatch(k, l / 1000); return p ? p.gvmFsMm : NaN; });
+const PONTECORVO = [[660, 320], [1500, 90]];
+function drawWl() {
+  const host = $("wlBox"), canvas = $("wlCanvas"), H = 440, { ctx, W } = prepCanvas(host, canvas, H);
+  const L = W < 480 ? 54 : 58, Rr = W - 12, T1 = 14, B1 = 186, T2 = 214, B2 = H - 40;
+  const ax = axis(600, 1600, L, Rr, false);
+  layouts.wl = { L, R: Rr, ax };
+  // top pane: GVM
+  const ay1 = axis(-40, 420, B1, T1, false);
+  yAxis(ctx, ay1, L, T1, B1, "GVM (fs/mm)");
+  ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, B1 + 0.5); ctx.lineTo(Rr, B1 + 0.5); ctx.stroke();
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T1, Rr - L, B1 - T1); ctx.clip();
+  hLine(ctx, ay1, 0, L, Rr, COL.zero, [4, 3]);
+  for (const k of Object.keys(SELLMEIER)) if (k !== state.set) drawSeries(ctx, ax, ay1, { x: GVM_LAMS, y: GVM_CURVES[k], color: SET_COL[k], width: 1.2 });
+  drawSeries(ctx, ax, ay1, { x: GVM_LAMS, y: GVM_CURVES[state.set], color: SET_COL[state.set], width: 2.4 });
+  ctx.strokeStyle = COL.red; ctx.lineWidth = 1.5;
+  for (const [l, g] of PONTECORVO) { ctx.beginPath(); ctx.arc(ax(l), ay1(g), 5, 0, 2 * Math.PI); ctx.stroke(); }
+  vLine(ctx, ax, state.lfNm, T1, B1, "#888", [3, 3]);
+  if (hover.wl !== null) vLine(ctx, ax, hover.wl, T1, B1, "#888");
+  ctx.restore();
+  // bottom pane: SH FWHM at L
+  const thin = R && R.ok ? R.widths.thin.cm : widthUnits(Math.SQRT2 * bwFromTau(state.tauFs), 1).cm;
+  const simple = { x: GVM_LAMS, y: GVM_LAMS.map(l => simpleCm(state.Lmm, l)), color: COL.red, width: 1.4, dash: [5, 3] };
+  const full = { x: curves.wl.map(r => r.lfNm), y: curves.wl.map(r => r.full), color: COL.data, width: 2, dots: true };
+  const vals = full.y.filter(v => v > 0).concat([thin, state.lw, state.fsr]);
+  const ay2 = axis(Math.min(...vals) / 1.5, Math.max(...vals) * 1.6, B2, T2, true);
+  layouts.wl.ay2 = ay2;
+  yAxis(ctx, ay2, L, T2, B2, "SH FWHM (cm⁻¹)");
+  xAxis(ctx, ax, B2, L, Rr, "FF wavelength (nm)");
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T2, Rr - L, B2 - T2); ctx.clip();
+  hLine(ctx, ay2, state.fsr, L, Rr, COL.grey, [6, 3], `FSR ${fmtG(state.fsr, 4)}`);
+  hLine(ctx, ay2, state.lw, L, Rr, COL.grey, [6, 3], `line width ${fmtG(state.lw, 4)}`);
+  hLine(ctx, ay2, thin, L, Rr, COL.blue, [1.5, 2.5]);
+  drawSeries(ctx, ax, ay2, simple);
+  if (full.x.length) drawSeries(ctx, ax, ay2, full);
+  vLine(ctx, ax, state.lfNm, T2, B2, "#888", [3, 3]);
+  if (hover.wl !== null) vLine(ctx, ax, hover.wl, T2, B2, "#888");
+  ctx.restore();
+  ctx.fillStyle = "#555"; ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+  ctx.fillText(`L = ${fmtG(state.Lmm, 4)} mm, τ = ${fmtG(state.tauFs, 4)} fs`, Rr - 6, B2 - 4);
+}
+function readWl(x) {
+  if (x === null) { $("wlRead").textContent = ""; return; }
+  const g = Object.keys(SELLMEIER).map(k => `${SELLMEIER[k].name.split(" ")[0]} ${fmtG(interp(GVM_LAMS, GVM_CURVES[k], x), 3)}`).join(", ");
+  const c = curves.wl, full = c.length > 1 ? interp(c.map(r => r.lfNm), c.map(r => r.full), x) : NaN;
+  $("wlRead").textContent = `λ_FF = ${fmtG(x, 4)} nm   GVM (fs/mm): ${g}   SH FWHM: full ${fmtG(full, 4)}, simple ${fmtG(simpleCm(state.Lmm, x), 4)} cm⁻¹`;
+}
+
+/* ---------- drag to zoom (spectrum and pulse) ---------- */
+const drag = { plot: null, x0: 0, x1: 0, moved: false };
+function drawDrag(ctx, name, T, B) {
+  if (drag.plot !== name || !drag.moved) return;
+  const lay = layouts[name], a = Math.max(lay.L, Math.min(drag.x0, drag.x1)), b = Math.min(lay.R, Math.max(drag.x0, drag.x1));
+  ctx.fillStyle = "rgba(0, 60, 200, 0.12)"; ctx.fillRect(a, T, b - a, B - T);
+}
+const DRAW = { spec: drawSpec, time: drawTime, len: drawLen, wl: drawWl };
+const READ = { spec: readSpec, time: readTime, len: readLen, wl: readWl };
+function wirePlot(name, zoom) {
+  const cv = $(name + "Canvas"), px = e => e.clientX - cv.getBoundingClientRect().left;
+  cv.addEventListener("pointerdown", e => {
+    if (!zoom || !layouts[name] || e.button !== 0) return;
+    const p = px(e); if (p < layouts[name].L || p > layouts[name].R) return;
+    Object.assign(drag, { plot: name, x0: p, x1: p, moved: false }); cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener("pointermove", e => {
+    const lay = layouts[name]; if (!lay) return;
+    const p = px(e);
+    if (drag.plot === name) { drag.x1 = p; drag.moved = drag.moved || Math.abs(drag.x1 - drag.x0) > 4; }
+    hover[name] = p >= lay.L && p <= lay.R ? lay.ax.inv(p) : null;
+    DRAW[name](); READ[name](hover[name]);
+  });
+  cv.addEventListener("pointerup", () => {
+    if (drag.plot === name && drag.moved && layouts[name]) {
+      const lay = layouts[name], a = Math.max(lay.L, Math.min(drag.x0, drag.x1)), b = Math.min(lay.R, Math.max(drag.x0, drag.x1));
+      if (b - a > 4) view[name] = [lay.ax.inv(a), lay.ax.inv(b)];
+    }
+    drag.plot = null; DRAW[name]();
+  });
+  cv.addEventListener("pointerleave", () => { if (drag.plot !== name) { hover[name] = null; DRAW[name](); READ[name](null); } });
+  if (zoom) cv.addEventListener("dblclick", () => { view[name] = null; DRAW[name](); });
+}
+
+/* ---------- tables and flags ---------- */
+function row(k, v, u) { return `<tr><td class="l">${k}</td><td>${v}</td><td class="l">${u || ""}</td></tr>`; }
+function renderTables() {
+  if (!R || !R.ok) { for (const id of ["tWidths", "tCrystal", "tDepl"]) $(id).innerHTML = ""; $("deplFlag").textContent = ""; $("walkFlag").textContent = ""; return; }
+  const w = R.widths, wr = (k, x) => `<tr><td class="l">${k}</td><td>${fmtG(x.cm, 4)}</td><td>${fmtG(x.nm, 4)}</td><td>${fmtG(x.ghz, 4)}</td></tr>`;
+  $("tWidths").innerHTML = `<caption>Bandwidths (FWHM)</caption><thead><tr><th class="l"></th><th>cm⁻¹</th><th>nm</th><th>GHz</th></tr></thead><tbody>` +
+    wr("FF pulse", w.ff) + wr("SH, thin crystal (√2 × FF)", w.thin) + wr("SH, simple formula 0.886/GDM", w.simple) +
+    wr("SH, GVM only with the FF spectrum", w.gvm) + `<tr><td class="l"><b>SH, full model</b></td><td><b>${fmtG(w.full.cm, 4)}</b></td><td><b>${fmtG(w.full.nm, 4)}</b></td><td><b>${fmtG(w.full.ghz, 4)}</b></td></tr>` +
+    wr("SH after one etalon order", w.etalon) + "</tbody>";
+  const tilt = Number.isFinite(R.tiltDeg) ? fmtG(R.tiltDeg, 3) : "out of reach";
+  $("tCrystal").innerHTML = `<caption>Crystal, pulse and etalon</caption><thead><tr><th class="l">quantity</th><th>value</th><th class="l">unit</th></tr></thead><tbody>` +
+    row("λ<sub>FF</sub> / λ<sub>SH</sub>", `${fmtG(state.lfNm, 6)} / ${fmtG(state.lfNm / 2, 6)}`, "nm") +
+    row("θ<sub>pm</sub>, phase-matching angle", fmtG(R.thetaDeg, 4), "°") +
+    row(`external tilt for θ<sub>cut</sub> = ${fmtG(state.cut, 4)}°`, tilt, Number.isFinite(R.tiltDeg) ? "°" : "") +
+    row("<i>n</i><sub>g</sub>, FF (o) / SH (e)", `${fmtG(R.pm.ngF, 5)} / ${fmtG(R.pm.ngS, 5)}`, "") +
+    row("GVM, 1/<i>v</i><sub>g,SH</sub> − 1/<i>v</i><sub>g,FF</sub>", fmtG(R.gvmFsMm, 4), "fs/mm") +
+    row("GDM = <i>L</i>·|GVM|", fmtG(R.gdmPs, 4), "ps") +
+    row("SH pulse FWHM, full model", fmtG(R.tauShFs / 1000, 4), "ps") +
+    row("compression, thin ÷ full SH width", fmtG(R.compression, 3), "") +
+    row("SH FWHM ÷ etalon FSR", fmtG(R.fsrRatio, 3), "") +
+    row("SH FWHM ÷ etalon line width", fmtG(R.lwRatio, 3), "") +
+    row("SH energy through one etalon order", pct(R.etalon.central), "") +
+    row("… through the other orders", pct(R.etalon.neighbours), "") +
+    row("walk-off angle ρ (SH)", fmtG(R.rhoMrad, 3), "mrad") +
+    row("walk-off over <i>L</i>, <i>L</i> tan ρ", fmtG(R.walkMm, 3), "mm") +
+    row(`GVM = 0 at λ<sub>FF</sub> (${esc(SELLMEIER[state.set].name)})`, fmtG(R.zeroNm, 4), "nm") + "</tbody>";
+  $("tDepl").innerHTML = `<caption>Depletion check</caption><thead><tr><th class="l">quantity</th><th>value</th><th class="l">unit</th></tr></thead><tbody>` +
+    row("FF pulse after the GDD", fmtG(R.tauChirpFs, 4), "fs") +
+    row("<i>I</i>₀, peak intensity", fmtSci(R.I0, 3), "W/cm²") +
+    row("η<sub>peak</sub> / <i>I</i>₀ (transform limit)", fmtSci(R.etaPerI, 3), "per W/cm²") +
+    row("η<sub>peak</sub>, beam centre, undepleted", fmtG(R.etaPeak, 3), "") +
+    row("η<sub>beam</sub> = η<sub>peak</sub>/2", fmtG(R.etaBeam, 3), "") + "</tbody>";
+  const D = ["No flag: η<sub>beam</sub> &lt; 0.1, depletion is negligible.",
+    "Depletion is likely (0.1 ≤ η<sub>beam</sub> &lt; 1). The efficiency estimate is too high, but the SH width should be within about 7&nbsp;% of the value shown (within 1&nbsp;% for 25 mm in the simulations; 2 mm is the worst case).",
+    "Strong depletion (1 ≤ η<sub>beam</sub> &lt; 10). The real efficiency will saturate somewhere around 40–80&nbsp;%. The SH width stayed within about 7&nbsp;% in the simulations: slightly narrower for thin crystals, slightly broader for 25 mm.",
+    "Very strong depletion and possible back-conversion (η<sub>beam</sub> ≥ 10). The SH width can change by 10&nbsp;% or more (up to 25&nbsp;% at the beam centre) and the spectrum can have structure; a model with depletion is needed, and this page has none."];
+  $("deplFlag").innerHTML = `<b>Depletion:</b> ${D[R.depletionLevel]}`;
+  const wtxt = `<i>L</i> tan ρ = ${fmtG(R.walkMm, 4)} mm against the beam radius <i>w</i> = ${fmtG(R.wMm, 4)} mm (1/e², from <i>d</i>).`;
+  const WK = [`Small. ${wtxt}`,
+    `Noticeable: more than half the beam radius. ${wtxt} The SH beam is stretched along the walk-off direction and SH made early in the crystal overlaps the FF less.`,
+    `Larger than the beam radius. ${wtxt} The SH leaves the FF inside the crystal, so the length that counts is shorter than <i>L</i>: the real SH is broader than shown and depletion weaker than the estimate.`];
+  $("walkFlag").innerHTML = `<b>Walk-off:</b> ${WK[R.walkLevel]}`;
+}
+
+/* ---------- inputs ---------- */
+const r4 = v => Number(v.toPrecision(4));
+function bwShow(s) { const hz = bwFromTau(s.tauFs); return s.bwUnit === "nm" ? widthUnits(hz, s.lfNm / 1000).nm : widthUnits(hz, 1).cm; }
+function bwToHz(v, s) { return s.bwUnit === "nm" ? nmToHz(v, s.lfNm / 1000) : cmToHz(v); }
+const FIELDS = [
+  { id: "wl", range: "wlR", show: s => s.mode === "sh" ? s.lfNm / 2 : s.lfNm, apply: (s, v) => { s.lfNm = s.mode === "sh" ? 2 * v : v; },
+    ok: v => state.mode === "sh" ? v >= 200 && v <= 1000 : v >= 400 && v <= 2000, msg: () => state.mode === "sh" ? "λ_SH must be between 200 and 1000 nm." : "λ_FF must be between 400 and 2000 nm." },
+  { id: "len", range: "lenR", log: true, show: s => s.Lmm, apply: (s, v) => { s.Lmm = v; }, ok: v => v >= 0.001 && v <= 100, msg: "L must be between 0.001 and 100 mm." },
+  { id: "cut", show: s => s.cut, apply: (s, v) => { s.cut = v; }, ok: v => v >= 0 && v <= 90, msg: "θ_cut must be between 0 and 90°." },
+  { id: "tau", range: "tauR", log: true, show: s => s.tauFs, apply: (s, v) => { s.tauFs = v; }, ok: v => v >= 5 && v <= 20000, msg: "τ must be between 5 and 20000 fs." },
+  { id: "bw", show: bwShow, apply: (s, v) => { s.tauFs = tauFromBw(bwToHz(v, s)); }, ok: v => { const t = v > 0 ? tauFromBw(bwToHz(v, state)) : NaN; return t >= 5 && t <= 20000; }, msg: "The bandwidth must correspond to a pulse between 5 and 20000 fs." },
+  { id: "gdd", range: "gddR", show: s => s.gddFs2, apply: (s, v) => { s.gddFs2 = v; }, ok: v => Math.abs(v) <= 1e5, msg: "|GDD| must be at most 100000 fs²." },
+  { id: "fsr", show: s => s.fsr, apply: (s, v) => { s.fsr = v; }, ok: v => v > 0 && v <= 1e5 && v > state.lw, msg: "The FSR must be larger than the line width." },
+  { id: "lw", show: s => s.lw, apply: (s, v) => { s.lw = v; }, ok: v => v > 0 && v < state.fsr, msg: "The line width must be larger than 0 and smaller than the FSR." },
+  { id: "en", show: s => s.Euj, apply: (s, v) => { s.Euj = v; }, ok: v => v >= 0 && v <= 1e5, msg: "E must be between 0 and 100000 µJ." },
+  { id: "beam", show: s => s.dMm, apply: (s, v) => { s.dMm = v; }, ok: v => v > 0 && v <= 100, msg: "d must be between 0 and 100 mm." },
+  { id: "deff", show: s => s.deff, apply: (s, v) => { s.deff = v; }, ok: v => v >= 0 && v <= 50, msg: "d_eff must be between 0 and 50 pm/V." },
+];
+function writeFields(except) {
+  for (const f of FIELDS) {
+    const v = f.show(state);
+    if (f.id !== except) { $(f.id + "N").value = String(Number(v.toPrecision(f.id === "bw" ? 4 : 6))); $(f.id + "N").removeAttribute("aria-invalid"); }
+    if (f.range) $(f.range).value = String(f.log ? Math.log10(v) : v);
+  }
+  const sh = state.mode === "sh";
+  $("wlLab").innerHTML = sh ? "λ<sub>SH</sub>, second harmonic" : "λ<sub>FF</sub>, fundamental";
+  $("wlR").min = sh ? "200" : "400"; $("wlR").max = sh ? "1000" : "2000";
+  $("wlR").value = String(sh ? state.lfNm / 2 : state.lfNm);
+  $("wlOther").textContent = sh ? `nm (FF ${fmtG(state.lfNm, 6)} nm)` : `nm (SH ${fmtG(state.lfNm / 2, 6)} nm)`;
+  $("bwUnit").value = state.bwUnit; $("setSel").value = state.set; $("showEt").checked = state.showEt;
+  document.querySelectorAll("input[name=wlMode]").forEach(r => { r.checked = r.value === state.mode; });
+  document.querySelectorAll(".etleg").forEach(e => { e.hidden = !state.showEt; });
+  const hz = bwFromTau(state.tauFs), wu = widthUnits(hz, state.lfNm / 1000), tc = chirpedTau(state.tauFs, state.gddFs2);
+  $("pulseNote").textContent = `τ = ${fmtG(state.tauFs, 4)} fs ⇔ ${fmtG(wu.cm, 4)} cm⁻¹ ⇔ ${fmtG(wu.nm, 4)} nm ⇔ ${fmtG(hz / 1e12, 4)} THz FWHM at ${fmtG(state.lfNm, 5)} nm` +
+    (state.gddFs2 ? `; with ${minus(String(state.gddFs2))} fs² the pulse is ${fmtG(tc, 4)} fs long.` : "; transform-limited.");
+  const S = SELLMEIER[state.set];
+  $("setNote").textContent = `fitted ${S.range[0]}–${S.range[1]} µm`;
+}
+function onEdit(f, showError) {
+  const raw = $(f.id + "N").value, v = Number(raw), ok = raw.trim() !== "" && Number.isFinite(v) && f.ok(v);
+  if (ok) $(f.id + "N").removeAttribute("aria-invalid"); else $(f.id + "N").setAttribute("aria-invalid", "true");
+  if (!ok) { if (showError) { $("inErr").textContent = typeof f.msg === "function" ? f.msg() : f.msg; $("inErr").hidden = false; } return; }
+  $("inErr").hidden = true;
+  const before = JSON.stringify(state);
+  f.apply(state, v);
+  writeFields(f.id);
+  if (JSON.stringify(state) !== before) schedule();
+}
+function fromRange(f) {
+  const r = Number($(f.range).value), v = f.log ? r4(Math.pow(10, r)) : r;
+  $(f.id + "N").value = String(v);
+  onEdit(f, true);
+}
+
+/* ---------- compute: main result now, the two curves in the background ---------- */
+let pending = 0;
+function schedule() { if (pending) return; pending = requestAnimationFrame(() => { pending = 0; update(); }); }
+function inputs() { return { set: state.set, lfNm: state.lfNm, Lmm: state.Lmm, cut: state.cut, tauFs: state.tauFs, gddFs2: state.gddFs2, fsr: state.fsr, lw: state.lw, Euj: state.Euj, dMm: state.dMm, deff: state.deff }; }
+function update() {
+  const res = analyse(inputs());
+  view.spec = null; view.time = null;
+  if (res.ok) { R = res; $("pmErr").hidden = true; }
+  else {
+    R = res;
+    $("pmErr").textContent = `No type-I phase matching in BBO at ${fmtG(state.lfNm, 5)} nm FF: the shortest FF that phase-matches is ${fmtG(res.limitNm, 4)} nm (${SELLMEIER[state.set].name}).`;
+    $("pmErr").hidden = false;
+  }
+  const out = res.outside || [];
+  if (out.length) {
+    const S = SELLMEIER[state.set], what = out.map(k => k === "FF" ? `the FF (${fmtG(state.lfNm, 5)} nm)` : `the SH (${fmtG(state.lfNm / 2, 5)} nm)`).join(" and ");
+    $("setWarn").textContent = `${S.name} was fitted from ${S.range[0]} to ${S.range[1]} µm, so the indices at ${what} are extrapolated.` + (state.set !== "tamosauskas" ? " Tamošauskas et al. 2018 covers 0.188–5.2 µm." : "");
+    $("setWarn").hidden = false;
+  } else $("setWarn").hidden = true;
+  if (res.ok && res.capped) { $("setWarn").textContent += " The chirp is too large for the integration grid; the full-model numbers may be off."; $("setWarn").hidden = false; }
+  $("dlSpec").disabled = !res.ok; $("dlPulse").disabled = !res.ok;
+  renderTables();
+  drawSpec(); readSpec(null); drawTime(); readTime(null);
+  startCurves();
+}
+let job = 0;
+function startCurves() {
+  const lenKey = [state.set, state.lfNm, state.tauFs, state.gddFs2].join("|"), wlKey = [state.set, state.Lmm, state.tauFs, state.gddFs2].join("|");
+  const tasks = [];
+  if (lenKey !== curves.lenKey) {
+    curves.lenKey = lenKey; curves.len = [];
+    const pts = Array.from(new Set(L_GRID.concat(MARK_L))).sort((a, b) => a - b);
+    for (const Lmm of pts) tasks.push(() => { const v = fwhmCm({ set: state.set, lf: state.lfNm / 1000, tauFs: state.tauFs, Lmm, gddFs2: state.gddFs2 }); if (Number.isFinite(v)) curves.len.push({ Lmm, full: v }); });
+  }
+  if (wlKey !== curves.wlKey) {
+    curves.wlKey = wlKey; curves.wl = [];
+    for (const lfNm of W_GRID) tasks.push(() => { const v = fwhmCm({ set: state.set, lf: lfNm / 1000, tauFs: state.tauFs, Lmm: state.Lmm, gddFs2: state.gddFs2 }); if (Number.isFinite(v)) curves.wl.push({ lfNm, full: v }); });
+  }
+  const id = ++job, total = tasks.length;
+  let done = 0;
+  $("dlLen").disabled = true;
+  const tick = () => {
+    if (id !== job) return;
+    const t0 = performance.now();
+    while (done < total && performance.now() - t0 < 25) tasks[done++]();
+    drawLen(); drawWl();
+    if (done < total) { $("curveNote").textContent = `computing the full model for the two plots below… ${done}/${total}`; setTimeout(tick, 0); }
+    else { $("curveNote").textContent = "Full-model points: 36 crystal lengths from 0.1 to 30 mm, and FF wavelengths from 600 to 1600 nm in 25 nm steps."; $("dlLen").disabled = !(R && R.ok && curves.len.length); }
+  };
+  if (total) setTimeout(tick, 0); else { drawLen(); drawWl(); $("dlLen").disabled = !(R && R.ok && curves.len.length); }
+}
+
+/* ---------- downloads: plain browser download; in a sandboxed artifact preview, the viewer's downloads capability ---------- */
+let saver = null;
+if (window.claude && typeof window.claude.use === "function") window.claude.use("downloads").then(d => { saver = d; }, () => {});
+function download(name, text) {
+  if (saver) { saver.save({ filename: name, data: text }).catch(e => { if (e && e.code !== "declined") $("dlNote").textContent = `Not saved (${e.code || e}).`; }); return; }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "text/csv" }));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+const stem = () => `bbo-shg-${fmtG(state.lfNm, 5)}nm-${fmtG(state.Lmm, 4)}mm-${fmtG(state.tauFs, 4)}fs`;
+
+/* ---------- wiring ---------- */
+for (const f of FIELDS) {
+  $(f.id + "N").addEventListener("input", () => onEdit(f, false));
+  $(f.id + "N").addEventListener("change", () => onEdit(f, true));
+  if (f.range) $(f.range).addEventListener("input", () => fromRange(f));
+}
+document.querySelectorAll("input[name=wlMode]").forEach(r => r.addEventListener("change", () => { state.mode = r.value; writeFields(); }));
+$("bwUnit").addEventListener("change", () => { state.bwUnit = $("bwUnit").value; writeFields(); });
+$("setSel").addEventListener("change", () => { state.set = $("setSel").value; writeFields(); schedule(); });
+$("showEt").addEventListener("change", () => { state.showEt = $("showEt").checked; writeFields(); view.spec = null; drawSpec(); });
+document.querySelectorAll("[data-crystal]").forEach(b => b.addEventListener("click", () => { Object.assign(state, CRYSTALS[b.dataset.crystal]); writeFields(); schedule(); }));
+document.querySelectorAll("[data-example]").forEach(b => b.addEventListener("click", () => { Object.assign(state, EXAMPLES[b.dataset.example]); writeFields(); schedule(); }));
+$("reset").addEventListener("click", () => { state = { ...DEFAULTS }; $("inErr").hidden = true; writeFields(); schedule(); });
+$("specFull").addEventListener("click", () => { view.spec = null; drawSpec(); });
+$("timeFull").addEventListener("click", () => { view.time = null; drawTime(); });
+$("dlSpec").addEventListener("click", () => { if (R && R.ok) download(stem() + "-spectrum.csv", csvSpectrum(R)); });
+$("dlPulse").addEventListener("click", () => { if (R && R.ok) download(stem() + "-pulse.csv", csvPulse(R)); });
+$("dlLen").addEventListener("click", () => { if (R && R.ok && curves.len.length) download(stem() + "-fwhm-vs-L.csv", csvLength(R, curves.len)); });
+wirePlot("spec", true); wirePlot("time", true); wirePlot("len", false); wirePlot("wl", false);
+const lastW = {};
+for (const name of Object.keys(DRAW)) new ResizeObserver(() => { const w = $(name + "Box").clientWidth; if (w && w !== lastW[name]) { lastW[name] = w; DRAW[name](); } }).observe($(name + "Box"));
+
+writeFields();
+update();
+})();
+</script>
+</body>
+</html>

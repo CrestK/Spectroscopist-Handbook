@@ -1,6 +1,6 @@
 // Checks the handbook: the home page, its previews and links, the copied pages, and that no file in the repository
 // holds anything that should not be on a public page. Also runs the copied pages' own tests.
-//   node tests/validate.mjs            # about 17 s
+//   node tests/validate.mjs            # about 23 s
 //   node tests/validate.mjs --quick    # skip the copied pages' own tests
 import fs from "node:fs";
 import path from "node:path";
@@ -15,8 +15,8 @@ const quick = process.argv.includes("--quick");
 const PUBLIC_REPOS = ["Franck-Condon-Factor", "Gaussian-Intensity-Weighted-Focal-Overlap-Public", "Beam-Overlap-Game-Public",
   "Solvent-subtraction", "Spectroscopist-Handbook"];
 // the page folders (copies of other repositories, and pages kept only here), and the ones that bring their own tests
-const COPIES = ["franck-condon", "focal-overlap", "overlap-game", "screensaver", "solvent-subtraction", "lorentz-explorer", "exam-scan"];
-const COPY_TESTS = ["franck-condon/tests/validate.mjs", "solvent-subtraction/tests/validate.mjs", "lorentz-explorer/tests/validate.mjs", "exam-scan/tests/validate.mjs"];
+const COPIES = ["franck-condon", "focal-overlap", "overlap-game", "screensaver", "solvent-subtraction", "lorentz-explorer", "shg-narrowing", "exam-scan"];
+const COPY_TESTS = ["franck-condon/tests/validate.mjs", "solvent-subtraction/tests/validate.mjs", "lorentz-explorer/tests/validate.mjs", "shg-narrowing/tests/validate.mjs", "exam-scan/tests/validate.mjs"];
 const PREVIEW_PX = 256, PREVIEW_MAX = 20 * 1024, PREVIEWS_TOTAL_MAX = 60 * 1024, PAGE_MAX = 20 * 1024;
 
 let fails = 0;
