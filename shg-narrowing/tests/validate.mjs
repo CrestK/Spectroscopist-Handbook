@@ -14,7 +14,8 @@ const names = ["C0", "EPS0", "LN2", "SINC2_HALF", "GVM_BW", "TBP", "SELLMEIER", 
   "phaseMatch", "walkoff", "pmLimit", "gvmZero", "widthUnits", "cmToHz", "nmToHz", "bwFromTau", "tauFromBw", "chirpedTau", "makeModel",
   "shFwhm", "fwhmCm", "shSpectrum", "shPulse", "gvmOnlyPulse", "ffExitPulse", "halfWidth", "trapz", "etalonT", "etalonFilter",
   "peakIntensity", "irisFraction", "etaPerIntensity", "depletionLevel", "walkLevel", "gvmOnlyFwhm", "analyse", "csvSpectrum", "csvPulse", "csvLength",
-  "etalonR", "etalonField", "etalonDecay", "etalonTotal", "fft", "pulseFFT", "etalonPoint", "analyseEtalon", "csvEtSpectrum", "csvEtPulse", "csvBandwidth", "maxOf"];
+  "etalonR", "etalonField", "etalonDecay", "etalonTotal", "fft", "pulseFFT", "etalonPoint", "analyseEtalon", "csvEtSpectrum", "csvEtPulse", "csvBandwidth", "maxOf",
+  "etalonTilt", "tiltForShift"];
 // new Function keeps the core in this realm (Node's vm sandbox makes typed arrays much slower)
 const core = new Function(m[1] + `\nreturn {${names.join(",")}};`)();
 const t0 = Date.now();
@@ -330,6 +331,32 @@ const fwhm = (lf, tauFs, Lmm, gddFs2 = 0, set = "kato", res = 1) => toCm(core.sh
   check("18i 555 nm, 200 fs, FSR 172, lw 15: 14.59 cm⁻¹ and 0.426 ps after, 25.5 % through one order; CSV files 5 / 3 / 7 columns",
     rel(d.widths.etalon.cm, 14.594) < 1e-3 && rel(d.tauOutFs, 425.6) < 0.005 && Math.abs(d.central - 0.2545) < 5e-4 && cs.slice(1).every(l => l.split(",").length === 5 && l.split(",").every(v => Number.isFinite(Number(v)))) && cp.slice(1).every(l => l.split(",").length === 3) && cb[1].split(",").length === 7,
     `${d.widths.etalon.cm.toFixed(3)} cm⁻¹, ${d.tauOutFs.toFixed(1)} fs, ${(100 * d.central).toFixed(2)} %; ${cs.length - 1} / ${cp.length - 1} rows`);
+}
+
+// 19. tilting the etalon: every order moves to ν̃/cos θ_int
+{
+  const nu = 1e7 / 555, fsr = 172, lw = 15, t0 = core.etalonTilt(nu, 0, 1, fsr, lw), t1 = core.etalonTilt(nu, 1, 1, fsr, lw), t2 = core.etalonTilt(nu, 2, 1.46, fsr, lw);
+  const exact1 = nu * (1 / Math.cos(Math.PI / 180) - 1), ti2 = Math.asin(Math.sin(2 * Math.PI / 180) / 1.46), exact2 = nu * (1 / Math.cos(ti2) - 1), small = nu * (Math.PI / 180) ** 2 / 2;
+  const back = core.etalonTilt(nu, core.tiltForShift(nu, lw, 1.46), 1.46, fsr, lw).shift;
+  check("19a tilt: 0° → no shift; 1° air → 2.745 cm⁻¹ (≈ ν̃θ²/2); 2° in n = 1.46 → ν̃(1/cos θ_int − 1); FSR, line width × 1/cos θ_int; angle for one line width inverts",
+    t0.shift === 0 && t0.k === 1 && Math.abs(t1.shift - exact1) < 1e-9 && rel(t1.shift, small) < 2e-4 && Math.abs(t2.shift - exact2) < 1e-9 && Math.abs(t2.fsr - fsr / Math.cos(ti2)) < 1e-9 && Math.abs(back - lw) < 1e-6,
+    `${t1.shift.toFixed(4)} cm⁻¹ (small-angle ${small.toFixed(4)}); ${t2.shift.toFixed(4)} cm⁻¹; one line width at ${core.tiltForShift(nu, lw, 1).toFixed(3)}° (air), ${core.tiltForShift(nu, lw, 1.46).toFixed(3)}° (n = 1.46)`);
+  // energy through all orders with the order off centre: closed form against quadrature
+  const R = core.etalonR(fsr, lw), quad = (sig, d) => { let n = 0, q = 0; for (let x = -40 * fsr; x <= 40 * fsr; x += 0.01) { const g = Math.exp(-x * x / (2 * sig * sig)); n += g * core.etalonT(x - d, fsr, lw); q += g; } return n / q; };
+  const cases = [[30, 7], [30, 50], [100, 120], [5, 86]], dq = cases.map(([sg, d]) => Math.abs(core.etalonTotal(sg, fsr, R, d) - quad(sg, d)));
+  check("19b energy through all orders with the order δ off centre = quadrature", Math.max(...dq) < 1e-6, `${cases.map(([sg, d]) => `σ ${sg}, δ ${d}: ${core.etalonTotal(sg, fsr, R, d).toFixed(5)}`).join("; ")}; max diff ${Math.max(...dq).toExponential(1)}`);
+  // a 1 cm⁻¹ input with the order moved by one line width passes about T(line width) ≈ 1/5; one order = quadrature of S·T(x − δ)
+  const th = core.tiltForShift(nu, lw, 1), q1 = core.etalonPoint({ tauFs: core.tauFromBw(core.cmToHz(1)), gddFs2: 0, fsr, lw, lpNm: 555, tiltDeg: th, nEt: 1 });
+  const off = q1.tilt.off, sg1 = 1 / 2.3548200450309493, k = q1.tilt.k;
+  let num = 0, den = 0; for (let x = -10; x <= 10; x += 1e-4) { const g = Math.exp(-x * x / (2 * sg1 * sg1)); num += g * core.etalonT(x - off, fsr * k, lw * k); den += g; }
+  check("19c 1 cm⁻¹ input, order moved by one line width: passes ≈ T(δ) ≈ 0.2, = quadrature", Math.abs(q1.central - num / den) < 1e-5 && Math.abs(q1.central - core.etalonT(-off, fsr * k, lw * k)) < 0.01 && Math.abs(q1.central - 0.2) < 0.01,
+    `δ ${off.toFixed(3)} cm⁻¹ at ${th.toFixed(3)}°; ${q1.central.toFixed(5)} vs ${(num / den).toFixed(5)}`);
+  // BBO mode, tilted: energy in time still equals the spectral fraction, and less passes than at 0°
+  const pb = { set: "kato", lfNm: 1110, Lmm: 25, cut: 21.1, tauFs: 200, gddFs2: 0, fsr, lw, Euj: 2, dMm: 2, deff: 2 };
+  const a0 = core.analyse(pb), a1 = core.analyse(Object.assign({}, pb, { tiltDeg: 2, nEt: 1 }));
+  check("19d BBO, etalon at 2°: order 11.0 cm⁻¹ off the SH peak, less passes, energy in time = spectral fraction",
+    Math.abs(a1.etTilt.off - 10.98) < 0.05 && a1.etalon.fraction < a0.etalon.fraction && Math.abs(a1.etTimeRatio - a1.etalon.fraction) < 1e-3,
+    `δ ${a1.etTilt.off.toFixed(3)} cm⁻¹; ${a0.etalon.fraction.toFixed(4)} → ${a1.etalon.fraction.toFixed(4)} (time ${a1.etTimeRatio.toFixed(4)}); T at the SH peak ${a1.etTCentre.toFixed(3)}`);
 }
 
 console.log(`${fails ? `${fails} FAILED` : "all passed"}  (${((Date.now() - t0) / 1000).toFixed(1)} s)`);

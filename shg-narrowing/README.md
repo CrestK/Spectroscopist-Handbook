@@ -14,7 +14,8 @@ the pulse, against the input bandwidth.
 22.8° and 21.1°); the cut angle (only used for the external tilt); the Sellmeier equations (Kato 1986, the default; Eimerl
 et al. 1987; Tamošauskas et al. 2018); the FF pulse as a transform-limited FWHM τ (5–20000 fs) or as a bandwidth FWHM in
 cm⁻¹ or nm; the chirp before the crystal, GDD (fs², positive for normal glass); the etalon FSR and line width (cm⁻¹,
-default 172 and 15); and for the depletion check the pulse energy (µJ), the beam FWHM at the crystal (mm) and
+default 172 and 15), its angle of incidence (0–60°, slider to 8°) and the index inside it (1 for air-spaced, 1.46 for
+fused silica); and for the depletion check the pulse energy (µJ), the beam FWHM at the crystal (mm) and
 *d*<sub>eff</sub> (pm/V, default 2.0). Examples: the OPA after a CARBIDE (1110 nm, 200 fs) and after a Legend Elite
 (800 nm, 35 fs). Without a BBO: the pulse wavelength (200–2000 nm), its transform-limited FWHM or bandwidth (with a log
 slider over 0.74–2900 cm⁻¹), its GDD and the etalon; examples at 555 nm with 200 fs, 50 cm⁻¹ and 16 cm⁻¹. Everything
@@ -65,7 +66,10 @@ Sellmeier sets: Kato (1986), fitted 0.205–1.064 µm; Eimerl et al. (1987), 0.2
 Kato and Eimerl are extrapolated: Kato's GVM stays within about 3 % of Tamošauskas up to 1.3 µm, Eimerl's falls 9 %
 low at 1110 nm and 22 % low at 1300 nm.
 
-The etalon is an ideal lossless Airy etalon with one order on the SH peak (or the input pulse):
+The etalon is an ideal lossless Airy etalon with one order on the SH peak (or the input pulse) at normal incidence;
+tilting it by θ moves every order from ν̃ to ν̃/cos θ<sub>int</sub> (sin θ = *n* sin θ<sub>int</sub>) and stretches its FSR
+and line width by the same factor. The page reports the offset of the order nearest the peak, the transmission at the
+peak and the angle that moves an order by one line width (2.34° for an air-spaced etalon at 555 nm). Field transmission:
 *t*(ν̃) = (1 − *R*)/(1 − *R* e<sup>2πiν̃/FSR</sup>), with *R* from the FSR and line width. The field is multiplied by *t* and
 Fourier transformed for the pulse after it; the energy through all orders for a Gaussian is the closed form
 (1 − *R*)/(1 + *R*)[1 + 2Σ*R*<sup>*m*</sup> exp(−2π²*m*²σ²/FSR²)].
@@ -134,3 +138,8 @@ node tests/validate.mjs     # about 1 s
   pulse (τ ln 2 = 246.9 fs); a 20 fs input gives copies 193.9 fs apart with intensity ratio *R*² = 0.580; GDD changes the
   pulse but not the spectrum. 555 nm, 200 fs: 14.59 cm⁻¹ and 426 fs after the etalon, 25.5 % through one order.
 - SH after the etalon (BBO): the energy in time equals the spectral fraction (0.6747 at 25 mm, 0.2110 at 2 mm).
+- Etalon tilt: 1° moves an air-spaced etalon's orders at 555 nm by 2.7446 cm⁻¹ (small-angle ν̃θ²/2 = 2.7443), 2° in
+  *n* = 1.46 by 5.1499 cm⁻¹ as ν̃(1/cos θ<sub>int</sub> − 1); one line width takes 2.337° (air) or 3.413° (fused silica).
+  The closed form for all orders with the order δ off centre equals quadrature to 1e-14; a 1 cm⁻¹ input with the order one
+  line width away passes 0.2036, as quadrature; the 25 mm SH with the etalon at 2° passes 38.7 % instead of 67.5 %, and the
+  energy in time still equals the spectral fraction.
