@@ -97,7 +97,7 @@ node tests/validate.mjs --quick    # under 0.1 s, without the copied pages' own 
   pdf.js is checked by its hashes in `exam-scan/tests`) holds an email address, a local file path, a file URL or a
   chat or session link, and all 11 GitHub links go to the public repositories listed in the test.
 - The copied pages' own tests pass where they now live: Franck–Condon 11 checks (about 6 s), solvent subtraction 50
-  checks (about 10 s), Lorentz oscillator 17 checks (under 1 s), SHG narrowing 34 checks (about 1 s), exam scan check 22 checks (about 6 s).
+  checks (about 10 s), Lorentz oscillator 17 checks (under 1 s), SHG narrowing 43 checks (about 1.5 s), exam scan check 22 checks (about 6 s).
 - A broken copy of the repository (a missing preview, a link to an unlisted repository, a remote script, an email
   address, a local path, a session link, a deleted script in a copy and a CNAME in a copy) fails checks 1, 2, 5, 6
   and 7, each naming the problem.

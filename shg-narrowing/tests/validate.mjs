@@ -13,7 +13,8 @@ if (!m) throw new Error("index.html has no <script id=\"core\">");
 const names = ["C0", "EPS0", "LN2", "SINC2_HALF", "GVM_BW", "TBP", "SELLMEIER", "nO", "nE", "indices", "groupIndexO", "groupIndexE", "thetaPM",
   "phaseMatch", "walkoff", "pmLimit", "gvmZero", "widthUnits", "cmToHz", "nmToHz", "bwFromTau", "tauFromBw", "chirpedTau", "makeModel",
   "shFwhm", "fwhmCm", "shSpectrum", "shPulse", "gvmOnlyPulse", "ffExitPulse", "halfWidth", "trapz", "etalonT", "etalonFilter",
-  "peakIntensity", "irisFraction", "etaPerIntensity", "depletionLevel", "walkLevel", "gvmOnlyFwhm", "analyse", "csvSpectrum", "csvPulse", "csvLength"];
+  "peakIntensity", "irisFraction", "etaPerIntensity", "depletionLevel", "walkLevel", "gvmOnlyFwhm", "analyse", "csvSpectrum", "csvPulse", "csvLength",
+  "etalonR", "etalonField", "etalonDecay", "etalonTotal", "fft", "pulseFFT", "etalonPoint", "analyseEtalon", "csvEtSpectrum", "csvEtPulse", "csvBandwidth", "maxOf"];
 // new Function keeps the core in this realm (Node's vm sandbox makes typed arrays much slower)
 const core = new Function(m[1] + `\nreturn {${names.join(",")}};`)();
 const t0 = Date.now();
@@ -263,11 +264,72 @@ const fwhm = (lf, tauFs, Lmm, gddFs2 = 0, set = "kato", res = 1) => toCm(core.sh
   const csv = core.csvSpectrum(r).trim().split("\n"), data = csv.filter(l => !l.startsWith("#")), head = data[0].split(",");
   const rows = data.slice(1).map(l => l.split(",").map(Number)), peak = Math.max(...rows.map(x => x[2]));
   const pc = core.csvPulse(r).trim().split("\n").filter(l => !l.startsWith("#")), lc = core.csvLength(r, [{ Lmm: 2, full: 92.95 }, { Lmm: 25, full: 15.88 }]).trim().split("\n").filter(l => !l.startsWith("#"));
-  check("17b CSV files: header, 7 / 4 / 6 numeric columns, spectrum peak 1",
-    head.length === 7 && rows.every(x => x.length === 7 && x.every(Number.isFinite)) && Math.abs(peak - 1) < 1e-6 && pc.length === 802 && pc.slice(1).every(l => l.split(",").length === 4) && lc.length === 3 && lc[2].split(",").length === 6,
+  check("17b CSV files: header, 7 / 5 / 6 numeric columns, spectrum peak 1",
+    head.length === 7 && rows.every(x => x.length === 7 && x.every(Number.isFinite)) && Math.abs(peak - 1) < 1e-6 && pc.length === 1202 && pc.slice(1).every(l => l.split(",").length === 5) && lc.length === 3 && lc[2].split(",").length === 6,
     `${rows.length} spectrum rows, ${pc.length - 1} pulse rows`);
   const bad = core.analyse(Object.assign({}, p, { lfNm: 405 }));
   check("17c 405 nm FF: no phase matching reported with the 409.5 nm limit", bad.ok === false && Math.abs(bad.limitNm - 409.53) < 0.05, `ok ${bad.ok}, limit ${bad.limitNm.toFixed(2)} nm`);
+}
+
+// 18. no BBO: a Gaussian pulse straight onto the etalon
+{
+  const fsr = 172, lw = 15, R = core.etalonR(fsr, lw), F = 4 * R / (1 - R) ** 2;
+  let worst = 0;
+  for (let d = -400; d <= 400; d += 0.37) { const [tr, ti] = core.etalonField(d, fsr, R); worst = Math.max(worst, Math.abs(tr * tr + ti * ti - core.etalonT(d, fsr, lw))); }
+  const t0 = core.etalonField(0, fsr, R), dec = core.etalonDecay(fsr, R), lor = 1 / (2 * Math.PI * core.cmToHz(lw));
+  check("18a etalon: F = 4R/(1 − R)² = 1/sin²(π·lw/2FSR); |t|² = T; t = 1 on an order; decay 1/(2·FSR·|ln R|) ≈ 1/(2π·lw)",
+    Math.abs(F - 1 / Math.sin(Math.PI * lw / (2 * fsr)) ** 2) < 1e-9 && worst < 1e-12 && Math.abs(t0[0] - 1) < 1e-15 && Math.abs(t0[1]) < 1e-15 && rel(dec, lor) < 0.01,
+    `R ${R.toFixed(5)}; max ||t|² − T| ${worst.toExponential(1)}; decay ${(dec * 1e15).toFixed(1)} fs vs ${(lor * 1e15).toFixed(1)} fs`);
+  // all orders: the Fourier series against quadrature over ±40 FSR; a flat spectrum gives (1 − R)/(1 + R)
+  const quad = sig => { let n = 0, d = 0; const h = 0.01; for (let x = -40 * fsr; x <= 40 * fsr; x += h) { const g = Math.exp(-x * x / (2 * sig * sig)); n += g * core.etalonT(x, fsr, lw); d += g; } return n / d; };
+  const sigs = [5, 30, 100, 300], dq = sigs.map(sg => Math.abs(core.etalonTotal(sg, fsr, R) - quad(sg)));
+  check("18b energy through all orders = quadrature (σ = 5, 30, 100, 300 cm⁻¹); flat limit (1 − R)/(1 + R)", Math.max(...dq) < 1e-6 && rel(core.etalonTotal(1e5, fsr, R), (1 - R) / (1 + R)) < 1e-9,
+    `${sigs.map(sg => core.etalonTotal(sg, fsr, R).toFixed(5)).join(", ")}; max diff ${Math.max(...dq).toExponential(1)}`);
+  // FFT against a direct DFT (seeded test vector)
+  let seed = 12345; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648 - 0.5;
+  const N = 256, xr = Float64Array.from({ length: N }, rnd), xi = Float64Array.from({ length: N }, rnd), yr = xr.slice(), yi = xi.slice();
+  core.fft(yr, yi);
+  let df = 0;
+  for (let k = 0; k < N; k++) { let sr = 0, si = 0; for (let j = 0; j < N; j++) { const a = -2 * Math.PI * j * k / N; sr += xr[j] * Math.cos(a) - xi[j] * Math.sin(a); si += xr[j] * Math.sin(a) + xi[j] * Math.cos(a); } df = Math.max(df, Math.hypot(sr - yr[k], si - yi[k])); }
+  check("18c FFT = direct DFT (N = 256)", df < 1e-11, `max |diff| ${df.toExponential(1)}`);
+  // narrow input (1 cm⁻¹ ≪ 15 cm⁻¹ line): passes almost unchanged; energy = quadrature of S·T
+  const tau1 = core.tauFromBw(core.cmToHz(1)), n1 = core.etalonPoint({ tauFs: tau1, gddFs2: 0, fsr, lw }), q1 = (() => { const sg = 1 / 2.3548200450309493; let n = 0, d = 0; for (let x = -10; x <= 10; x += 1e-4) { const g = Math.exp(-x * x / (2 * sg * sg)); n += g * core.etalonT(x, fsr, lw); d += g; } return n / d; })();
+  check("18d 1 cm⁻¹ input: FWHM, pulse and energy through one order nearly unchanged (= quadrature)", rel(n1.fwhmCm, 1) < 0.005 && rel(n1.tauOutFs, tau1) < 0.005 && Math.abs(n1.central - q1) < 1e-5,
+    `${n1.fwhmCm.toFixed(4)} cm⁻¹, ${n1.tauOutFs.toFixed(0)} vs ${tau1.toFixed(0)} fs, ${n1.central.toFixed(5)} vs ${q1.toFixed(5)}`);
+  // broad input inside one order (300 cm⁻¹, FSR 1000): line width out, exponential tail with the decay time, FWHM ≈ τ ln 2
+  const tb = core.tauFromBw(core.cmToHz(300)), Rb = core.etalonR(1000, lw), b = core.analyseEtalon({ lpNm: 555, tauFs: tb, gddFs2: 0, fsr: 1000, lw }), db = core.etalonDecay(1000, Rb);
+  const t = b.time.tPs, y = b.time.out, ip = y.indexOf(core.maxOf(y)), sel = [];
+  for (let i = ip; i < t.length; i++) if (t[i] > t[ip] + 2 * db * 1e12 && t[i] < t[ip] + 5 * db * 1e12) sel.push([t[i], Math.log(y[i])]);
+  const mx = sel.reduce((a, p) => a + p[0], 0) / sel.length, my = sel.reduce((a, p) => a + p[1], 0) / sel.length;
+  const slope = sel.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / sel.reduce((a, p) => a + (p[0] - mx) ** 2, 0);
+  // independent time-domain sum of the copies: E_out(t) = (1 − R) Σ Rᵐ A(t − m/FSR), A the transform-limited envelope
+  const trtB = 1e12 / core.cmToHz(1000), aa = 2 * Math.LN2 / (tb / 1000) ** 2;
+  let dmax = 0;
+  for (let i = 0; i < t.length; i++) { let e = 0; for (let m = 0; Math.pow(Rb, m) > 1e-14; m++) e += (1 - Rb) * Math.pow(Rb, m) * Math.exp(-aa * (t[i] - m * trtB) ** 2); dmax = Math.max(dmax, Math.abs(e * e - y[i])); }
+  const wide = core.etalonPoint({ tauFs: core.tauFromBw(core.cmToHz(2900)), gddFs2: 0, fsr, lw }), lim = core.etalonDecay(fsr, R) * 1e15 * Math.LN2;
+  check("18e 300 cm⁻¹ input, FSR 1000: FWHM → line width, tail e^(−t/τ_decay), pulse = sum of copies; 2900 cm⁻¹: pulse FWHM → τ ln 2",
+    rel(b.widths.etalon.cm, lw) < 0.03 && rel(-1 / slope, db * 1e12) < 0.01 && dmax < 1e-4 && rel(wide.tauOutFs, lim) < 0.015,
+    `${b.widths.etalon.cm.toFixed(3)} cm⁻¹; decay ${(-1 / slope).toFixed(4)} vs ${(db * 1e12).toFixed(4)} ps; max |FFT − sum| ${dmax.toExponential(1)} of the input peak; ${wide.tauOutFs.toFixed(1)} vs ${lim.toFixed(1)} fs`);
+  // input broader than the FSR (20 fs): a train of copies 1/FSR apart, each R² weaker
+  const tr = core.analyseEtalon({ lpNm: 555, tauFs: 20, gddFs2: 0, fsr, lw }), tt = tr.time.tPs, yy = tr.time.out, trt = 1e12 / core.cmToHz(fsr), pk = [];
+  for (let m = 0; m < 4; m++) { let best = -1, bi = 0; for (let i = 0; i < tt.length; i++) if (Math.abs(tt[i] - m * trt) < trt / 3 && yy[i] > best) { best = yy[i]; bi = i; } pk.push([tt[bi], best]); }
+  const sp = pk.slice(1).map((p, i) => p[0] - pk[i][0]), ra = pk.slice(1).map((p, i) => p[1] / pk[i][1]);
+  check("18f 20 fs input: copies 1/FSR = 193.9 fs apart, each R² weaker", sp.every(v => Math.abs(v - trt) < 0.002) && ra.every(v => rel(v, R * R) < 0.01),
+    `spacing ${sp.map(v => (v * 1000).toFixed(1)).join(", ")} fs; ratios ${ra.map(v => v.toFixed(4)).join(", ")} vs R² = ${(R * R).toFixed(4)}`);
+  // chirp changes the pulse, not the spectrum
+  const c0 = core.etalonPoint({ tauFs: 200, gddFs2: 0, fsr, lw }), c1 = core.etalonPoint({ tauFs: 200, gddFs2: 20000, fsr, lw });
+  check("18g GDD 20000 fs²: same spectral FWHM and energy, longer input and output pulses", Math.abs(c1.fwhmCm - c0.fwhmCm) < 1e-9 && Math.abs(c1.central - c0.central) < 1e-9 && c1.tauOutFs > c0.tauOutFs && Math.abs(c1.tauInFs - core.chirpedTau(200, 20000)) < 1e-9,
+    `${c0.fwhmCm.toFixed(4)} cm⁻¹, ${(100 * c0.central).toFixed(3)} %; pulse ${c0.tauOutFs.toFixed(1)} → ${c1.tauOutFs.toFixed(1)} fs`);
+  // the SH after the etalon (BBO mode): energy in time = spectral fraction through all orders
+  const bb = core.analyse({ set: "kato", lfNm: 1110, Lmm: 25, cut: 21.1, tauFs: 200, gddFs2: 0, fsr, lw, Euj: 2, dMm: 2, deff: 2 }), b2 = core.analyse({ set: "kato", lfNm: 1110, Lmm: 2, cut: 21.1, tauFs: 200, gddFs2: 0, fsr, lw, Euj: 2, dMm: 2, deff: 2 });
+  check("18h SH after the etalon: energy in time = spectral fraction (25 and 2 mm)", Math.abs(bb.etTimeRatio - bb.etalon.fraction) < 1e-3 && Math.abs(b2.etTimeRatio - b2.etalon.fraction) < 1e-3,
+    `${bb.etTimeRatio.toFixed(4)} vs ${bb.etalon.fraction.toFixed(4)}; ${b2.etTimeRatio.toFixed(4)} vs ${b2.etalon.fraction.toFixed(4)}; pulse ${bb.tauEtFs.toFixed(0)} and ${b2.tauEtFs.toFixed(0)} fs`);
+  // default no-BBO case and its files
+  const d = core.analyseEtalon({ lpNm: 555, tauFs: 200, gddFs2: 0, fsr, lw }), cs = core.csvEtSpectrum(d).trim().split("\n").filter(l => !l.startsWith("#")), cp = core.csvEtPulse(d).trim().split("\n").filter(l => !l.startsWith("#"));
+  const cb = core.csvBandwidth(d, [Object.assign({ bwCm: 73.6 }, core.etalonPoint({ tauFs: 200, gddFs2: 0, fsr, lw }))]).trim().split("\n").filter(l => !l.startsWith("#"));
+  check("18i 555 nm, 200 fs, FSR 172, lw 15: 14.59 cm⁻¹ and 0.426 ps after, 25.5 % through one order; CSV files 5 / 3 / 7 columns",
+    rel(d.widths.etalon.cm, 14.594) < 1e-3 && rel(d.tauOutFs, 425.6) < 0.005 && Math.abs(d.central - 0.2545) < 5e-4 && cs.slice(1).every(l => l.split(",").length === 5 && l.split(",").every(v => Number.isFinite(Number(v)))) && cp.slice(1).every(l => l.split(",").length === 3) && cb[1].split(",").length === 7,
+    `${d.widths.etalon.cm.toFixed(3)} cm⁻¹, ${d.tauOutFs.toFixed(1)} fs, ${(100 * d.central).toFixed(2)} %; ${cs.length - 1} / ${cp.length - 1} rows`);
 }
 
 console.log(`${fails ? `${fails} FAILED` : "all passed"}  (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
