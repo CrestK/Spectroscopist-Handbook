@@ -18,18 +18,19 @@ one domain. The originals stay in their own repositories and on their own sites.
 | `solvent-subtraction/` | Solvent subtraction | [Solvent-subtraction](https://github.com/CrestK/Solvent-subtraction) at `19f2435` | — |
 | `lorentz-explorer/` | Lorentz oscillator: absorption and refractive index | its `index.html`, README and tests, added by hand | — |
 | `shg-narrowing/` | Spectral narrowing by SHG in BBO | made here, with its README and tests | — |
+| `advanced-optics/` | Advanced optics: interactive examples | made here, with its README and tests | — |
 | `exam-scan/` | Exam scan check | made here: a browser port of `check_scan.py` and `rotate_pdf.py`, with its README and tests | — |
 
 Each copy holds only what the page needs to run (its `index.html`, scripts, and for Franck–Condon the bundled KaTeX),
 plus its tests where the original has them. READMEs, CNAME files and `package.json` stay in the originals; the Lorentz
-oscillator and SHG narrowing pages have no repository of their own, so their READMEs (model, references, test numbers) are kept in their folders. The copies
+oscillator, SHG narrowing and advanced optics pages have no repository of their own, so their READMEs (model, references, test numbers) are kept in their folders. The copies
 are not edited, so they keep the look of the original pages, and the focal overlap and game pages still load their web
 fonts from Google Fonts. The game keeps best times per site in the browser, so scores set here and on its standalone
 site are separate.
 
 **Output:**
 
-- A two-column list (one column below 860 px wide): preview, title, a few sentences on what the page does, and links to
+- A two-column list (one column below 860 px wide) in three sections, pages, coursework and tools: preview, title, a few sentences on what the page does, and links to
   the source repository and the standalone site where there is one. The preview and the title both open the copy here.
 - A notes section: the pages run in the browser, are static folders, and where their tests are.
 
@@ -72,10 +73,10 @@ The empty `.nojekyll` file tells Pages to serve the files as they are instead of
 | `index.html` | the home page: markup and styles, no script |
 | `CNAME`, `.nojekyll` | the GitHub Pages domain, and "serve as is, no Jekyll" |
 | `previews/` | the 256 × 256 WebP previews, shown at 128 px (96 px on a phone) |
-| `franck-condon/`, `focal-overlap/`, `overlap-game/`, `screensaver/`, `solvent-subtraction/`, `lorentz-explorer/`, `shg-narrowing/`, `exam-scan/` | the pages |
+| `franck-condon/`, `focal-overlap/`, `overlap-game/`, `screensaver/`, `solvent-subtraction/`, `lorentz-explorer/`, `shg-narrowing/`, `advanced-optics/`, `exam-scan/` | the pages |
 | `tests/validate.mjs` | checks the home page, the previews, the copies and every text file in the repository |
 
-The home page is 10.1 KB and the eight previews 35.3 KB; the pages are about 3.7 MB, most of it pdf.js in
+The home page is 11.3 KB and the nine previews 43.2 KB; the pages are about 4.0 MB, most of it pdf.js in
 `exam-scan/vendor/` (2.4 MB) and KaTeX in `franck-condon/vendor/`.
 
 ## Tests
@@ -85,19 +86,19 @@ node tests/validate.mjs            # about 23 s
 node tests/validate.mjs --quick    # under 0.1 s, without the copied pages' own tests
 ```
 
-- Every preview is a 256 × 256 WebP with no EXIF or XMP metadata and at most 20 KB (8 files, 35.3 KB in all), and
+- Every preview is a 256 × 256 WebP with no EXIF or XMP metadata and at most 20 KB (9 files, 43.2 KB in all), and
   `previews/` holds nothing the page does not use.
-- All 8 entries have a unique id matching their folder, and their preview and title link to `<folder>/index.html`.
-- All 16 local links on the home page resolve; the 8 remote links are https. The home page loads nothing from
+- All 9 entries have a unique id matching their folder, and their preview and title link to `<folder>/index.html`.
+- All 18 local links on the home page resolve; the 8 remote links are https. The home page loads nothing from
   elsewhere (no scripts, stylesheets or remote images).
 - Every page folder has its `index.html` and no CNAME, and all 28 local references (scripts, modules, stylesheets, images, and one font
   file for each of KaTeX's 20 `@font-face` rules, which list woff2, woff and ttf as fallbacks; only woff2 is shipped)
   exist.
-- No text file in the repository (26 files, pages included; third-party files in `vendor/` folders are left out, and
+- No text file in the repository (29 files, pages included; third-party files in `vendor/` folders are left out, and
   pdf.js is checked by its hashes in `exam-scan/tests`) holds an email address, a local file path, a file URL or a
   chat or session link, and all 11 GitHub links go to the public repositories listed in the test.
 - The copied pages' own tests pass where they now live: Franck–Condon 11 checks (about 6 s), solvent subtraction 50
-  checks (about 10 s), Lorentz oscillator 17 checks (under 1 s), SHG narrowing 47 checks (about 1.5 s), exam scan check 22 checks (about 6 s).
+  checks (about 10 s), Lorentz oscillator 17 checks (under 1 s), SHG narrowing 47 checks (about 1.5 s), advanced optics 21 checks (under 1 s), exam scan check 22 checks (about 6 s).
 - A broken copy of the repository (a missing preview, a link to an unlisted repository, a remote script, an email
   address, a local path, a session link, a deleted script in a copy and a CNAME in a copy) fails checks 1, 2, 5, 6
   and 7, each naming the problem.
