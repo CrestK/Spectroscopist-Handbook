@@ -43,7 +43,7 @@ axes, ideal or leaking polarizers, a turning middle polarizer. Everything recalc
   against angle, and a table.
 - Polarizers: the chain seen face-on with the field after each polarizer, Malus's law step by step, and the output
   against the polarizer angle or, when the middle one turns, against time.
-- 33 worked examples with their answers, the equations (34 numbered items) and notes with the data sources.
+- 33 worked examples with their answers, the equations (36 numbered items, typeset with KaTeX) and notes with the data sources.
 
 ## Model
 
@@ -71,7 +71,8 @@ root from any static host, for example GitHub Pages with "Deploy from a branch" 
 
 | path | what |
 |---|---|
-| `index.html` | the app: markup, the core (`<script id="core">`: complex arithmetic, waves, intensities, Sellmeier data and derivatives, Cauchy fit, prism, metal data, pulse propagation, conductors, Lorentz oscillator, Fresnel equations and interface fields, plates, Jones polarizers, the answers to the questions), the UI and the equations |
+| `index.html` | the app: markup, the core (`<script id="core">`: complex arithmetic, waves, intensities, Sellmeier data and derivatives, Cauchy fit, prism, metal data, pulse propagation, conductors, Lorentz oscillator, Fresnel equations and interface fields, plates, Jones polarizers, the answers to the questions), the UI and the equations as LaTeX source |
+| `vendor/katex/` | KaTeX 0.16.47 (MIT license) and its woff2 fonts, which typeset the equations; the same copy as `franck-condon/vendor/`. Without it the page still works and shows the LaTeX source |
 | `tests/validate.mjs` | checks the core inside `index.html` |
 
 ## Tests

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Advanced Optics Examples</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
 <meta name="description" content="Interactive optics examples: waves and phasors, light in vacuum, the refractive index of real glasses, pulses, conductors, the Lorentz oscillator, s and p reflection, Brewster's angle and polarizers.">
 <style>
   /* Plain page: white, black text, system font, native controls. Layout only. */
@@ -40,8 +41,12 @@
   th { background: #f2f2f2; font-weight: 600; }
   td.l, th.l { text-align: left; }
   td.w { white-space: normal; text-align: left; }
-  .eq { font-family: "Times New Roman", Times, serif; font-size: 17px; overflow-x: auto; margin: 4px 0 8px; padding-left: 1em; }
-  ol.eqs { padding-left: 1.6em; margin: 0; max-width: 100ch; }
+  .eq { overflow-x: auto; overflow-y: hidden; margin: 4px 0 10px; padding-block: 2px; }
+  .eq .katex { font-size: 1.12em; }
+  .eq .katex-display { margin: 0.35em 0; }
+  dl.defs .eq { margin: 4px 0 2px; }
+  .raw { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; white-space: pre-wrap; color: #333; }
+  ol.eqs { padding-left: 2.3em; margin: 0; max-width: 100ch; }
   ol.eqs > li { margin-block: 14px; }
   ol.eqs > li > p:first-child { font-weight: 600; margin-bottom: 2px; }
   .toc ol { columns: 2 24em; column-gap: 32px; margin: 0; padding-left: 1.6em; max-width: 100ch; }
@@ -435,23 +440,29 @@ the bottom.</p>
     <dt>p polarization (red)</dt>
     <dd>E parallel to the plane of incidence (also TM). E lies in the page, at right angles to each ray: drawn as arrows.</dd>
     <dt>Intensity I</dt>
-    <dd>Power per area, averaged over a period: I = ½nc ε₀E₀² in a medium of index n. Detectors and eyes measure I, not E.</dd>
+    <dd>Power per area, averaged over a period, in a medium of index n. Detectors and eyes measure I, not E.
+      <div class="eq">I = \tfrac12\,n\,c\,\varepsilon_0 E_0^2</div></dd>
     <dt>Reflectance R</dt>
-    <dd>The fraction of the incident power that is reflected: R = I<sub>R</sub>/I<sub>I</sub> = |E₀<sub>R</sub>/E₀<sub>I</sub>|² = |r|².</dd>
+    <dd>The fraction of the incident power that is reflected.
+      <div class="eq">R = \frac{I_R}{I_I} = \left|\frac{E_{0R}}{E_{0I}}\right|^2 = |r|^2</div></dd>
     <dt>Transmittance T</dt>
-    <dd>The fraction that crosses into medium 2: T = (n₂ cos θ<sub>T</sub> / n₁ cos θ<sub>I</sub>) |t|² = αβ|t|². The n₂/n₁ is
-    there because I ∝ n, the cosines because the beam gets wider or narrower when it bends. With no absorption R + T = 1.</dd>
+    <dd>The fraction that crosses into medium 2. The n₂/n₁ is there because I ∝ n, the cosines because the beam gets wider
+    or narrower when it bends. With no absorption R + T = 1.
+      <div class="eq">T = \frac{n_2\cos\theta_T}{n_1\cos\theta_I}\,|t|^2 = \alpha\beta\,|t|^2</div></dd>
     <dt>Brewster's angle θ<sub>B</sub></dt>
-    <dd>tan θ<sub>B</sub> = n₂/n₁. There R<sub>p</sub> = 0, so reflected light is purely s. The reflected and refracted rays
-    are 90° apart: the electrons in medium 2 oscillate along E<sub>T</sub>, which then points along the reflected direction,
-    and a dipole does not radiate along its own axis.</dd>
+    <dd>There R<sub>p</sub> = 0, so reflected light is purely s. The reflected and refracted rays are 90° apart: the electrons
+    in medium 2 oscillate along E<sub>T</sub>, which then points along the reflected direction, and a dipole does not radiate
+    along its own axis.
+      <div class="eq">\tan\theta_B = \frac{n_2}{n_1}</div></dd>
     <dt>Total internal reflection</dt>
-    <dd>From high to low index beyond the critical angle θ<sub>c</sub> = arcsin(n₂/n₁), R<sub>s</sub> = R<sub>p</sub> = 1 and
-    the field in medium 2 decays within about a wavelength (an evanescent wave).</dd>
+    <dd>From high to low index beyond the critical angle θ<sub>c</sub>, R<sub>s</sub> = R<sub>p</sub> = 1 and the field in
+    medium 2 decays within about a wavelength (an evanescent wave).
+      <div class="eq">\sin\theta_c = \frac{n_2}{n_1}</div></dd>
     <dt>Phase on reflection</dt>
-    <dd>At normal incidence r = (n₁ − n₂)/(n₁ + n₂): from low to high index r &lt; 0 and the reflected field is flipped
-    (a π phase shift). This page uses Griffiths' sign for p (the field directions in the diagrams below), which gives
-    r<sub>p</sub> = r<sub>s</sub> at normal incidence; Hecht's textbook flips the sign of r<sub>p</sub>.</dd>
+    <dd>From low to high index r &lt; 0 at normal incidence and the reflected field is flipped (a π phase shift). This page
+    uses Griffiths' sign for p (the field directions in the diagrams below), which gives r<sub>p</sub> = r<sub>s</sub> at
+    normal incidence; Hecht's textbook flips the sign of r<sub>p</sub>.
+      <div class="eq">r = \frac{n_1 - n_2}{n_1 + n_2} \qquad (\theta_I = 0)</div></dd>
   </dl>
   <div class="row">
     <label for="i1Mat">Medium 1</label><select id="i1Mat"></select>
@@ -612,108 +623,129 @@ the bottom.</p>
   <h3>Waves</h3>
   <ol class="eqs" start="1">
     <li><p>Wave equation and its solutions</p>
-      <div class="eq">∂²<i>f</i>/∂<i>z</i>² = (1/<i>v</i>²) ∂²<i>f</i>/∂<i>t</i>²,&emsp; <i>f</i> = <i>g</i>(<i>z</i> − <i>vt</i>) (along +<i>z</i>) or <i>g</i>(<i>z</i> + <i>vt</i>) (along −<i>z</i>)</div></li>
+      <div class="eq">\frac{\partial^2 f}{\partial z^2} = \frac{1}{v^2}\,\frac{\partial^2 f}{\partial t^2}</div>
+      <div class="eq">\begin{aligned} f(z,t) &= g(z - vt) &&\text{moves along } {+z} \\ f(z,t) &= g(z + vt) &&\text{moves along } {-z} \end{aligned}</div></li>
     <li><p>Harmonic wave</p>
-      <div class="eq"><i>D</i>(<i>z</i>, <i>t</i>) = <i>A</i> cos(<i>kz</i> ∓ ω<i>t</i> + φ₀),&emsp; ω = 2π<i>f</i> = 2π/<i>T</i>,&emsp; <i>k</i> = 2π/λ,&emsp; <i>v</i> = ω/<i>k</i> = <i>f</i>λ = λ/<i>T</i></div>
-      <p class="note">The source sets ω; the medium sets <i>v</i> = <i>c</i>/<i>n</i>; both together set <i>k</i> and λ. A > 0; φ₀ is the initial phase.</p></li>
+      <div class="eq">D(z,t) = A\cos(kz \mp \omega t + \varphi_0)</div>
+      <div class="eq">\begin{aligned} \omega &= 2\pi f = \frac{2\pi}{T} \\[5pt] k &= \frac{2\pi}{\lambda} \\[5pt] v &= \frac{\omega}{k} = f\lambda = \frac{\lambda}{T} \end{aligned}</div>
+      <p class="note">The source sets ω; the medium sets v = c/n; both together set k and λ. A > 0; φ₀ is the initial phase.</p></li>
     <li><p>Complex notation and phasors</p>
-      <div class="eq"><i>D</i> = Re[<i>Ã</i> e<sup><i>i</i>(<i>kz</i> ∓ ω<i>t</i>)</sup>],&emsp; <i>Ã</i> = <i>A</i> e<sup><i>i</i>φ₀</sup>,&emsp; <i>A</i>e<sup><i>i</i>φ</sup> = <i>A</i>₁e<sup><i>i</i>φ₁</sup> + <i>A</i>₂e<sup><i>i</i>φ₂</sup>,&emsp; <i>A</i>² = <i>A</i>₁² + <i>A</i>₂² + 2<i>A</i>₁<i>A</i>₂ cos(φ₁ − φ₂)</div>
+      <div class="eq">\begin{aligned} D &= \operatorname{Re}\!\left[\tilde A\, e^{i(kz \mp \omega t)}\right] \\ \tilde A &= A\,e^{i\varphi_0} \end{aligned}</div>
+      <div class="eq">\begin{aligned} A\,e^{i\varphi} &= A_1 e^{i\varphi_1} + A_2 e^{i\varphi_2} \\ A^2 &= A_1^2 + A_2^2 + 2A_1A_2\cos(\varphi_1 - \varphi_2) \end{aligned}</div>
       <p class="note">At fixed z the phasor turns clockwise for a wave along +z (−ωt) and counterclockwise along −z. Waves of one frequency add like vectors.</p></li>
     <li><p>Three dimensions</p>
-      <div class="eq"><i>D</i> = <i>A</i> cos(<b>k</b>·<b>r</b> − ω<i>t</i> + φ₀),&emsp; |<b>k</b>| = 2π/λ;&emsp; spherical (<i>A</i>/<i>r</i>) cos(<i>kr</i> − ω<i>t</i>),&emsp; cylindrical (<i>A</i>/√<i>r</i>) cos(<i>kr</i> − ω<i>t</i>)</div></li>
+      <div class="eq">\begin{aligned} \text{plane:}\quad D &= A\cos(\mathbf k\cdot\mathbf r - \omega t + \varphi_0) \\[5pt] |\mathbf k| &= \frac{2\pi}{\lambda} \\[5pt] \text{spherical:}\quad D &= \frac{A}{r}\cos(kr - \omega t) \\[5pt] \text{cylindrical:}\quad D &= \frac{A}{\sqrt r}\cos(kr - \omega t) \end{aligned}</div></li>
   </ol>
   <h3>Light in vacuum</h3>
   <ol class="eqs" start="5">
     <li><p>Dispersion relation</p>
-      <div class="eq"><i>k</i>² = μ₀ε₀ω²,&emsp; <i>c</i> = ω/<i>k</i> = 1/√(μ₀ε₀) = 2.99792458 × 10⁸ m/s</div></li>
+      <div class="eq">\begin{aligned} k^2 &= \mu_0\varepsilon_0\,\omega^2 \\[5pt] c &= \frac{\omega}{k} = \frac{1}{\sqrt{\mu_0\varepsilon_0}} = 2.99792458\times 10^{8}\ \text{m/s} \end{aligned}</div></li>
     <li><p>Plane wave: transverse, E and B in phase</p>
-      <div class="eq"><b>E</b> = <i>E</i>₀ <b>n̂</b> e<sup><i>i</i>(<b>k</b>·<b>r</b> − ω<i>t</i>)</sup>,&emsp; <b>B</b> = (1/<i>c</i>) <b>k̂</b> × <b>E</b>,&emsp; <i>B</i>₀ = <i>E</i>₀/<i>c</i></div></li>
+      <div class="eq">\begin{aligned} \mathbf E &= E_0\,\hat{\mathbf n}\,e^{i(\mathbf k\cdot\mathbf r - \omega t)} \\[5pt] \mathbf B &= \frac{1}{c}\,\hat{\mathbf k}\times\mathbf E \\[5pt] B_0 &= \frac{E_0}{c} \end{aligned}</div></li>
     <li><p>Polarization</p>
-      <div class="eq"><b>E</b> = <b>x̂</b> <i>E</i>₀ₓ cos(<i>kz</i> − ω<i>t</i>) + <b>ŷ</b> <i>E</i>₀ᵧ cos(<i>kz</i> − ω<i>t</i> + δ)</div>
+      <div class="eq">\mathbf E = \hat{\mathbf x}\,E_{0x}\cos(kz - \omega t) + \hat{\mathbf y}\,E_{0y}\cos(kz - \omega t + \delta)</div>
       <p class="note">δ = 0 or π: linear. E₀ₓ = E₀ᵧ and δ = ±90°: circular. Anything else: elliptical. With δ = +90° E turns counterclockwise seen facing the oncoming light (left-circular in Hecht's convention).</p></li>
     <li><p>Energy and intensity</p>
-      <div class="eq"><i>u</i> = ½(ε₀<i>E</i>² + <i>B</i>²/μ₀) = ε₀<i>E</i>²,&emsp; <b>S</b> = (1/μ₀) <b>E</b> × <b>B</b> = <i>cu</i> <b>k̂</b>,&emsp; ⟨<i>u</i>⟩ = ½ε₀<i>E</i>₀²,&emsp; <i>I</i> = ⟨<i>S</i>⟩ = ½<i>c</i>ε₀<i>E</i>₀²</div>
+      <div class="eq">\begin{aligned} u &= \tfrac12\left(\varepsilon_0 E^2 + \frac{B^2}{\mu_0}\right) = \varepsilon_0 E^2 \\[5pt] \mathbf S &= \frac{1}{\mu_0}\,\mathbf E\times\mathbf B = c\,u\,\hat{\mathbf k} \\[5pt] \langle u\rangle &= \tfrac12\,\varepsilon_0 E_0^2 \\[5pt] I &= \langle S\rangle = \tfrac12\,c\,\varepsilon_0 E_0^2 \end{aligned}</div>
       <p class="note">In a medium of index n, I = ½ncε₀E₀². Momentum density ⟨u⟩/c; radiation pressure I/c when absorbed and 2I/c when reflected.</p></li>
     <li><p>Sources</p>
-      <div class="eq">Gaussian beam: <i>I</i><sub>peak</sub> = 2<i>P</i>/π<i>w</i>²;&emsp; Gaussian pulse: <i>P</i><sub>peak</sub> = 2√(ln 2/π) <i>E</i><sub>p</sub>/τ ≈ 0.939 <i>E</i><sub>p</sub>/τ;&emsp; point source: <i>I</i> = <i>P</i>/4π<i>r</i>²;&emsp; photon flux <i>I</i>λ/<i>hc</i></div></li>
+      <div class="eq">\begin{aligned} \text{Gaussian beam:}\quad I_\text{peak} &= \frac{2P}{\pi w^2} \\[5pt] \text{Gaussian pulse:}\quad P_\text{peak} &= 2\sqrt{\frac{\ln 2}{\pi}}\;\frac{E_p}{\tau} \approx 0.939\,\frac{E_p}{\tau} \\[5pt] \text{point source:}\quad I &= \frac{P}{4\pi r^2} \\[5pt] \text{photon flux:}\quad \Phi &= \frac{I\lambda}{hc} \end{aligned}</div>
+      <p class="note">w is the 1/e² radius of the beam and τ the FWHM of the pulse.</p></li>
   </ol>
   <h3>Light in dielectrics</h3>
   <ol class="eqs" start="10">
     <li><p>Linear dielectric</p>
-      <div class="eq"><b>P</b> = ε₀χ<sub>e</sub><b>E</b>,&emsp; <b>D</b> = ε₀(1 + χ<sub>e</sub>)<b>E</b> = ε<b>E</b>,&emsp; <i>v</i> = 1/√(εμ),&emsp; <i>n</i> = <i>c</i>/<i>v</i> = √(ε<sub>r</sub>μ<sub>r</sub>) ≈ √ε<sub>r</sub>,&emsp; λ = λ₀/<i>n</i></div></li>
+      <div class="eq">\begin{aligned} \mathbf P &= \varepsilon_0\chi_e\,\mathbf E \\[5pt] \mathbf D &= \varepsilon_0(1 + \chi_e)\,\mathbf E = \varepsilon\,\mathbf E \\[5pt] v &= \frac{1}{\sqrt{\varepsilon\mu}} \\[5pt] n &= \frac{c}{v} = \sqrt{\varepsilon_r\mu_r} \approx \sqrt{\varepsilon_r} \\[5pt] \lambda &= \frac{\lambda_0}{n} \end{aligned}</div></li>
     <li><p>Sellmeier equation, an undamped sum of Lorentz oscillators</p>
-      <div class="eq"><i>n</i>² = 1 + Σ<sub><i>j</i></sub> <i>B<sub>j</sub></i>λ²/(λ² − λ<sub><i>j</i></sub>²),&emsp; <i>B<sub>j</sub></i> = <i>N<sub>j</sub>f<sub>j</sub>q</i>²/(ε₀<i>m</i>ω<sub><i>j</i></sub>²),&emsp; ω<sub><i>j</i></sub> = 2π<i>c</i>/λ<sub><i>j</i></sub></div></li>
+      <div class="eq">\begin{aligned} n^2 &= 1 + \sum_j \frac{B_j\,\lambda^2}{\lambda^2 - \lambda_j^2} \\[5pt] B_j &= \frac{N_j f_j q^2}{\varepsilon_0 m\,\omega_j^2} \\[5pt] \omega_j &= \frac{2\pi c}{\lambda_j} \end{aligned}</div></li>
     <li><p>Cauchy's formula (far below one resonance)</p>
-      <div class="eq"><i>n</i> ≈ 1 + <i>A</i>(1 + <i>B</i>/λ²),&emsp; <i>A</i> = <i>Nq</i>²/(2ε₀<i>m</i>ω₀²),&emsp; <i>B</i> = (2π<i>c</i>/ω₀)² = λ₀²</div>
+      <div class="eq">\begin{aligned} n &\approx 1 + A\left(1 + \frac{B}{\lambda^2}\right) \\[5pt] A &= \frac{Nq^2}{2\varepsilon_0 m\,\omega_0^2} \\[5pt] B &= \left(\frac{2\pi c}{\omega_0}\right)^2 = \lambda_0^2 \end{aligned}</div>
       <p class="note">The page fits n = A′ + B′/λ² and converts: A = A′ − 1, B = B′/A.</p></li>
-    <li><p>Abbe number and prism</p>
-      <div class="eq"><i>V<sub>d</sub></i> = (<i>n<sub>d</sub></i> − 1)/(<i>n<sub>F</sub></i> − <i>n<sub>C</sub></i>);&emsp; sin θ₁ = <i>n</i> sin θ₂,&emsp; θ₃ = <i>A</i> − θ₂,&emsp; <i>n</i> sin θ₃ = sin θ₄,&emsp; δ = θ₁ + θ₄ − <i>A</i>,&emsp; <i>n</i> = sin[(<i>A</i> + δ<sub>min</sub>)/2]/sin(<i>A</i>/2)</div>
-      <p class="note">d = 587.56 nm, F = 486.13 nm, C = 656.27 nm; A is the apex angle.</p></li>
+    <li><p>Abbe number</p>
+      <div class="eq">V_d = \frac{n_d - 1}{n_F - n_C}</div>
+      <p class="note">d = 587.56 nm, F = 486.13 nm, C = 656.27 nm.</p></li>
+    <li><p>Prism</p>
+      <div class="eq">\begin{aligned} \sin\theta_1 &= n\sin\theta_2 \\[5pt] \theta_3 &= A - \theta_2 \\[5pt] n\sin\theta_3 &= \sin\theta_4 \\[5pt] \delta &= \theta_1 + \theta_4 - A \\[5pt] n &= \frac{\sin\big((A + \delta_\text{min})/2\big)}{\sin(A/2)} \end{aligned}</div>
+      <p class="note">A is the apex angle and δ the deviation; the last line holds at minimum deviation.</p></li>
   </ol>
   <h3>Pulses</h3>
-  <ol class="eqs" start="14">
-    <li><p>Phase and group velocity, GVD</p>
-      <div class="eq"><i>v<sub>p</sub></i> = <i>c</i>/<i>n</i>,&emsp; <i>v<sub>g</sub></i> = d<i>ω</i>/d<i>k</i> = <i>c</i>/<i>n<sub>g</sub></i>,&emsp; <i>n<sub>g</sub></i> = <i>n</i> − λ d<i>n</i>/dλ,&emsp; β₂ = d²<i>k</i>/dω² = (λ³/2π<i>c</i>²) d²<i>n</i>/dλ²,&emsp; GDD φ₂ = β₂<i>L</i></div></li>
+  <ol class="eqs" start="15">
+    <li><p>Phase and group velocity, group-velocity dispersion</p>
+      <div class="eq">\begin{aligned} v_p &= \frac{c}{n} \\[5pt] v_g &= \frac{d\omega}{dk} = \frac{c}{n_g} \\[5pt] n_g &= n - \lambda\,\frac{dn}{d\lambda} \\[5pt] \beta_2 &= \frac{d^2k}{d\omega^2} = \frac{\lambda^3}{2\pi c^2}\,\frac{d^2n}{d\lambda^2} \\[5pt] \varphi_2 &= \beta_2 L \end{aligned}</div>
+      <p class="note">φ₂ is the group-delay dispersion (GDD) of a thickness L.</p></li>
     <li><p>Gaussian pulse after a GDD φ₂</p>
-      <div class="eq"><i>E</i>(<i>t</i>) ∝ √[<i>T</i>₀²/(<i>T</i>₀² − <i>i</i>φ₂)] exp[−<i>t</i>²/2(<i>T</i>₀² − <i>i</i>φ₂)] e<sup>−<i>i</i>ω₀<i>t</i></sup>,&emsp; <i>T</i>₀ = τ₀/(2√ln 2),&emsp; τ = τ₀√[1 + (4 ln 2 φ₂/τ₀²)²],&emsp; ω(<i>t</i>) = ω₀ + <i>t</i>φ₂/(<i>T</i>₀⁴ + φ₂²)</div>
+      <div class="eq">E(t) \propto \sqrt{\frac{T_0^2}{T_0^2 - i\varphi_2}}\;\exp\!\left[-\frac{t^2}{2\,(T_0^2 - i\varphi_2)}\right] e^{-i\omega_0 t}</div>
+      <div class="eq">\begin{aligned} T_0 &= \frac{\tau_0}{2\sqrt{\ln 2}} \\[5pt] \tau &= \tau_0\sqrt{1 + \left(\frac{4\ln 2\;\varphi_2}{\tau_0^2}\right)^2} \\[5pt] \omega(t) &= \omega_0 + \frac{t\,\varphi_2}{T_0^4 + \varphi_2^2} \end{aligned}</div>
       <p class="note">For φ₂ > 0 (normal dispersion) the frequency rises from the front of the pulse to the back: red leads.</p></li>
     <li><p>Normal incidence</p>
-      <div class="eq"><i>r</i> = (<i>n</i>₁ − <i>n</i>₂)/(<i>n</i>₁ + <i>n</i>₂),&emsp; <i>t</i> = 2<i>n</i>₁/(<i>n</i>₁ + <i>n</i>₂),&emsp; <i>R</i> = <i>r</i>²,&emsp; <i>T</i> = (<i>n</i>₂/<i>n</i>₁)<i>t</i>² = 1 − <i>R</i></div></li>
+      <div class="eq">\begin{aligned} r &= \frac{n_1 - n_2}{n_1 + n_2} \\[5pt] t &= \frac{2n_1}{n_1 + n_2} \\[5pt] R &= r^2 \\[5pt] T &= \frac{n_2}{n_1}\,t^2 = 1 - R \end{aligned}</div></li>
   </ol>
   <h3>Conductors</h3>
-  <ol class="eqs" start="17">
+  <ol class="eqs" start="18">
     <li><p>Ohm's law and free-charge relaxation</p>
-      <div class="eq"><b>J</b> = σ<b>E</b>,&emsp; ρ<sub>f</sub>(<i>t</i>) = ρ<sub>f</sub>(0) e<sup>−<i>t</i>/τ</sup>,&emsp; τ = ε/σ</div></li>
+      <div class="eq">\begin{aligned} \mathbf J &= \sigma\,\mathbf E \\[5pt] \rho_f(t) &= \rho_f(0)\,e^{-t/\tau} \\[5pt] \tau &= \frac{\varepsilon}{\sigma} \end{aligned}</div></li>
     <li><p>Complex wavenumber</p>
-      <div class="eq">∇²<b>E</b> = με ∂²<b>E</b>/∂<i>t</i>² + μσ ∂<b>E</b>/∂<i>t</i> &ensp;→&ensp; <i>k̃</i>² = μεω² + <i>i</i>μσω,&emsp; <i>k̃</i> = <i>k</i> + <i>i</i>κ</div></li>
+      <div class="eq">\begin{aligned} \nabla^2\mathbf E &= \mu\varepsilon\,\frac{\partial^2\mathbf E}{\partial t^2} + \mu\sigma\,\frac{\partial\mathbf E}{\partial t} \\[5pt] \tilde k^2 &= \mu\varepsilon\,\omega^2 + i\mu\sigma\omega \\[5pt] \tilde k &= k + i\kappa \end{aligned}</div></li>
     <li><p>Real and imaginary parts, skin depth</p>
-      <div class="eq"><i>k</i> = ω√(εμ/2) [√(1 + (σ/εω)²) + 1]<sup>1/2</sup>,&emsp; κ = ω√(εμ/2) [√(1 + (σ/εω)²) − 1]<sup>1/2</sup>,&emsp; <i>d</i> = 1/κ ≈ √(2/σμω) for σ ≫ εω</div></li>
+      <div class="eq">\begin{aligned} k &= \omega\sqrt{\frac{\varepsilon\mu}{2}}\left[\sqrt{1 + \left(\frac{\sigma}{\varepsilon\omega}\right)^2} + 1\right]^{1/2} \\[5pt] \kappa &= \omega\sqrt{\frac{\varepsilon\mu}{2}}\left[\sqrt{1 + \left(\frac{\sigma}{\varepsilon\omega}\right)^2} - 1\right]^{1/2} \\[5pt] d &= \frac{1}{\kappa} \end{aligned}</div>
+      <div class="eq">d \approx \sqrt{\frac{2}{\sigma\mu\omega}} \qquad (\sigma \gg \varepsilon\omega)</div></li>
     <li><p>Fields in a conductor</p>
-      <div class="eq"><b>E</b> = <i>E</i>₀e<sup>−κ<i>z</i></sup> cos(<i>kz</i> − ω<i>t</i> + δ<sub>E</sub>) <b>x̂</b>,&emsp; <b>B</b> = (<i>K</i>/ω)<i>E</i>₀e<sup>−κ<i>z</i></sup> cos(<i>kz</i> − ω<i>t</i> + δ<sub>E</sub> + φ) <b>ŷ</b>,&emsp; <i>K</i> = |<i>k̃</i>|,&emsp; φ = arctan(κ/<i>k</i>)</div>
+      <div class="eq">\begin{aligned} \mathbf E &= E_0\,e^{-\kappa z}\cos(kz - \omega t + \delta_E)\,\hat{\mathbf x} \\[5pt] \mathbf B &= \frac{K}{\omega}\,E_0\,e^{-\kappa z}\cos(kz - \omega t + \delta_E + \phi)\,\hat{\mathbf y} \\[5pt] K &= |\tilde k| = \sqrt{k^2 + \kappa^2} \\[5pt] \phi &= \arctan\frac{\kappa}{k} \end{aligned}</div>
       <p class="note">φ → 45° for a good conductor. The magnetic energy is √(1 + (σ/εω)²) times the electric energy.</p></li>
     <li><p>Measured optical constants</p>
-      <div class="eq"><i>ñ</i> = <i>n</i> + <i>i</i>κ,&emsp; <i>E</i> ∝ e<sup>−2πκ<i>z</i>/λ</sup>,&emsp; <i>d</i> = λ/2πκ,&emsp; <i>R</i> = |(<i>ñ</i> − 1)/(<i>ñ</i> + 1)|²</div></li>
+      <div class="eq">\begin{aligned} \tilde n &= n + i\kappa \\[5pt] E &\propto e^{-2\pi\kappa z/\lambda} \\[5pt] d &= \frac{\lambda}{2\pi\kappa} \\[5pt] R &= \left|\frac{\tilde n - 1}{\tilde n + 1}\right|^2 \end{aligned}</div>
+      <p class="note">Here κ is the dimensionless extinction coefficient; R is the reflectance at normal incidence.</p></li>
   </ol>
   <h3>Lorentz oscillator</h3>
-  <ol class="eqs" start="22">
+  <ol class="eqs" start="23">
     <li><p>Driven, damped electron</p>
-      <div class="eq"><i>ẍ</i> + γ<i>ẋ</i> + ω₀²<i>x</i> = (<i>q</i>/<i>m</i>)<i>E</i>₀e<sup>−<i>i</i>ω<i>t</i></sup> &ensp;→&ensp; <i>x̃</i> = (<i>q</i>/<i>m</i>)<i>E</i>₀/(ω₀² − ω² − <i>i</i>γω)</div>
+      <div class="eq">\ddot x + \gamma\,\dot x + \omega_0^2\,x = \frac{q}{m}\,E_0\,e^{-i\omega t}</div>
+      <div class="eq">\tilde x = \frac{(q/m)\,E_0}{\omega_0^2 - \omega^2 - i\gamma\omega}</div>
       <p class="note">The dipole lags the field by arctan[γω/(ω₀² − ω²)]: 0 below resonance, 90° at it, 180° far above.</p></li>
     <li><p>Susceptibility and complex index</p>
-      <div class="eq">χ̃ = (<i>Nq</i>²/ε₀<i>m</i>) Σ<sub><i>j</i></sub> <i>f<sub>j</sub></i>/(ω<sub><i>j</i></sub>² − ω² − <i>i</i>γ<sub><i>j</i></sub>ω),&emsp; <i>ñ</i> = √(1 + χ̃),&emsp; <i>k̃</i> = <i>ñ</i>ω/<i>c</i> = <i>k</i> + <i>i</i>κ,&emsp; α = 2κ,&emsp; <i>n</i> = <i>ck</i>/ω</div></li>
+      <div class="eq">\begin{aligned} \tilde\chi &= \frac{Nq^2}{\varepsilon_0 m}\sum_j \frac{f_j}{\omega_j^2 - \omega^2 - i\gamma_j\omega} \\[5pt] \tilde n &= \sqrt{1 + \tilde\chi} \\[5pt] \tilde k &= \frac{\tilde n\,\omega}{c} = k + i\kappa \\[5pt] \alpha &= 2\kappa \\[5pt] n &= \frac{ck}{\omega} \end{aligned}</div></li>
     <li><p>Near one resonance (ω + ω₀ ≈ 2ω₀, dilute)</p>
-      <div class="eq">α = (<i>Nq</i>²<i>f</i>/2ε₀<i>mc</i>) (γ/2)/[(ω − ω₀)² + (γ/2)²],&emsp; <i>n</i> − 1 = (<i>Nq</i>²<i>f</i>/4ε₀<i>m</i>ω₀) (ω₀ − ω)/[(ω − ω₀)² + (γ/2)²]</div></li>
+      <div class="eq">\begin{aligned} \alpha &= \frac{Nq^2 f}{2\varepsilon_0 m c}\;\frac{\gamma/2}{(\omega - \omega_0)^2 + (\gamma/2)^2} \\[5pt] n - 1 &= \frac{Nq^2 f}{4\varepsilon_0 m\,\omega_0}\;\frac{\omega_0 - \omega}{(\omega - \omega_0)^2 + (\gamma/2)^2} \end{aligned}</div></li>
     <li><p>Peak absorption and the extremes of n</p>
-      <div class="eq">α<sub>max</sub> = <i>Nq</i>²<i>f</i>/(ε₀<i>mc</i>γ),&emsp; <i>n</i><sub>max, min</sub> at ω₀ ∓ γ/2 where α = α<sub>max</sub>/2,&emsp; (<i>n</i> − 1)<sub>max</sub> = <i>Nq</i>²<i>f</i>/(4ε₀<i>m</i>ω₀γ)</div>
+      <div class="eq">\begin{aligned} \alpha_\text{max} &= \frac{Nq^2 f}{\varepsilon_0 m c\,\gamma} \\[5pt] \omega(n_\text{max}) &= \omega_0 - \frac{\gamma}{2} \\[5pt] \omega(n_\text{min}) &= \omega_0 + \frac{\gamma}{2} \\[5pt] \alpha\!\left(\omega_0 \pm \tfrac{\gamma}{2}\right) &= \frac{\alpha_\text{max}}{2} \\[5pt] (n - 1)_\text{max} &= \frac{Nq^2 f}{4\varepsilon_0 m\,\omega_0\gamma} \end{aligned}</div>
       <p class="note">The anomalous region is γ wide in ω, so the FWHM Δν wide in frequency; γ = 2πΔν.</p></li>
   </ol>
   <h3>Interfaces</h3>
-  <ol class="eqs" start="26">
+  <ol class="eqs" start="27">
     <li><p>Phase matching: law of reflection and Snell's law</p>
-      <div class="eq"><i>k<sub>I</sub></i> sin θ<sub>I</sub> = <i>k<sub>R</sub></i> sin θ<sub>R</sub> = <i>k<sub>T</sub></i> sin θ<sub>T</sub> &ensp;→&ensp; θ<sub>R</sub> = θ<sub>I</sub>,&emsp; <i>n</i>₁ sin θ<sub>I</sub> = <i>n</i>₂ sin θ<sub>T</sub></div></li>
+      <div class="eq">\begin{aligned} k_I\sin\theta_I &= k_R\sin\theta_R = k_T\sin\theta_T \\ \theta_R &= \theta_I \\ n_1\sin\theta_I &= n_2\sin\theta_T \end{aligned}</div></li>
     <li><p>Wave vectors</p>
-      <div class="eq"><b>k</b><sub>I</sub> = <i>n</i>₁<i>k</i>₀(sin θ<sub>I</sub>, 0, cos θ<sub>I</sub>),&emsp; <b>k</b><sub>R</sub> = <i>n</i>₁<i>k</i>₀(sin θ<sub>I</sub>, 0, −cos θ<sub>I</sub>),&emsp; <b>k</b><sub>T</sub> = <i>n</i>₂<i>k</i>₀(sin θ<sub>T</sub>, 0, cos θ<sub>T</sub>),&emsp; <i>k</i>₀ = 2π/λ₀ = ω/<i>c</i></div></li>
+      <div class="eq">\begin{aligned} \mathbf k_I &= n_1 k_0\,(\sin\theta_I,\ 0,\ \cos\theta_I) \\[5pt] \mathbf k_R &= n_1 k_0\,(\sin\theta_I,\ 0,\ -\cos\theta_I) \\[5pt] \mathbf k_T &= n_2 k_0\,(\sin\theta_T,\ 0,\ \cos\theta_T) \\[5pt] k_0 &= \frac{2\pi}{\lambda_0} = \frac{\omega}{c} \end{aligned}</div></li>
     <li><p>Fresnel equations in Griffiths' notation (μ₁ = μ₂)</p>
-      <div class="eq">α = cos θ<sub>T</sub>/cos θ<sub>I</sub>,&emsp; β = <i>n</i>₂/<i>n</i>₁;&emsp; s: <i>r<sub>s</sub></i> = (1 − αβ)/(1 + αβ),&emsp; <i>t<sub>s</sub></i> = 2/(1 + αβ);&emsp; p: <i>r<sub>p</sub></i> = (α − β)/(α + β),&emsp; <i>t<sub>p</sub></i> = 2/(α + β)</div>
-      <p class="note">p field directions: E<sub>I</sub> ∥ (cos θ<sub>I</sub>, 0, −sin θ<sub>I</sub>), E<sub>R</sub> ∥ (cos θ<sub>I</sub>, 0, sin θ<sub>I</sub>), E<sub>T</sub> ∥ (cos θ<sub>T</sub>, 0, −sin θ<sub>T</sub>); s: all along +ŷ. At 45° r<sub>p</sub> = −r<sub>s</sub>², so R<sub>p</sub> = R<sub>s</sub>² there (1.18 % and 10.85 % for n = 1.57).
-      For an absorbing medium 2 or total internal reflection the same formulas hold with complex ñ₂ and cos θ<sub>T</sub>.</p></li>
+      <div class="eq">\begin{aligned} \alpha &= \frac{\cos\theta_T}{\cos\theta_I} \\[5pt] \beta &= \frac{n_2}{n_1} \end{aligned}</div>
+      <div class="eq">\begin{aligned} r_s &= \frac{1 - \alpha\beta}{1 + \alpha\beta} & \qquad t_s &= \frac{2}{1 + \alpha\beta} \\[6pt] r_p &= \frac{\alpha - \beta}{\alpha + \beta} & \qquad t_p &= \frac{2}{\alpha + \beta} \end{aligned}</div>
+      <p class="note">p field directions: E<sub>I</sub> ∥ (cos θ<sub>I</sub>, 0, −sin θ<sub>I</sub>), E<sub>R</sub> ∥ (cos θ<sub>I</sub>, 0, sin θ<sub>I</sub>), E<sub>T</sub> ∥ (cos θ<sub>T</sub>, 0, −sin θ<sub>T</sub>); s: all along +ŷ. At 45° r<sub>p</sub> = −r<sub>s</sub>², so R<sub>p</sub> = R<sub>s</sub>² there (1.18 % and 10.85 % for n = 1.57). For an absorbing medium 2 or total internal reflection the same formulas hold with complex ñ₂ and cos θ<sub>T</sub>.</p></li>
     <li><p>Reflectance and transmittance</p>
-      <div class="eq"><i>R</i> = |<i>r</i>|²,&emsp; <i>T</i> = αβ|<i>t</i>|² (in general Re(<i>ñ</i>₂ cos θ<sub>T</sub>)/(<i>n</i>₁ cos θ<sub>I</sub>) |<i>t</i>|², with <i>ñ</i>₂* for p),&emsp; <i>R</i> + <i>T</i> = 1</div></li>
-    <li><p>Brewster's and the critical angle</p>
-      <div class="eq">tan θ<sub>B</sub> = <i>n</i>₂/<i>n</i>₁ (θ<sub>B</sub> + θ<sub>T</sub> = 90°, <i>r<sub>p</sub></i> = 0);&emsp; sin θ<sub>c</sub> = <i>n</i>₂/<i>n</i>₁;&emsp; beyond θ<sub>c</sub> the field in medium 2 decays as e<sup>−<i>z</i>/δ</sup>, δ = λ₀/(2π√(<i>n</i>₁² sin²θ<sub>I</sub> − <i>n</i>₂²))</div></li>
+      <div class="eq">\begin{aligned} R &= |r|^2 \\ T &= \alpha\beta\,|t|^2 \\ R + T &= 1 \end{aligned}</div>
+      <p class="note">In general T = Re(ñ₂ cos θ<sub>T</sub>)/(n₁ cos θ<sub>I</sub>) |t|², with ñ₂* for p.</p></li>
+    <li><p>Brewster's angle</p>
+      <div class="eq">\tan\theta_B = \frac{n_2}{n_1}</div>
+      <p class="note">At θ<sub>B</sub>, r<sub>p</sub> = 0 and θ<sub>B</sub> + θ<sub>T</sub> = 90°: the reflected light is purely s. Fresnel's sine and tangent forms show why:</p>
+      <div class="eq">\begin{aligned} r_s &= -\,\frac{\sin(\theta_I - \theta_T)}{\sin(\theta_I + \theta_T)} \\[6pt] r_p &= \frac{\tan(\theta_I - \theta_T)}{\tan(\theta_I + \theta_T)} \end{aligned}</div>
+      <p class="note">tan(θ<sub>I</sub> + θ<sub>T</sub>) grows without limit as θ<sub>I</sub> + θ<sub>T</sub> → 90°, so r<sub>p</sub> = 0 there and changes sign beyond; the sine never does, so r<sub>s</sub> is never zero. (This r<sub>p</sub> has Hecht's sign; Griffiths' is its negative.)</p></li>
+    <li><p>Critical angle and the evanescent wave</p>
+      <div class="eq">\sin\theta_c = \frac{n_2}{n_1} \qquad (n_1 > n_2)</div>
+      <div class="eq">\begin{aligned} E_T &\propto e^{-z/\delta} \\[5pt] \delta &= \frac{\lambda_0}{2\pi\sqrt{n_1^2\sin^2\theta_I - n_2^2}} \end{aligned}</div>
+      <p class="note">Beyond θ<sub>c</sub>, R<sub>s</sub> = R<sub>p</sub> = 1 and the field in medium 2 decays within about a wavelength.</p></li>
   </ol>
   <h3>Polarization in optics</h3>
-  <ol class="eqs" start="31">
+  <ol class="eqs" start="33">
     <li><p>Plates (incoherent multiple reflections, no absorption)</p>
-      <div class="eq">one plate: <i>T</i> = (1 − <i>R</i>)/(1 + <i>R</i>);&emsp; <i>N</i> plates: <i>T</i> = (1 − <i>R</i>)/(1 + (2<i>N</i> − 1)<i>R</i>);&emsp; <i>P</i> = (<i>T<sub>p</sub></i> − <i>T<sub>s</sub></i>)/(<i>T<sub>p</sub></i> + <i>T<sub>s</sub></i>)</div>
+      <div class="eq">\begin{aligned} T_\text{one plate} &= \frac{1 - R}{1 + R} \\[5pt] T_{N\ \text{plates}} &= \frac{1 - R}{1 + (2N - 1)R} \\[5pt] P &= \frac{T_p - T_s}{T_p + T_s} \end{aligned}</div>
       <p class="note">R is R<sub>s</sub> or R<sub>p</sub> of one surface. Reflected light: R′ = 1 − T and P = (R′<sub>s</sub> − R′<sub>p</sub>)/(R′<sub>s</sub> + R′<sub>p</sub>).</p></li>
     <li><p>Malus's law</p>
-      <div class="eq"><i>I</i> = <i>I</i>₀ cos²θ;&emsp; unpolarized light: <i>I</i> = <i>I</i>₀/2 after the first polarizer (the average of cos²θ is ½)</div></li>
+      <div class="eq">I = I_0\cos^2\theta</div>
+      <p class="note">Unpolarized light: I = I₀/2 after the first polarizer, because the average of cos²θ is ½.</p></li>
     <li><p>Turning polarizer between crossed polarizers</p>
-      <div class="eq">θ = ω<i>t</i> = 2π<i>ft</i>:&emsp; <i>I</i> = <i>I</i>₁ cos²θ sin²θ = (<i>I</i>₁/4) sin²2θ = (<i>I</i>₁/8)(1 − cos 4ω<i>t</i>)</div>
+      <div class="eq">\begin{aligned} \theta &= \omega t = 2\pi f t \\[5pt] I &= I_1\cos^2\theta\,\sin^2\theta \\[5pt] &= \frac{I_1}{4}\,\sin^2 2\theta \\[5pt] &= \frac{I_1}{8}\,\bigl(1 - \cos 4\omega t\bigr) \end{aligned}</div>
       <p class="note">I₁ is the intensity after the first polarizer; the output oscillates at 4f, four maxima per turn.</p></li>
     <li><p>Real polarizers (Jones matrix)</p>
-      <div class="eq"><b>J</b>(θ) = <b>p̂</b><b>p̂</b>ᵀ + √ε <b>b̂</b><b>b̂</b>ᵀ,&emsp; <b>p̂</b> = (cos θ, sin θ),&emsp; <b>b̂</b> = (−sin θ, cos θ)</div>
+      <div class="eq">\begin{aligned} \mathbf J(\theta) &= \hat{\mathbf p}\,\hat{\mathbf p}^{\mathsf T} + \sqrt{\varepsilon}\;\hat{\mathbf b}\,\hat{\mathbf b}^{\mathsf T} \\[5pt] \hat{\mathbf p} &= (\cos\theta,\ \sin\theta) \\[5pt] \hat{\mathbf b} &= (-\sin\theta,\ \cos\theta) \end{aligned}</div>
       <p class="note">Components along vertical and horizontal; ε is the intensity that leaks through for light polarized across the axis. Crossed real polarizers pass about εI₀ of unpolarized light I₀ (εI₀/2 by each of two paths).</p></li>
   </ol>
 </section>
@@ -1115,6 +1147,8 @@ const QUIZ = (function () {
 })();
 </script>
 
+<!-- KaTeX renders the equations. If it is missing, the page still works and shows the LaTeX source. -->
+<script src="vendor/katex/katex.min.js"></script>
 <script>
 "use strict";
 (function () {
@@ -1378,6 +1412,23 @@ function table(el, head, rows) {
 }
 
 /* ---------- questions ---------- */
+/* ---------- LaTeX: KaTeX if it loaded, the source text otherwise ---------- */
+const hasTex = () => typeof katex !== "undefined" && katex && typeof katex.render === "function";
+function texInto(el, src) {
+  el.dataset.done = "1";
+  if (hasTex()) { try { katex.render(src, el, { throwOnError: false, displayMode: true }); el.classList.remove("raw"); return; } catch (_) { /* fall through */ } }
+  el.textContent = src; el.classList.add("raw");
+}
+function renderStaticTex() { document.querySelectorAll(".eq").forEach(el => { if (!el.dataset.done) texInto(el, el.textContent.trim()); }); }
+// a number for LaTeX: plain, or mantissa \times 10^{n}
+function texNum(v, n) {
+  if (v === 0) return "0";
+  const a = Math.abs(v);
+  if (a >= 1e-3 && a < 1e5) return String(Number(v.toPrecision(n || 4)));
+  let ex = Math.floor(Math.log10(a)), man = Number((v / 10 ** ex).toPrecision(n || 4));
+  if (Math.abs(man) >= 10) { man = Number((man / 10).toPrecision(n || 4)); ex++; }
+  return `${man}\\times 10^{${ex}}`;
+}
 const subs = t => esc(t).replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>").replace(/-(?=\d)/g, "−");
 // each worked example: the question in the page, the answer and how to get it from QUIZ (computed by the core)
 function initAnswers() {
@@ -2131,11 +2182,12 @@ function iTables() {
   const pol = $("iVecPol").value;
   if (F.tir || F.absorbing) { $("iVec").innerHTML = `<p class="note">Written out for a real n₂ below the critical angle; here ${F.tir ? "the light is totally reflected" : "medium 2 absorbs"}.</p>`; return; }
   const V = interfaceVectors(n1, N2.re, IF.lam, IF.th, pol, E0), km = Math.max(...V.kT.map(Math.abs), ...V.kI.map(Math.abs)), ke = Math.floor(Math.log10(km)), ks = 10 ** ke;
-  const z0 = (c, d) => (Math.abs(c) < 1e-12 ? "0" : minus(String(Number(c.toFixed(d))))), kv = v => `(${v.map(c => z0(c / ks, 4)).join(", ")}) × 10${sup(ke)} rad/m`, uv = v => `(${v.map(c => z0(c, 4)).join(", ")})`;
-  const line = (sub, k, E) => `<div class="eq"><b>k</b><sub>${sub}</sub> = ${kv(k)},&emsp; <i>Ẽ</i><sub>${sub}</sub>(<b>r</b>, <i>t</i>) = ${fmtG(E.amp, 4)} V/m · ${uv(E.dir)} e<sup><i>i</i>(<b>k</b><sub>${sub}</sub>·<b>r</b> − ω<i>t</i>)</sup></div>`;
-  $("iVec").innerHTML = `<div class="eq">ω = 2πc/λ₀ = ${fmtG(V.omega, 4)} rad/s,&emsp; k₀ = ω/c = ${fmtG(V.k0, 4)} rad/m,&emsp; θ<sub>T</sub> = ${deg(F.thT)}</div>` +
-    line("I", V.kI, V.EI) + line("R", V.kR, V.ER) + line("T", V.kT, V.ET) +
-    `<p class="note">${pol === "p" ? "p: the unit vectors are Griffiths' directions for E<sub>I</sub>, E<sub>R</sub> and E<sub>T</sub> in the x–z plane, as in the diagrams; a negative amplitude means the field points the other way." : "s: every field points along ŷ, out of the page."} The physical field is the real part. Wave vectors share k<sub>x</sub> = n₁k₀ sin θ<sub>I</sub>: that is Snell's law.</p>`;
+  const z0 = (c, d) => (Math.abs(c) < 1e-12 ? "0" : String(Number(c.toFixed(d)))), kv = v => `(${v.map(c => z0(c / ks, 4)).join(",\\ ")})\\times 10^{${ke}}\\ \\text{rad/m}`, uv = v => `(${v.map(c => z0(c, 4)).join(",\\ ")})`;
+  const line = (sub, k, E) => `\\mathbf k_${sub} &= ${kv(k)} \\\\ \\tilde{\\mathbf E}_${sub}(\\mathbf r, t) &= ${texNum(E.amp, 4)}\\ \\text{V/m}\\cdot ${uv(E.dir)}\\, e^{i(\\mathbf k_${sub}\\cdot\\mathbf r - \\omega t)}`;
+  const src = `\\begin{aligned} \\omega &= 2\\pi c/\\lambda_0 = ${texNum(V.omega, 4)}\\ \\text{rad/s} \\\\ k_0 &= \\omega/c = ${texNum(V.k0, 4)}\\ \\text{rad/m} \\\\ \\theta_T &= ${F.thT.toFixed(2)}^\\circ \\\\[8pt] ` +
+    `${line("I", V.kI, V.EI)} \\\\[8pt] ${line("R", V.kR, V.ER)} \\\\[8pt] ${line("T", V.kT, V.ET)} \\end{aligned}`;
+  $("iVec").innerHTML = `<div class="eq" id="iVecEq"></div><p class="note">${pol === "p" ? "p: the unit vectors are Griffiths' directions for E<sub>I</sub>, E<sub>R</sub> and E<sub>T</sub> in the x–z plane, as in the diagrams; a negative amplitude means the field points the other way." : "s: every field points along ŷ, out of the page."} The physical field is the real part. Wave vectors share k<sub>x</sub> = n₁k₀ sin θ<sub>I</sub>: that is Snell's law.</p>`;
+  texInto($("iVecEq"), src);
 }
 function iUpdate() {
   setOpts($("iF"), [...(IF.m1 === "custom" ? ["c1"] : []), ...(IF.m2 === "custom" ? ["c2"] : [])]);
@@ -2355,6 +2407,7 @@ legend($("lLeg2"), [["field E", COL.k], ["electron x", COL.o]]);
 legend($("oLeg1"), [["p (in the page)", COL.p, null, "arrow"], ["s (out of the page)", COL.s, null, "odot"]]);
 legend($("oLeg2"), [["T<sub>s</sub>", COL.s], ["T<sub>p</sub>", COL.p], ["P, transmitted", COL.k], ["P, reflected", COL.k, "6 3"]]);
 [wF, vF, vS, nF, nP, pF, pG, cF, cM, lF, lD, iF, oF, zF].forEach(f => f.write());
+renderStaticTex();
 initAnswers();
 wUpdate(); vDrawAll(); vCalc(); nUpdate(); nCauchy(); drawPrism();
 pUpdate(); pAnimA.t = PS.t0; pDrawA();

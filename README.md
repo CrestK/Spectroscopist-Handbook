@@ -21,7 +21,7 @@ one domain. The originals stay in their own repositories and on their own sites.
 | `advanced-optics/` | Advanced optics: interactive examples | made here, with its README and tests | — |
 | `exam-scan/` | Exam scan check | made here: a browser port of `check_scan.py` and `rotate_pdf.py`, with its README and tests | — |
 
-Each copy holds only what the page needs to run (its `index.html`, scripts, and for Franck–Condon the bundled KaTeX),
+Each copy holds only what the page needs to run (its `index.html`, scripts, and for Franck–Condon and advanced optics the bundled KaTeX),
 plus its tests where the original has them. READMEs, CNAME files and `package.json` stay in the originals; the Lorentz
 oscillator, SHG narrowing and advanced optics pages have no repository of their own, so their READMEs (model, references, test numbers) are kept in their folders. The copies
 are not edited, so they keep the look of the original pages, and the focal overlap and game pages still load their web
@@ -76,8 +76,8 @@ The empty `.nojekyll` file tells Pages to serve the files as they are instead of
 | `franck-condon/`, `focal-overlap/`, `overlap-game/`, `screensaver/`, `solvent-subtraction/`, `lorentz-explorer/`, `shg-narrowing/`, `advanced-optics/`, `exam-scan/` | the pages |
 | `tests/validate.mjs` | checks the home page, the previews, the copies and every text file in the repository |
 
-The home page is 11.1 KB and the nine previews 43.2 KB; the pages are about 4.0 MB, most of it pdf.js in
-`exam-scan/vendor/` (2.4 MB) and KaTeX in `franck-condon/vendor/`.
+The home page is 11.1 KB and the nine previews 43.2 KB; the pages are about 4.5 MB, most of it pdf.js in
+`exam-scan/vendor/` (2.4 MB) and KaTeX in `franck-condon/vendor/` and `advanced-optics/vendor/`.
 
 ## Tests
 
@@ -91,8 +91,8 @@ node tests/validate.mjs --quick    # under 0.1 s, without the copied pages' own 
 - All 9 entries have a unique id matching their folder, and their preview and title link to `<folder>/index.html`.
 - All 18 local links on the home page resolve; the 8 remote links are https. The home page loads nothing from
   elsewhere (no scripts, stylesheets or remote images).
-- Every page folder has its `index.html` and no CNAME, and all 28 local references (scripts, modules, stylesheets, images, and one font
-  file for each of KaTeX's 20 `@font-face` rules, which list woff2, woff and ttf as fallbacks; only woff2 is shipped)
+- Every page folder has its `index.html` and no CNAME, and all 50 local references (scripts, modules, stylesheets, images, and one font
+  file for each of the 20 `@font-face` rules in each copy of KaTeX, which list woff2, woff and ttf as fallbacks; only woff2 is shipped)
   exist.
 - No text file in the repository (29 files, pages included; third-party files in `vendor/` folders are left out, and
   pdf.js is checked by its hashes in `exam-scan/tests`) holds an email address, a local file path, a file URL or a
