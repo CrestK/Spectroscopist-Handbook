@@ -23,7 +23,7 @@ axes, ideal or leaking polarizers, a turning middle polarizer. Everything recalc
 
 - Waves: a diagram of how f, ω, T, k, λ and v are related (ω = 2πf, ωT = 2π, fT = 1, kv = ω, vT = λ, kλ = 2π) that
   shades the quantities a change moved; under it the converter, the vacuum wavelength, wavenumber in cm⁻¹ and photon
-  energy for light, and an animated wave along z and at one point in time, drawn against the wave before the last
+  energy for light, the formulas that go directly from λ, f, ω, k or ν̃ to the others, and an animated wave along z and at one point in time, drawn against the wave before the last
   change, with one wavelength and one period marked. Then a snapshot D(z), a history graph D(t) at one point and the
   phasor in the complex plane, all moving, and a table of T, f, ω, λ₀, v, λ and k.
 - Light in vacuum: E and B along the beam in 3D and an end view of E; intensity, E₀, B₀, energy density, radiation
@@ -113,7 +113,8 @@ node tests/validate.mjs     # well under 1 s
 - Converter: after every edit ω = 2πf, ωT = 2π, fT = 1, kv = ω, vT = λ and kλ = 2π hold to 2 × 10⁻¹⁶; a new
   refractive index keeps f and gives λ = 532 nm/1.57 = 338.854 nm, a new wavelength keeps v; 532 nm light is 563.52 THz,
   18797 cm⁻¹ and 2.33053 eV.
-- All 51 equations parse in the bundled KaTeX.
+- All 57 equations parse in the bundled KaTeX, and the handy numbers for light (10⁷/λ₀[nm] in cm⁻¹, 0.029979 THz per
+  cm⁻¹, 1239.84 eV nm, 8065.54 cm⁻¹ per eV) match the constants of the core.
 - Waves and sources: λ = cT/n, the harmonic wave and the Gaussian pulse satisfy the wave equation to 1.4 × 10⁻⁷, the
   phasor turns clockwise along +z; sunlight 1361 W/m² gives E₀ = 1012.65 V/m and 25 V/m gives 0.82951 W/m²; the Gaussian
   beam and pulse peak factors integrate back to P and E; circular polarization keeps |E| constant.

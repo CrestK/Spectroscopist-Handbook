@@ -282,9 +282,11 @@ const e = v => v.toExponential(1);
     st = c.waveSolve(st, k, x); for (const r of rels(st)) worst = Math.max(worst, Math.abs(r - 1));
     if (Math.abs(st[k] / x - 1) > 1e-14) worst = 1;
   }
-  check("22 converter: ω = 2πf, ωT = 2π, fT = 1, kv = ω, vT = λ, kλ = 2π after every edit; a new n keeps f, a new λ keeps v; 532 nm is 563.52 THz, 18797 cm⁻¹, 2.3305 eV",
+  check("22 converter: ω = 2πf, ωT = 2π, fT = 1, kv = ω, vT = λ, kλ = 2π after every edit; a new n keeps f, a new λ keeps v; 532 nm is 563.52 THz, 18797 cm⁻¹, 2.3305 eV; the handy numbers for light match the constants",
     worst < 1e-14 && Math.abs(glass.f / s0.f - 1) < 1e-15 && Math.abs(glass.lam / (532e-9 / 1.57) - 1) < 1e-14 && Math.abs(blue.v / glass.v - 1) < 1e-15
-    && Math.abs(s0.f / 1e12 - 563.52) < 0.01 && Math.abs(L.nu - 18797.0) < 0.1 && Math.abs(L.eV - 2.33053) < 1e-5,
+    && Math.abs(s0.f / 1e12 - 563.52) < 0.01 && Math.abs(L.nu - 18797.0) < 0.1 && Math.abs(L.eV - 2.33053) < 1e-5
+    && Math.abs(c.C0 * 100 / 1e12 - 0.029979) < 5e-7 && Math.abs(c.HP * c.C0 / c.QE * 1e9 - 1239.84) < 0.005 && Math.abs(c.QE / (c.HP * c.C0 * 100) - 8065.54) < 0.005
+    && ["0.029979", "1239.84", "8065.54", "10^{7}"].every(x => html.includes(x)),
     `worst relation error ${e(worst + 1e-30)}, λ in glass ${g(glass.lam * 1e9, 6)} nm, f ${g(s0.f / 1e12, 6)} THz, ${g(L.nu, 6)} cm⁻¹, ${g(L.eV, 6)} eV`);
 }
 

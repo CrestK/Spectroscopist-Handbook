@@ -67,6 +67,8 @@
   #cvDiag .edge { stroke: #777; stroke-width: 2; fill: none; }
   .conv { display: grid; grid-template-columns: max-content 11em max-content; gap: 6px 10px; align-items: center; margin-block: 8px; }
   .conv input[type=number] { width: 100%; box-sizing: border-box; }
+  .convEq { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 0 28px; max-width: 940px; }
+  .convEq .eqh { font-weight: 600; font-size: 14px; margin: 10px 0 0; }
   .anim { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin: 6px 0; }
   .anim input[type=range] { flex: 1 1 160px; max-width: 360px; }
   button.play { min-width: 5.2em; }
@@ -143,6 +145,17 @@ the bottom.</p>
   </div>
   <p id="cvErr" class="error" role="alert" hidden></p>
   <div class="tablewrap tw"><table id="cvTable"></table></div>
+  <p class="caption">Going from one quantity straight to the others. v is the phase velocity: c in vacuum, c/n in a
+  medium. λ₀ is the vacuum wavelength and ν̃ = 1/λ₀ the wavenumber used in spectroscopy, which, like f, does not change
+  in a medium.</p>
+  <div class="convEq">
+    <div><p class="eqh">From the wavelength λ</p><div class="eq">\begin{aligned} f &= \frac{v}{\lambda} \\[5pt] \omega &= \frac{2\pi v}{\lambda} \\[5pt] k &= \frac{2\pi}{\lambda} \\[5pt] T &= \frac{\lambda}{v} \end{aligned}</div></div>
+    <div><p class="eqh">From the frequency f</p><div class="eq">\begin{aligned} \lambda &= \frac{v}{f} \\[5pt] \omega &= 2\pi f \\[5pt] k &= \frac{2\pi f}{v} \\[5pt] T &= \frac{1}{f} \end{aligned}</div></div>
+    <div><p class="eqh">From the angular frequency ω</p><div class="eq">\begin{aligned} \lambda &= \frac{2\pi v}{\omega} \\[5pt] f &= \frac{\omega}{2\pi} \\[5pt] k &= \frac{\omega}{v} \\[5pt] T &= \frac{2\pi}{\omega} \end{aligned}</div></div>
+    <div><p class="eqh">From the wave number k</p><div class="eq">\begin{aligned} \lambda &= \frac{2\pi}{k} \\[5pt] f &= \frac{kv}{2\pi} \\[5pt] \omega &= kv \\[5pt] T &= \frac{2\pi}{kv} \end{aligned}</div></div>
+    <div><p class="eqh">From the wavenumber ν̃ (light)</p><div class="eq">\begin{aligned} \lambda_0 &= \frac{1}{\tilde\nu} \\[5pt] \lambda &= \frac{1}{n\,\tilde\nu} \\[5pt] f &= c\,\tilde\nu \\[5pt] \omega &= 2\pi c\,\tilde\nu \\[5pt] k &= 2\pi n\,\tilde\nu \end{aligned}</div></div>
+    <div><p class="eqh">Handy numbers for light</p><div class="eq">\begin{aligned} \tilde\nu\ [\text{cm}^{-1}] &= \frac{10^{7}}{\lambda_0\ [\text{nm}]} \\[5pt] f\ [\text{THz}] &= 0.029979\;\tilde\nu\ [\text{cm}^{-1}] \\[5pt] E\ [\text{eV}] &= \frac{1239.84}{\lambda_0\ [\text{nm}]} \\[5pt] E\ [\text{eV}] &= \frac{\tilde\nu\ [\text{cm}^{-1}]}{8065.54} \end{aligned}</div></div>
+  </div>
   <h3>The wave</h3>
   <div class="anim">
     <button type="button" class="play" id="cvPlay">Pause</button>
