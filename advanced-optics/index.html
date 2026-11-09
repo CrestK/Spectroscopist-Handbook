@@ -51,6 +51,22 @@
   ol.eqs > li > p:first-child { font-weight: 600; margin-bottom: 2px; }
   .toc ol { columns: 2 24em; column-gap: 32px; margin: 0; padding-left: 1.6em; max-width: 100ch; }
   .toc li { margin-block: 2px; break-inside: avoid; }
+  .diagbox { max-width: 700px; }
+  #cvDiag { display: block; width: 100%; height: auto; }
+  #cvDiag .box { fill: #fff; stroke: #000; stroke-width: 1.5; }
+  #cvDiag .box.changed { fill: #e6e6e6; }
+  #cvDiag .box.edited { stroke-width: 3.2; }
+  #cvDiag .node { cursor: pointer; }
+  #cvDiag .node:hover .box { stroke-width: 2.4; }
+  #cvDiag .node:focus { outline: none; }
+  #cvDiag .node:focus-visible .box { stroke-width: 3.2; stroke-dasharray: 4 3; }
+  #cvDiag .sym { font: italic 36px "Times New Roman", Times, serif; }
+  #cvDiag .rel { font: 24px "Times New Roman", Times, serif; }
+  #cvDiag .it { font-style: italic; }
+  #cvDiag .name { font: 19px system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; fill: #444; }
+  #cvDiag .edge { stroke: #777; stroke-width: 2; fill: none; }
+  .conv { display: grid; grid-template-columns: max-content 11em max-content; gap: 6px 10px; align-items: center; margin-block: 8px; }
+  .conv input[type=number] { width: 100%; box-sizing: border-box; }
   .anim { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin: 6px 0; }
   .anim input[type=range] { flex: 1 1 160px; max-width: 360px; }
   button.play { min-width: 5.2em; }
@@ -70,6 +86,9 @@
     th, td { padding: 3px 4px; }
     dl.defs { grid-template-columns: minmax(0, 1fr); gap: 2px; }
     dl.defs dd { margin-bottom: 8px; }
+    #cvDiag .name { font-size: 22px; }
+    .conv { grid-template-columns: minmax(0, 1fr) max-content; }
+    .conv label { grid-column: 1 / -1; margin-top: 4px; }
   }
   :focus-visible { outline: 2px solid #000; outline-offset: 2px; }
   [hidden] { display: none !important; }
@@ -85,7 +104,7 @@ the bottom.</p>
 <noscript><p class="error">This page needs JavaScript.</p></noscript>
 <nav class="toc" aria-label="Contents">
   <ol>
-    <li><a href="#waves">Waves, pulses and phasors</a></li>
+    <li><a href="#waves">Waves: f, ω, T, k, λ and v; pulses and phasors</a></li>
     <li><a href="#vacuum">Light in vacuum: E, B, intensity, polarization</a></li>
     <li><a href="#index">Refractive index of real glasses</a></li>
     <li><a href="#pulses">Pulses in glass: group velocity and dispersion</a></li>
@@ -105,6 +124,34 @@ the bottom.</p>
   For a harmonic wave the source sets the period T, the medium sets the speed v = c/n, and together they fix the
   wavelength λ = vT and the wavenumber k = 2π/λ. Press Play and compare the snapshot (the whole wave at one time), the
   history graph (one point over time) and the phasor (the turning complex number whose real part is the wave).</p>
+  <h3>How f, ω, T, k, λ and v are related</h3>
+  <div class="diagbox"><svg id="cvDiag" viewBox="0 0 680 370" role="img" aria-label="Diagram: frequency, angular frequency and period on the left, wave number and wavelength on the right, the speed in the middle, and the six relations between them"></svg></div>
+  <p class="caption">The source sets the frequency, so f, ω and T change together (left). The medium sets the phase velocity
+  v = c/n (middle). The wave number k and the wavelength λ (right) follow from both: kv = ω and vT = λ. Click a
+  quantity to edit it in the converter; after an edit the shaded boxes are the quantities that changed.</p>
+  <h3>Converter</h3>
+  <p class="note">Type in any box (5e14 style works) and choose its unit. A new source (f, ω or T) or a new medium (v or n)
+  keeps the other one and moves k and λ; a new k or λ keeps the medium and moves the frequency.</p>
+  <div class="conv" id="cvF"></div>
+  <div class="row">
+    <span class="note">Examples:</span>
+    <button type="button" data-cvpre="green">532 nm laser</button>
+    <button type="button" data-cvpre="glass">Into glass (n = 1.57)</button>
+    <button type="button" data-cvpre="ti">800 nm Ti:sapphire</button>
+    <button type="button" data-cvpre="wifi">2.4 GHz Wi-Fi</button>
+    <button type="button" data-cvpre="sound">440 Hz sound in air</button>
+  </div>
+  <p id="cvErr" class="error" role="alert" hidden></p>
+  <div class="tablewrap tw"><table id="cvTable"></table></div>
+  <h3>The wave</h3>
+  <div class="anim">
+    <button type="button" class="play" id="cvPlay">Pause</button>
+    <span class="note">Slowed down: one period of the current wave every 2 s.</span>
+  </div>
+  <div class="legend" id="cvLeg"></div>
+  <div class="plotbox" id="cvWaveBox"><canvas id="cvWave" role="img" aria-label="The wave along z and at one point over time, now and before the last change"></canvas></div>
+  <p class="caption" id="cvWaveCap"></p>
+  <h3>Snapshots, history graphs and phasors</h3>
   <div class="row">
     <label for="wShape">Wave</label>
     <select id="wShape">
@@ -826,6 +873,23 @@ function waveParams(Tfs, n) {
 function harmonic(z, t, A, k, omega, phi0, dir) { return A * Math.cos(k * z - dir * omega * t + phi0); }
 function phasor(z, t, A, k, omega, phi0, dir) { return cscale(cexpi(k * z - dir * omega * t + phi0), A); }
 function gaussPulse(s, w) { return Math.exp(-4 * LN2 * s * s / (w * w)); }   // FWHM w
+
+/* the wave quantities, SI: the source sets f, ω = 2πf and T = 1/f; the medium sets v and n = c/v;
+   λ = v/f and k = 2π/λ follow from both */
+const WAVE_GROUP = { f: "source", omega: "source", T: "source", v: "medium", n: "medium", k: "space", lam: "space" };
+function waveSource(key, x) { const f = key === "f" ? x : key === "omega" ? x / (2 * Math.PI) : 1 / x; return { f, omega: 2 * Math.PI * f, T: 1 / f }; }
+function waveMedium(key, x) { const v = key === "v" ? x : C0 / x; return { v, n: C0 / v }; }
+function waveSpace(key, x) { const lam = key === "lam" ? x : 2 * Math.PI / x; return { lam, k: 2 * Math.PI / lam }; }
+function waveFrom(f, v) { return Object.assign(waveSource("f", f), waveMedium("v", v), waveSpace("lam", v / f)); }
+// one quantity changes: a new source or a new medium keeps the other and moves λ and k; a new λ or k keeps the medium and moves f
+function waveSolve(st, key, x) {
+  const g = WAVE_GROUP[key];
+  if (g === "source") return waveFrom(waveSource(key, x).f, st.v);
+  if (g === "medium") return waveFrom(st.f, waveMedium(key, x).v);
+  return waveFrom(st.v / waveSpace(key, x).lam, st.v);
+}
+// for light: vacuum wavelength, spectroscopic wavenumber 1/λ0 (cm⁻¹) and photon energy (eV)
+function waveLight(st) { const lam0 = C0 / st.f; return { lam0, nu: 0.01 / lam0, eV: HP * st.f / QE }; }
 
 /* ---------- 2. light in vacuum ---------- */
 function intensityFromField(E0, n) { return 0.5 * (n || 1) * C0 * EPS0 * E0 * E0; }
@@ -1583,6 +1647,144 @@ document.querySelectorAll("[data-wpre]").forEach(b => b.addEventListener("click"
 }));
 hoverable($("wSnap"), () => wDrawSnap());
 onResize($("wSnapBox"), () => wDraw());
+
+/* ===================================================================== 1a. f, ω, T, k, λ, v: diagram, converter, wave */
+const CV_FIELDS = [
+  { key: "f", label: "<i>f</i>, frequency", units: [["Hz", 1], ["kHz", 1e3], ["MHz", 1e6], ["GHz", 1e9], ["THz", 1e12], ["PHz", 1e15]] },
+  { key: "omega", label: "ω, angular frequency", units: [["rad/s", 1], ["rad/µs", 1e6], ["rad/ns", 1e9], ["rad/ps", 1e12], ["rad/fs", 1e15]] },
+  { key: "T", label: "<i>T</i>, period", units: [["s", 1], ["ms", 1e-3], ["µs", 1e-6], ["ns", 1e-9], ["ps", 1e-12], ["fs", 1e-15]] },
+  { key: "v", label: "<i>v</i>, phase velocity", units: [["m/s", 1], ["km/s", 1e3]] },
+  { key: "n", label: "<i>n</i> = <i>c</i>/<i>v</i>, refractive index", units: null },
+  { key: "k", label: "<i>k</i>, wave number", units: [["rad/m", 1], ["rad/cm", 1e2], ["rad/mm", 1e3], ["rad/µm", 1e6], ["rad/nm", 1e9]] },
+  { key: "lam", label: "λ, wavelength", units: [["km", 1e3], ["m", 1], ["cm", 1e-2], ["mm", 1e-3], ["µm", 1e-6], ["nm", 1e-9]] },
+];
+const CV_NAME = { f: "f", omega: "ω", T: "T", v: "v", n: "n", k: "k", lam: "λ" };
+const CV = { s: waveFrom(C0 / 532e-9, C0), prev: null, base: null, edited: null, unit: { f: "THz", omega: "rad/fs", T: "fs", v: "m/s", k: "rad/µm", lam: "nm" } };
+CV.prev = CV.s;
+const cvUnit = key => { const F = CV_FIELDS.find(x => x.key === key); return F.units ? F.units.find(([u]) => u === CV.unit[key])[1] : 1; };
+const cvFmt = x => { const a = Math.abs(x); return a !== 0 && (a >= 1e6 || a < 1e-3) ? x.toExponential(4).replace(/\.?0+e/, "e").replace("e+", "e") : String(Number(x.toPrecision(6))); };
+const cvShow = (key, v) => `${fmtG(v / cvUnit(key), 4)}${CV.unit[key] ? " " + CV.unit[key] : ""}`;
+for (const F of CV_FIELDS) {
+  $("cvF").insertAdjacentHTML("beforeend", `<label for="cv_${F.key}">${F.label}</label><input type="number" id="cv_${F.key}" step="any" autocomplete="off">` +
+    (F.units ? `<select id="cvu_${F.key}" aria-label="unit">${F.units.map(([u]) => `<option${u === CV.unit[F.key] ? " selected" : ""}>${u}</option>`).join("")}</select>` : `<span class="unit"></span>`));
+}
+function cvWrite(except) { for (const F of CV_FIELDS) if (F.key !== except) { const el = $("cv_" + F.key); el.value = cvFmt(CV.s[F.key] / cvUnit(F.key)); el.removeAttribute("aria-invalid"); } }
+function cvEdit(key, show) {
+  const el = $("cv_" + key), x = Number(el.value) * cvUnit(key), ok = el.value.trim() !== "" && Number.isFinite(x) && x > 0;
+  if (!ok) { el.setAttribute("aria-invalid", "true"); if (show) { $("cvErr").textContent = `${CV_NAME[key]} must be a positive number.`; $("cvErr").hidden = false; } return; }
+  el.removeAttribute("aria-invalid"); $("cvErr").hidden = true;
+  CV.prev = CV.base || CV.s; CV.s = waveSolve(CV.s, key, x); CV.edited = key;
+  cvWrite(key); cvRender();
+}
+// pick a unit that puts each value between 1 and 1000 (the speed keeps its unit)
+function cvAutoUnits() {
+  for (const F of CV_FIELDS) {
+    if (!F.units || F.key === "v") continue;
+    const us = F.units.slice().sort((a, b) => b[1] - a[1]), v = CV.s[F.key];
+    CV.unit[F.key] = (us.find(([, f]) => v / f >= 0.9999) || us[us.length - 1])[0];
+    $("cvu_" + F.key).value = CV.unit[F.key];
+  }
+}
+function cvDiagram() {
+  const N = { f: [100, 185], omega: [270, 95], T: [270, 275], v: [420, 185], k: [570, 95], lam: [570, 275] };
+  const SYM = { f: "f", omega: "ω", T: "T", v: "v", k: "k", lam: "λ" };
+  const NAME = { f: ["frequency", 100, 242, "middle"], omega: ["angular frequency", 270, 52, "middle"], T: ["period", 270, 334, "middle"],
+    v: ["phase", 464, 181, "start"], v2: ["velocity", 464, 203, "start"], k: ["wave number", 570, 52, "middle"], lam: ["wavelength", 570, 334, "middle"] };
+  const rel = (txt, x, y, anchor) => `<text class="rel" x="${x}" y="${y}" text-anchor="${anchor || "middle"}">${txt.replace(/([A-Za-zωλ])/g, '<tspan class="it">$1</tspan>')}</text>`;
+  const dbl = (x1, y1, x2, y2) => `<line class="edge" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" marker-start="url(#cvArr)" marker-end="url(#cvArr)"/>`;
+  let h = '<defs><marker id="cvArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#666"/></marker></defs>';
+  h += dbl(140.4, 163.7, 229.6, 116.3) + dbl(140.4, 206.3, 229.6, 253.7) + dbl(270, 129, 270, 241) + dbl(570, 129, 570, 241);
+  h += '<path class="edge" d="M 532 113 C 490 160, 350 160, 311 115" marker-end="url(#cvArr)"/>';
+  h += '<path class="edge" d="M 309 262 C 350 214, 490 214, 529 260" marker-end="url(#cvArr)"/>';
+  h += rel("ω = 2πf", 166, 120) + rel("fT = 1", 168, 271) + rel("ωT = 2π", 258, 193, "end") + rel("kλ = 2π", 584, 193, "start") + rel("kv = ω", 420, 84) + rel("vT = λ", 420, 318);
+  for (const [k, [x, y]] of Object.entries(N)) h += `<g class="node" data-k="${k}" tabindex="0" role="button" aria-label="${k === "v" ? "phase velocity" : NAME[k][0]}, edit it in the converter"><rect class="box" id="cvBox_${k}" x="${x - 36}" y="${y - 29}" width="72" height="58" rx="10"/><text class="sym" x="${x}" y="${y + 12}" text-anchor="middle">${SYM[k]}</text></g>`;
+  for (const [, [t, x, y, a]] of Object.entries(NAME)) h += `<text class="name" x="${x}" y="${y}" text-anchor="${a}">${t}</text>`;
+  $("cvDiag").innerHTML = h;
+  $("cvDiag").querySelectorAll(".node").forEach(g => {
+    const go = () => { const el = $("cv_" + g.dataset.k); el.focus(); el.select(); };
+    g.addEventListener("click", go);
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
+}
+function cvMark() {
+  for (const k of ["f", "omega", "T", "v", "k", "lam"]) {
+    const box = $("cvBox_" + k), changed = CV.prev && Math.abs(CV.s[k] / CV.prev[k] - 1) > 1e-9;
+    box.classList.toggle("changed", !!changed);
+    box.classList.toggle("edited", CV.edited === k || (CV.edited === "n" && k === "v"));
+  }
+}
+function cvTable() {
+  const L = waveLight(CV.s);
+  table($("cvTable"), ["for light", "value"], [["Vacuum wavelength λ₀ = c/f", fmtLen(L.lam0, 5)], ["Wavenumber ν̃ = 1/λ₀, as in spectroscopy", `${fmtG(L.nu, 5)} cm⁻¹`],
+    ["Photon energy hf", `${fmtG(L.eV, 5)} eV`], ["Wavelength in the medium λ = λ₀/n", fmtLen(CV.s.lam, 5)]]);
+}
+function cvCaption() {
+  const s = CV.s, p = CV.prev, keys = ["f", "v", "lam"], same = k => Math.abs(s[k] / p[k] - 1) < 1e-9;
+  if (!p || keys.every(same)) {
+    $("cvWaveCap").innerHTML = "The wave for the values above. The orange brackets mark one wavelength (top) and one period (bottom); the top bracket rides a crest, which moves at the phase velocity v. Change a value to compare with the wave before the change (grey dashed).";
+    return;
+  }
+  const parts = keys.map(k => (same(k) ? `${CV_NAME[k]} stays ${cvShow(k, s[k])}` : `${CV_NAME[k]} goes from ${cvShow(k, p[k])} to ${cvShow(k, s[k])}`));
+  const g = WAVE_GROUP[CV.edited];
+  const why = g === "source" ? " A new source: the history at one point (bottom) runs faster or slower, and in the same medium the wavelength follows."
+    : g === "medium" ? " A new medium: the frequency is set by the source and stays, so the bottom keeps its period while the wave squeezes or stretches along z."
+    : g === "space" ? " A new wavelength in the same medium: the frequency has to follow, f = v/λ." : "";
+  $("cvWaveCap").innerHTML = `Black: now; grey dashed: before the last change. ${parts.join("; ")}.${why}`;
+}
+const cvAnim = anim({ host: $("cvWaveBox"), button: $("cvPlay"), rate: () => 1, draw: () => cvDrawWave() });
+function cvBracket(ctx, x1, x2, y, text) {
+  const xm = (x1 + x2) / 2;
+  arrow(ctx, xm, y, x1, y, COL.o, 1.5, 7); arrow(ctx, xm, y, x2, y, COL.o, 1.5, 7);
+  label(ctx, text, xm, y - 10, COL.o, "center");
+}
+function cvDrawWave() {
+  const box = $("cvWaveBox"), cv = $("cvWave"), H = 360, { ctx, W: Wd } = prepCanvas(box, cv, H);
+  const s = CV.s, p = CV.prev || CV.s, t = cvAnim.t * s.T / 2;
+  const rl = Math.max(s.lam, p.lam) / Math.min(s.lam, p.lam), rt = Math.max(s.T, p.T) / Math.min(s.T, p.T);
+  const prevZ = rl > 1 + 1e-9 && rl <= 12, prevT = rt > 1 + 1e-9 && rt <= 12, oscPrev = prevZ || prevT;
+  const Z = 3 * (prevZ ? Math.max(s.lam, p.lam) : s.lam), [zu, zn] = unitFor(Z, LEN);
+  const Tw = 3 * (prevT ? Math.max(s.T, p.T) : s.T), [tu, tn] = unitFor(Tw, TIME);
+  const L = Wd < 480 ? 46 : 56, R = Wd - 12, nz = Math.min(4000, Math.max(600, Math.ceil(60 * Z / Math.min(s.lam, prevZ ? p.lam : s.lam))));
+  const xs = [], ys = [], yp = [];
+  for (let i = 0; i <= nz; i++) { const z = Z * i / nz; xs.push(z / zu); ys.push(Math.cos(s.k * z - s.omega * t)); yp.push(Math.cos(p.k * z - p.omega * t)); }
+  const P1 = pane(ctx, { L, R, T: 22, B: 160, x: { lo: 0, hi: Z / zu, label: `z (${zn})` }, y: { lo: -1.25, hi: 1.75, label: "D(z, t)", every: 30 },
+    series: [...(oscPrev ? [{ x: xs, y: yp, color: COL.g, dash: [5, 4], w: 1.4 }] : []), { x: xs, y: ys, color: COL.k, w: 1.8 }] });
+  label(ctx, "along z at one instant", L + 4, 10, COL.dg);
+  const ph = s.omega * t / (2 * Math.PI), z1 = s.lam * (Math.ceil(-ph) + ph);
+  ctx.strokeStyle = COL.o; ctx.setLineDash([2, 3]); ctx.lineWidth = 1;
+  for (const z of [z1, z1 + s.lam]) { const x = P1.xm(z / zu); ctx.beginPath(); ctx.moveTo(x, P1.ym(1)); ctx.lineTo(x, P1.ym(1.32)); ctx.stroke(); }
+  ctx.setLineDash([]);
+  dot(ctx, P1.xm(z1 / zu), P1.ym(1), COL.o, 4);
+  cvBracket(ctx, P1.xm(z1 / zu), P1.xm((z1 + s.lam) / zu), P1.ym(1.32), `λ = ${cvShow("lam", s.lam)}`);
+  const xt = [], yt = [], ytp = [];
+  for (let i = 0; i <= 600; i++) { const tt = t - Tw + Tw * i / 600; xt.push(tt / tu); yt.push(Math.cos(s.omega * tt)); ytp.push(Math.cos(p.omega * tt)); }
+  const P2 = pane(ctx, { L, R, T: 214, B: H - 40, x: { lo: (t - Tw) / tu, hi: t / tu, label: `t (${tn})` }, y: { lo: -1.25, hi: 1.75, label: "D(0, t)", every: 30 },
+    series: [...(oscPrev ? [{ x: xt, y: ytp, color: COL.g, dash: [5, 4], w: 1.4 }] : []), { x: xt, y: yt, color: COL.k, w: 1.8 }] });
+  label(ctx, "at z = 0 over time", L + 4, 202, COL.dg);
+  const t1 = Math.ceil((t - Tw) / s.T + 1e-9) * s.T;
+  ctx.strokeStyle = COL.o; ctx.setLineDash([2, 3]);
+  for (const tt of [t1, t1 + s.T]) { const x = P2.xm(tt / tu); ctx.beginPath(); ctx.moveTo(x, P2.ym(1)); ctx.lineTo(x, P2.ym(1.32)); ctx.stroke(); }
+  ctx.setLineDash([]);
+  cvBracket(ctx, P2.xm(t1 / tu), P2.xm((t1 + s.T) / tu), P2.ym(1.32), `T = ${cvShow("T", s.T)}`);
+  if (CV.prev && !oscPrev && (rl > 12 || rt > 12)) label(ctx, "(the earlier wave is too different to draw on the same axes)", R, 10, COL.dg, "right");
+}
+function cvRender() { cvMark(); cvTable(); cvCaption(); cvDrawWave(); }
+const CV_PRE = {
+  green: () => waveFrom(C0 / 532e-9, C0), glass: () => waveSolve(CV.s, "n", 1.57), ti: () => waveFrom(C0 / 800e-9, C0),
+  wifi: () => waveFrom(2.4e9, C0), sound: () => waveFrom(440, 343),
+};
+for (const F of CV_FIELDS) {
+  const el = $("cv_" + F.key);
+  el.addEventListener("focus", () => { CV.base = CV.s; });
+  el.addEventListener("input", () => cvEdit(F.key, false));
+  el.addEventListener("change", () => { cvEdit(F.key, true); CV.base = CV.s; });
+  if (F.units) $("cvu_" + F.key).addEventListener("change", () => { CV.unit[F.key] = $("cvu_" + F.key).value; cvWrite(); cvRender(); });
+}
+document.querySelectorAll("[data-cvpre]").forEach(b => b.addEventListener("click", () => {
+  CV.prev = CV.s; CV.s = CV_PRE[b.dataset.cvpre](); CV.edited = b.dataset.cvpre === "glass" ? "n" : null;
+  cvAutoUnits(); cvWrite(); cvRender();
+}));
+onResize($("cvWaveBox"), () => cvDrawWave());
 
 /* ===================================================================== 2. light in vacuum */
 const V = { pol: "lin", psi: 0, ratio: 0.5, delta: 90, src: "field", E0: 25, I: 1361, P: 0.005, d: 1, Ep: 1e-3, tau: 100, rep: 1000, r: 2, lam: 600 };
@@ -2395,6 +2597,7 @@ onResize($("zDiagBox"), () => zDraw()); onResize($("zTimeBox"), () => zDraw());
 legend($("zLeg"), [["transmitted intensity", COL.k], ["now", COL.o, null, "dot"]]);
 
 /* ===================================================================== start */
+legend($("cvLeg"), [["now", COL.k], ["before the last change", COL.g, "5 4"], ["one wavelength, one period", COL.o, null, "arrow"]]);
 legend($("vLeg"), [["E", COL.k], ["cB", COL.o]]);
 legend($("pLegA"), [["Re E", COL.k], ["envelope |E|", COL.lg], ["same pulse without glass", COL.o, "5 4"]]);
 legend($("pLegB"), [["intensity now", COL.k], ["entering the glass", COL.g, "5 4"], ["wavelength across the pulse", COL.o]]);
@@ -2409,6 +2612,7 @@ legend($("oLeg2"), [["T<sub>s</sub>", COL.s], ["T<sub>p</sub>", COL.p], ["P, tra
 [wF, vF, vS, nF, nP, pF, pG, cF, cM, lF, lD, iF, oF, zF].forEach(f => f.write());
 renderStaticTex();
 initAnswers();
+cvDiagram(); cvWrite(); cvRender();
 wUpdate(); vDrawAll(); vCalc(); nUpdate(); nCauchy(); drawPrism();
 pUpdate(); pAnimA.t = PS.t0; pDrawA();
 cUpdate(); cMetal(); lUpdate(); iUpdate(); oUpdate(); zUpdate();

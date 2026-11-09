@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
@@ -15,7 +16,8 @@ const names = ["C0", "EPS0", "MU0", "QE", "ME", "DEG", "LINES", "C_NM_FS", "C_UM
   "MATERIALS", "GLASSES", "sellmeier", "indexOf", "nOf", "inRange", "groupIndex", "gvd", "abbe", "cauchyFit", "cauchyN", "prismTrace", "prismMinDev", "prismMinDevInc",
   "METALS", "metalIndex", "cindex", "normalR", "pulseT0", "pulseEnv", "pulseWidth", "instFreq", "glassPulse", "slabField",
   "CONDUCTORS", "conductorK", "metalOptics", "lorentzParams", "lorentzAt", "lorentzApprox", "lorentzKey", "drivenResponse",
-  "fresnel", "brewster", "critical", "interfaceVectors", "interfaceField", "plateStack", "platesFor", "polarizerJ", "polarizerChain", "rotatingI", "QUIZ"];
+  "fresnel", "brewster", "critical", "interfaceVectors", "interfaceField", "plateStack", "platesFor", "polarizerJ", "polarizerChain", "rotatingI", "QUIZ",
+  "HP", "WAVE_GROUP", "waveSource", "waveMedium", "waveSpace", "waveFrom", "waveSolve", "waveLight"];
 // new Function keeps the core in this realm (Node's vm sandbox makes typed arrays much slower)
 const core = new Function(m[1] + `\nreturn {${names.join(",")}};`)();
 const c = core, t0 = Date.now();
@@ -269,6 +271,30 @@ const e = v => v.toExponential(1);
   const els = [...html.matchAll(/class="qa" data-q="(\w+)"/g)].map(x => x[1]), missing = els.filter(k => !c.QUIZ[k]), unused = Object.keys(c.QUIZ).filter(k => !els.includes(k));
   check("21 worked examples: answers and texts present, values right, every example on the page has an answer", bad.length === 0 && missing.length === 0 && unused.length === 0,
     `${els.length} examples${bad.length ? "; bad: " + bad.join(", ") : ""}${missing.length ? "; missing: " + missing.join(", ") : ""}${unused.length ? "; unused: " + unused.join(", ") : ""}`);
+}
+
+// 22. converter: the six relations of the diagram hold after any edit; a new medium keeps f, a new wavelength keeps v
+{
+  const rels = st => [st.omega / (2 * Math.PI * st.f), st.omega * st.T / (2 * Math.PI), st.f * st.T, st.k * st.v / st.omega, st.v * st.T / st.lam, st.k * st.lam / (2 * Math.PI), st.n * st.v / c.C0];
+  const s0 = c.waveFrom(c.C0 / 532e-9, c.C0), glass = c.waveSolve(s0, "n", 1.57), blue = c.waveSolve(glass, "lam", 300e-9), L = c.waveLight(s0);
+  let st = s0, worst = 0;
+  for (const [k, x] of [["n", 1.57], ["lam", 400e-9], ["omega", 2e15], ["T", 3e-15], ["v", 343], ["k", 1e3], ["f", 440], ["n", 2.4]]) {
+    st = c.waveSolve(st, k, x); for (const r of rels(st)) worst = Math.max(worst, Math.abs(r - 1));
+    if (Math.abs(st[k] / x - 1) > 1e-14) worst = 1;
+  }
+  check("22 converter: ω = 2πf, ωT = 2π, fT = 1, kv = ω, vT = λ, kλ = 2π after every edit; a new n keeps f, a new λ keeps v; 532 nm is 563.52 THz, 18797 cm⁻¹, 2.3305 eV",
+    worst < 1e-14 && Math.abs(glass.f / s0.f - 1) < 1e-15 && Math.abs(glass.lam / (532e-9 / 1.57) - 1) < 1e-14 && Math.abs(blue.v / glass.v - 1) < 1e-15
+    && Math.abs(s0.f / 1e12 - 563.52) < 0.01 && Math.abs(L.nu - 18797.0) < 0.1 && Math.abs(L.eV - 2.33053) < 1e-5,
+    `worst relation error ${e(worst + 1e-30)}, λ in glass ${g(glass.lam * 1e9, 6)} nm, f ${g(s0.f / 1e12, 6)} THz, ${g(L.nu, 6)} cm⁻¹, ${g(L.eV, 6)} eV`);
+}
+
+// 23. every equation on the page parses in the bundled KaTeX, so a LaTeX typo fails here instead of showing red on the page
+{
+  const katex = createRequire(import.meta.url)(path.join(root, "vendor/katex/katex.min.js"));
+  const decode = x => x.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  const srcs = [...html.matchAll(/<div class="eq">([\s\S]*?)<\/div>/g)].map(x => decode(x[1].trim())), bad = [];
+  for (const src of srcs) { try { katex.renderToString(src, { displayMode: true, throwOnError: true }); } catch (err) { bad.push(`"${src.slice(0, 40)}…": ${String(err.message).split("\n")[0]}`); } }
+  check("23 every equation parses in KaTeX", srcs.length > 40 && bad.length === 0, `${srcs.length} equations${bad.length ? "; " + bad.join("; ") : ""}`);
 }
 
 console.log(`${fails ? `${fails} FAILED` : "all passed"} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);

@@ -7,7 +7,7 @@ ends with worked examples and their answers. Notation follows D. J. Griffiths,
 *Introduction to Electrodynamics*, ch. 9: e^i(kz − ωt), k̃ = k + iκ, α = 2κ, and the α, β of the Fresnel equations.
 
 **Inputs:** every part has sliders paired with number boxes (the boxes take values beyond the slider, e.g. `1e17`),
-menus and example buttons. 1, waves: shape (harmonic, two waves, standing wave, Gaussian pulse, wave packet, two
+menus and example buttons. 1, waves: a converter for f, ω, T, v, n = c/v, k and λ, each with its own unit menu; the shape (harmonic, two waves, standing wave, Gaussian pulse, wave packet, two
 pulses), direction, amplitude, period T (fs), index n, phases, observation point, pulse width. 2, light in vacuum:
 polarization (linear at ψ, circular, elliptical with E₀ᵧ/E₀ₓ and δ); a source (field, intensity, CW or pulsed Gaussian
 beam, lamp) with power, diameter, pulse energy and length, repetition rate, distance and wavelength. 3, index:
@@ -21,8 +21,11 @@ axes, ideal or leaking polarizers, a turning middle polarizer. Everything recalc
 
 **Output:**
 
-- Waves: a snapshot D(z), a history graph D(t) at one point and the phasor in the complex plane, all moving; a table
-  of T, f, ω, λ₀, v, λ and k.
+- Waves: a diagram of how f, ω, T, k, λ and v are related (ω = 2πf, ωT = 2π, fT = 1, kv = ω, vT = λ, kλ = 2π) that
+  shades the quantities a change moved; under it the converter, the vacuum wavelength, wavenumber in cm⁻¹ and photon
+  energy for light, and an animated wave along z and at one point in time, drawn against the wave before the last
+  change, with one wavelength and one period marked. Then a snapshot D(z), a history graph D(t) at one point and the
+  phasor in the complex plane, all moving, and a table of T, f, ω, λ₀, v, λ and k.
 - Light in vacuum: E and B along the beam in 3D and an end view of E; intensity, E₀, B₀, energy density, radiation
   pressure, photon energy and flux, and for pulses the peak power and fluence.
 - Index: n(λ) of air, water, fused silica, CaF₂, N-BK7, N-F2, N-SF11, sapphire, diamond and silicon with a table of n,
@@ -71,7 +74,7 @@ root from any static host, for example GitHub Pages with "Deploy from a branch" 
 
 | path | what |
 |---|---|
-| `index.html` | the app: markup, the core (`<script id="core">`: complex arithmetic, waves, intensities, Sellmeier data and derivatives, Cauchy fit, prism, metal data, pulse propagation, conductors, Lorentz oscillator, Fresnel equations and interface fields, plates, Jones polarizers, the answers to the questions), the UI and the equations as LaTeX source |
+| `index.html` | the app: markup, the core (`<script id="core">`: complex arithmetic, waves and the f, ω, T, v, k, λ converter, intensities, Sellmeier data and derivatives, Cauchy fit, prism, metal data, pulse propagation, conductors, Lorentz oscillator, Fresnel equations and interface fields, plates, Jones polarizers, the answers to the questions), the UI and the equations as LaTeX source |
 | `vendor/katex/` | KaTeX 0.16.47 (MIT license) and its woff2 fonts, which typeset the equations; the same copy as `franck-condon/vendor/`. Without it the page still works and shows the LaTeX source |
 | `tests/validate.mjs` | checks the core inside `index.html` |
 
@@ -107,6 +110,10 @@ node tests/validate.mjs     # well under 1 s
 - Conductors: k̃² = μεω² + iμσω to 2 × 10⁻¹⁶ of |k̃|²; copper at 60 Hz d = 8.4163 mm with φ = 45°; seawater 2.2972 m at
   10 kHz and 11.042 mm with φ = 23.40° at 1 GHz; τ(copper) = 1.486 × 10⁻¹⁹ s. Silver at 495.9 nm: ñ = 0.05 + 3.093i,
   d = 25.5 nm, R = 98.1 %, against 2.6 nm from the DC model.
+- Converter: after every edit ω = 2πf, ωT = 2π, fT = 1, kv = ω, vT = λ and kλ = 2π hold to 2 × 10⁻¹⁶; a new
+  refractive index keeps f and gives λ = 532 nm/1.57 = 338.854 nm, a new wavelength keeps v; 532 nm light is 563.52 THz,
+  18797 cm⁻¹ and 2.33053 eV.
+- All 51 equations parse in the bundled KaTeX.
 - Waves and sources: λ = cT/n, the harmonic wave and the Gaussian pulse satisfy the wave equation to 1.4 × 10⁻⁷, the
   phasor turns clockwise along +z; sunlight 1361 W/m² gives E₀ = 1012.65 V/m and 25 V/m gives 0.82951 W/m²; the Gaussian
   beam and pulse peak factors integrate back to P and E; circular polarization keeps |E| constant.
