@@ -1,6 +1,6 @@
 // Checks the numerical core embedded in index.html (<script id="core">) against closed forms, Maxwell's boundary
 // conditions, published glass data (Schott catalogue, Malitson), numbers from an independent Python calculation and
-// the homework answers.
+// the worked examples on the page.
 //   node tests/validate.mjs
 import fs from "node:fs";
 import path from "node:path";
@@ -126,7 +126,7 @@ const e = v => v.toExponential(1);
     && Math.abs(mid.re - 0.525) < 1e-9 && Math.abs(s.d - 25.52) < 0.01 && Math.abs(s.R - 0.9813) < 1e-4 && Math.abs(s.dDC - 2.580) < 0.005, `d ${g(s.d, 4)} nm, R ${g(s.R, 4)}, DC ${g(s.dDC, 3)} nm`);
 }
 
-// 11. pulses: envelope FWHM, broadening measured on the curve, energy kept, chirp from the phase; HW-style number
+// 11. pulses: envelope FWHM, broadening measured on the curve, energy kept, chirp from the phase; a worked example
 {
   const tau = 20, T0 = c.pulseT0(tau), gdd = 446.5;
   const fwhm = gd => { let hi = 0; const I = t => c.cabs(c.pulseEnv(t, T0, gd)) ** 2, pk = I(0); for (let t = 0; t < 2000; t += 0.001) if (I(t) < pk / 2) { hi = t; break; } return 2 * hi; };
@@ -161,14 +161,14 @@ const e = v => v.toExponential(1);
     && Math.abs(sea.d - 1.1042e-2) < 1e-6 && Math.abs(sea.phi / c.DEG - 23.404) < 1e-3 && Math.abs(cu.tau - 1.486e-19) < 1e-22, `worst ${e(worst)}, d_Cu ${g(cu.d * 1e3, 5)} mm`);
 }
 
-// 14. Lorentz, HW 4-2: closed forms (Python), exact extrema at ω₀ ∓ γ/2 where α = α_max/2, exact = near-resonance formula near the line
+// 14. Lorentz, a 589 nm line: closed forms (Python), exact extrema at ω₀ ∓ γ/2 where α = α_max/2, exact = near-resonance formula near the line
 {
   const P = c.lorentzParams(589, 1e8, 1e17, 1), K = c.lorentzKey(P);
   const offMax = (K.wMax - P.omega0) / P.gamma, offMin = (K.wMin - P.omega0) / P.gamma;
   let worst = 0; for (let x = -3; x <= 3; x += 0.25) { const w = P.omega0 + x * P.gamma, a = c.lorentzAt(w, P), b = c.lorentzApprox(w, P); worst = Math.max(worst, Math.abs(a.alpha - b.alpha) / K.aMax, Math.abs(a.nm1 - b.nm1) / K.nm1Max); }
   const nt = c.cadd(c.cx(1, 0), c.cx(c.lorentzAt(P.omega0 + 0.3 * P.gamma, P).nm1, c.lorentzAt(P.omega0 + 0.3 * P.gamma, P).kap)), chi = c.lorentzAt(P.omega0 + 0.3 * P.gamma, P).chi;
   const id = c.cabs(c.csub(c.cmul(nt, nt), c.cadd(c.cx(1, 0), chi)));
-  check("14 HW 4-2: α_max = 1689.59 m⁻¹, (n − 1)_max = 3.95966 × 10⁻⁵; exact n extrema at ∓0.49998γ with α/α_max = 0.500001; anomalous width 100 MHz; ñ² = 1 + χ̃",
+  check("14 589 nm line, 100 MHz, 10¹⁷ m⁻³, f = 1: α_max = 1689.59 m⁻¹, (n − 1)_max = 3.95966 × 10⁻⁵; exact n extrema at ∓0.49998γ with α/α_max = 0.500001; anomalous width 100 MHz; ñ² = 1 + χ̃",
     Math.abs(K.aMax - 1689.59) < 0.01 && Math.abs(K.nm1Max - 3.95966e-5) < 1e-10 && Math.abs(offMax + 0.49998) < 2e-5 && Math.abs(offMin - 0.50002) < 2e-5
     && Math.abs(K.halfAtMax - 0.500001) < 2e-6 && rel(K.anomalous, 1e8) < 1e-4 && worst < 1e-4 && id < 1e-15 && rel(K.aMaxEx, K.aMax) < 1e-6,
     `extrema at ${g(offMax, 6)}γ and ${g(offMin, 6)}γ, α ratio ${g(K.halfAtMax, 7)}, width ${g(K.anomalous / 1e6, 6)} MHz, near-resonance vs exact ${e(worst)}`);
@@ -181,13 +181,13 @@ const e = v => v.toExponential(1);
     `${g(lag(0.2), 3)}°, ${g(lag(1 - gm / 2), 4)}°, ${g(lag(1), 4)}°, ${g(lag(5), 5)}°`);
 }
 
-// 16. Fresnel, HW 5-1 (Python): θ_T, α, E₀R, E₀T, R, T; s values; wave vectors and ω
+// 16. Fresnel, air to n = 1.57 at 45°, p, 600 nm, 25 V/m (Python): θ_T, α, E₀R, E₀T, R, T; s values; wave vectors and ω
 {
   const F = c.fresnel(1, 1.57, 45), V = c.interfaceVectors(1, 1.57, 600, 45, "p", 25);
   const ok = Math.abs(F.thT - 26.7685) < 1e-4 && Math.abs(F.alpha.re - 1.26266) < 1e-5 && Math.abs(25 * F.rp.re + 2.7125) < 1e-4 && Math.abs(25 * F.tp.re - 17.6513) < 1e-4
     && Math.abs(F.Rp - 0.011772) < 1e-6 && Math.abs(F.Tp - 0.988228) < 1e-6 && Math.abs(F.rs.re + 0.329393) < 1e-6 && Math.abs(F.ts.re - 0.670607) < 1e-6
     && Math.abs(V.kI[0] - 7.40480e6) < 10 && Math.abs(V.kT[2] - 1.46791e7) < 50 && Math.abs(V.omega - 3.13942e15) < 1e10 && Math.abs(V.ER.amp + 2.7125) < 1e-4 && V.ER.dir[2] > 0 && V.ET.dir[2] < 0;
-  check("16 HW 5-1: θ_T = 26.7685°, α = 1.26266, E₀R = −2.7125 V/m, E₀T = 17.6513 V/m, R = 0.011772, T = 0.988228, k and ω", ok,
+  check("16 air to n = 1.57, 45°, p, 25 V/m: θ_T = 26.7685°, α = 1.26266, E₀R = −2.7125 V/m, E₀T = 17.6513 V/m, R = 0.011772, T = 0.988228, k and ω", ok,
     `θ_T ${g(F.thT)}°, E₀R ${g(25 * F.rp.re, 5)}, E₀T ${g(25 * F.tp.re, 6)} V/m, k_Tz ${g(V.kT[2], 6)} rad/m`);
 }
 
@@ -246,7 +246,7 @@ const e = v => v.toExponential(1);
     `worst ${e(worst + 1e-30)}, θ_B ${g(tb, 5)}°`);
 }
 
-// 20. polarizers: HW 5-2 and 5-3, Malus's law, unpolarized halves, leakage of crossed real polarizers
+// 20. polarizers: the example setups and the turning polarizer, Malus's law, unpolarized halves, leakage of crossed real polarizers
 {
   const ch = (a, eps) => c.polarizerChain({ I0: 2, unpolarized: true }, a, eps || 0).I;
   let malus = 0, unpol = 0;
@@ -254,21 +254,21 @@ const e = v => v.toExponential(1);
   let rot = 0, peaks = 0, prev = -1, prev2 = -1;
   for (let i = 0; i <= 4000; i++) { const t = i / 4000, I = c.polarizerChain({ I0: 2, unpolarized: true }, [0, 360 * 0.5 * t, 90], 0).I; rot = Math.max(rot, Math.abs(I - c.rotatingI(t, 0.5, 1))); }
   for (let i = 0; i <= 4001; i++) { const I = c.rotatingI(i / 4000 * 2, 0.5, 1); if (prev > prev2 && prev > I) peaks++; prev2 = prev; prev = I; }
-  check("20 HW 5-2: 1, 0.5, 0, 0.1875 W/m² from 2 W/m²; Malus; unpolarized → I₀/2; crossed pair leaking 10⁻⁵ passes 2 × 10⁻⁵ W/m²; HW 5-3 four maxima per turn",
+  check("20 polarizer setups: 1, 0.5, 0, 0.1875 W/m² from 2 W/m²; Malus; unpolarized → I₀/2; crossed pair leaking 10⁻⁵ passes 2 × 10⁻⁵ W/m²; turning polarizer: four maxima per turn",
     Math.abs(ch([0, 0, 0]) - 1) < 1e-15 && Math.abs(ch([0, 45]) - 0.5) < 1e-15 && ch([0, 90]) < 1e-30 && Math.abs(ch([0, 30, 90]) - 0.1875) < 1e-15 && malus < 1e-15 && unpol < 1e-15
     && Math.abs(ch([0, 90], 1e-5) - 2e-5) < 1e-9 && rot < 1e-15 && peaks === 4, `Malus ${e(malus + 1e-30)}, rotating vs chain ${e(rot + 1e-30)}, ${peaks} maxima per turn`);
 }
 
-// 21. the questions: every answer exists, and the homework ones have the homework values
+// 21. the worked examples: every answer exists and has the value computed independently
 {
   const want = { w1: 381.901, v1: 1012.65, v2: 0.82951, n1: 1.5168, n2: 395.70, n3: 38.647, p1: 1.52665, p2: 65.05, p3: 4.1385, c1: 8.4163, c2: 2.2972, c3: 1.4856,
     l2: 1689.59, l4: 3.9597e-5, i1: 26.7685, i2: -2.7125, i3: 17.651, i4: 57.505, i5: 41.245, o1: 15.454, o2: 9, z1: 2, z2: 0.5, z3: 0, z4: 0.1875, z5: 4 };
   const bad = [];
   for (const [k, q] of Object.entries(c.QUIZ)) { if (q.choices ? !q.choices.some(([v]) => v === q.answer) : !Number.isFinite(q.value)) bad.push(k); if (!q.how) bad.push(k + " no text"); }
   for (const [k, v] of Object.entries(want)) { const q = c.QUIZ[k]; if (!q || (v === 0 ? Math.abs(q.value) > 1e-12 : rel(q.value, v) > 2e-4)) bad.push(`${k} ${q && q.value}`); }
-  const els = [...html.matchAll(/class="quiz" data-q="(\w+)"/g)].map(x => x[1]), missing = els.filter(k => !c.QUIZ[k]), unused = Object.keys(c.QUIZ).filter(k => !els.includes(k));
-  check("21 questions: answers and texts present, homework values right, every question on the page has an answer", bad.length === 0 && missing.length === 0 && unused.length === 0,
-    `${els.length} questions${bad.length ? "; bad: " + bad.join(", ") : ""}${missing.length ? "; missing: " + missing.join(", ") : ""}${unused.length ? "; unused: " + unused.join(", ") : ""}`);
+  const els = [...html.matchAll(/class="qa" data-q="(\w+)"/g)].map(x => x[1]), missing = els.filter(k => !c.QUIZ[k]), unused = Object.keys(c.QUIZ).filter(k => !els.includes(k));
+  check("21 worked examples: answers and texts present, values right, every example on the page has an answer", bad.length === 0 && missing.length === 0 && unused.length === 0,
+    `${els.length} examples${bad.length ? "; bad: " + bad.join(", ") : ""}${missing.length ? "; missing: " + missing.join(", ") : ""}${unused.length ? "; unused: " + unused.join(", ") : ""}`);
 }
 
 console.log(`${fails ? `${fails} FAILED` : "all passed"} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);

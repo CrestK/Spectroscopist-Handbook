@@ -30,7 +30,7 @@ site are separate.
 
 **Output:**
 
-- A two-column list (one column below 860 px wide) in three sections, pages, coursework and tools: preview, title, a few sentences on what the page does, and links to
+- A two-column list (one column below 860 px wide): preview, title, a few sentences on what the page does, and links to
   the source repository and the standalone site where there is one. The preview and the title both open the copy here.
 - A notes section: the pages run in the browser, are static folders, and where their tests are.
 
@@ -76,7 +76,7 @@ The empty `.nojekyll` file tells Pages to serve the files as they are instead of
 | `franck-condon/`, `focal-overlap/`, `overlap-game/`, `screensaver/`, `solvent-subtraction/`, `lorentz-explorer/`, `shg-narrowing/`, `advanced-optics/`, `exam-scan/` | the pages |
 | `tests/validate.mjs` | checks the home page, the previews, the copies and every text file in the repository |
 
-The home page is 11.3 KB and the nine previews 43.2 KB; the pages are about 4.0 MB, most of it pdf.js in
+The home page is 11.1 KB and the nine previews 43.2 KB; the pages are about 4.0 MB, most of it pdf.js in
 `exam-scan/vendor/` (2.4 MB) and KaTeX in `franck-condon/vendor/`.
 
 ## Tests

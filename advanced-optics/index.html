@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Advanced Optics Examples</title>
-<meta name="description" content="Interactive examples for an advanced optics class: waves and phasors, light in vacuum, the refractive index of real glasses, pulses, conductors, the Lorentz oscillator, s and p reflection, Brewster's angle and polarizers.">
+<meta name="description" content="Interactive optics examples: waves and phasors, light in vacuum, the refractive index of real glasses, pulses, conductors, the Lorentz oscillator, s and p reflection, Brewster's angle and polarizers.">
 <style>
   /* Plain page: white, black text, system font, native controls. Layout only. */
   :root { color-scheme: light; }
@@ -52,12 +52,9 @@
   dl.defs { display: grid; grid-template-columns: 13em minmax(0, 1fr); gap: 6px 16px; max-width: 110ch; margin: 8px 0 12px; }
   dl.defs dt { font-weight: 600; }
   dl.defs dd { margin: 0; }
-  .quiz { margin: 12px 0 0; max-width: 95ch; }
-  .quiz p { margin-bottom: 2px; }
-  .quiz .row { margin-block: 4px; }
-  .quiz input[type=number] { width: 9em; }
-  .quiz .res { margin: 0; }
-  .quiz .res b { color: #000; }
+  .qa { margin: 10px 0 0; max-width: 95ch; }
+  .qa p { margin-bottom: 2px; }
+  .qa .ans { margin: 0; color: #333; }
   ul.notes { margin: 0 0 12px; padding-left: 1.2em; max-width: 100ch; }
   ul.notes > li { margin-block: 4px; }
   @media (max-width: 920px) { .split { grid-template-columns: minmax(0, 1fr); } }
@@ -76,9 +73,9 @@
 <body>
 <main>
 <h1>Advanced optics: waves, light in matter, interfaces and polarization</h1>
-<p class="intro">Interactive examples for PHSX 855 (Advanced Optics) and Homework 4 and 5. Each part loads
-the homework numbers or a real material, has plots that move in time (Play / Pause) and ends with questions to check
-yourself. In every plot s-polarized light is blue and p-polarized light is red; E is black and B orange. Equations are at
+<p class="intro">Interactive examples on light as a wave, light in matter, interfaces and polarization. Each part loads
+worked examples or a real material, has plots that move in time (Play / Pause) and ends with worked examples and their
+answers. In every plot s-polarized light is blue and p-polarized light is red; E is black and B orange. Equations are at
 the bottom.</p>
 <noscript><p class="error">This page needs JavaScript.</p></noscript>
 <nav class="toc" aria-label="Contents">
@@ -88,10 +85,10 @@ the bottom.</p>
     <li><a href="#index">Refractive index of real glasses</a></li>
     <li><a href="#pulses">Pulses in glass: group velocity and dispersion</a></li>
     <li><a href="#conductors">Conductors and skin depth</a></li>
-    <li><a href="#lorentz">Absorption and anomalous dispersion</a> <span class="note">HW 4</span></li>
-    <li><a href="#interface">Reflection and refraction: s and p, R and T, Brewster</a> <span class="note">HW 5-1</span></li>
+    <li><a href="#lorentz">Absorption and anomalous dispersion</a></li>
+    <li><a href="#interface">Reflection and refraction: s and p, R and T, Brewster</a></li>
     <li><a href="#optic">Polarization through a real optic</a></li>
-    <li><a href="#polarizers">Polarizers and Malus's law</a> <span class="note">HW 5-2, 5-3</span></li>
+    <li><a href="#polarizers">Polarizers and Malus's law</a></li>
     <li><a href="#equations">Equations</a> and <a href="#notes">notes</a></li>
   </ol>
 </nav>
@@ -152,10 +149,10 @@ the bottom.</p>
       <div class="tablewrap"><table id="wTable"></table></div>
     </div>
   </div>
-  <h3>Try it</h3>
-  <div class="quiz" data-q="w1"><p>1. A source with period T = 2.00 fs sends light into glass with n = 1.57. What is the wavelength in the glass?</p></div>
-  <div class="quiz" data-q="w2"><p>2. Two waves of equal amplitude A, the same frequency and direction, are 120° apart in phase. What is the amplitude of their sum, in units of A? (Load "Two waves 120° apart" and look at the phasors.)</p></div>
-  <div class="quiz" data-q="w3"><p>3. D = A cos(kz + ωt) travels along −z. Which way does its phasor turn?</p></div>
+  <h3>Worked examples</h3>
+  <div class="qa" data-q="w1"><p>1. A source with period T = 2.00 fs sends light into glass with n = 1.57. What is the wavelength in the glass?</p></div>
+  <div class="qa" data-q="w2"><p>2. Two waves of equal amplitude A, the same frequency and direction, are 120° apart in phase. What is the amplitude of their sum, in units of A? (Load "Two waves 120° apart" and look at the phasors.)</p></div>
+  <div class="qa" data-q="w3"><p>3. D = A cos(kz + ωt) travels along −z. Which way does its phasor turn?</p></div>
 </section>
 
 <!-- 2 ---------------------------------------------------------------------------------------------------------- -->
@@ -206,7 +203,7 @@ the bottom.</p>
   <div class="sliders" id="vS"></div>
   <div class="row">
     <span class="note">Examples:</span>
-    <button type="button" data-vpre="hw51">HW 5-1 beam, 25 V/m</button>
+    <button type="button" data-vpre="hw51">25 V/m beam</button>
     <button type="button" data-vpre="sun">Sunlight above the atmosphere</button>
     <button type="button" data-vpre="pointer">5 mW laser pointer</button>
     <button type="button" data-vpre="bulb">100 W bulb at 2 m</button>
@@ -216,10 +213,10 @@ the bottom.</p>
   <div class="tablewrap tw"><table id="vTable"></table></div>
   <p class="caption">Gaussian beams use the peak (on-axis) intensity 2P/πw², with d = 2w the 1/e² diameter; a Gaussian pulse
   of FWHM τ has a peak power 0.939 E<sub>p</sub>/τ. The lamp spreads its power over a sphere (spherical wave, amplitude ∝ 1/r).</p>
-  <h3>Try it</h3>
-  <div class="quiz" data-q="v1"><p>1. Sunlight above the atmosphere carries 1361 W/m². What is the field amplitude E₀?</p></div>
-  <div class="quiz" data-q="v2"><p>2. The incident beam in HW 5-1 has E₀ = 25 V/m. What is its intensity?</p></div>
-  <div class="quiz" data-q="v3"><p>3. What is the magnetic field amplitude B₀ of that beam?</p></div>
+  <h3>Worked examples</h3>
+  <div class="qa" data-q="v1"><p>1. Sunlight above the atmosphere carries 1361 W/m². What is the field amplitude E₀?</p></div>
+  <div class="qa" data-q="v2"><p>2. A light beam has E₀ = 25 V/m. What is its intensity?</p></div>
+  <div class="qa" data-q="v3"><p>3. What is the magnetic field amplitude B₀ of that beam?</p></div>
 </section>
 
 <!-- 3 ---------------------------------------------------------------------------------------------------------- -->
@@ -229,7 +226,7 @@ the bottom.</p>
   set; the wavelength shrinks to λ₀/n. n depends on wavelength because bound electrons and ions respond like Lorentz
   oscillators: glass has resonances in the ultraviolet and the infrared, and visible light sits between them,
   where n rises toward the blue (normal dispersion). The curves are measured Sellmeier fits for real materials (sources
-  in the notes); the HW 5 glass with n = 1.57 lies between N-BK7 and N-F2.</p>
+  in the notes); the glass with n = 1.57 used in part 7 lies between N-BK7 and N-F2.</p>
   <div class="row" id="nShow"><span class="note">Show:</span></div>
   <div class="row">
     <label for="nRange">Range</label>
@@ -266,11 +263,11 @@ the bottom.</p>
     <div><div class="plotbox" id="nPrBox"><canvas id="nPrism" role="img" aria-label="Rays of several colors through a prism"></canvas></div></div>
     <div><p id="nPrOut" class="caption"></p></div>
   </div>
-  <h3>Try it</h3>
-  <div class="quiz" data-q="n1"><p>1. What is n of N-BK7 at the d line, 587.6 nm?</p></div>
-  <div class="quiz" data-q="n2"><p>2. 600 nm light (in vacuum) enters N-BK7. What is its wavelength inside?</p></div>
-  <div class="quiz" data-q="n3"><p>3. What is the minimum deviation of a 60° N-BK7 prism at 587.6 nm?</p></div>
-  <div class="quiz" data-q="n4"><p>4. Which glass spreads white light into the widest fan of colors?</p></div>
+  <h3>Worked examples</h3>
+  <div class="qa" data-q="n1"><p>1. What is n of N-BK7 at the d line, 587.6 nm?</p></div>
+  <div class="qa" data-q="n2"><p>2. 600 nm light (in vacuum) enters N-BK7. What is its wavelength inside?</p></div>
+  <div class="qa" data-q="n3"><p>3. What is the minimum deviation of a 60° N-BK7 prism at 587.6 nm?</p></div>
+  <div class="qa" data-q="n4"><p>4. Which glass spreads white light into the widest fan of colors?</p></div>
 </section>
 
 <!-- 4 ---------------------------------------------------------------------------------------------------------- -->
@@ -310,10 +307,10 @@ the bottom.</p>
   faster than blue, so the red end leads, the blue end trails and the pulse is stretched and chirped; its spectrum is
   unchanged.</p>
   <div class="tablewrap tw"><table id="pTableB"></table></div>
-  <h3>Try it</h3>
-  <div class="quiz" data-q="p1"><p>1. What is the group index n<sub>g</sub> of N-BK7 at 800 nm?</p></div>
-  <div class="quiz" data-q="p2"><p>2. A 20 fs pulse at 800 nm passes through 10 mm of N-BK7. What is its duration (FWHM) afterwards?</p></div>
-  <div class="quiz" data-q="p3"><p>3. What percentage of the pulse energy reflects at the front face (N-BK7, 800 nm, normal incidence)?</p></div>
+  <h3>Worked examples</h3>
+  <div class="qa" data-q="p1"><p>1. What is the group index n<sub>g</sub> of N-BK7 at 800 nm?</p></div>
+  <div class="qa" data-q="p2"><p>2. A 20 fs pulse at 800 nm passes through 10 mm of N-BK7. What is its duration (FWHM) afterwards?</p></div>
+  <div class="qa" data-q="p3"><p>3. What percentage of the pulse energy reflects at the front face (N-BK7, 800 nm, normal incidence)?</p></div>
 </section>
 
 <!-- 5 ---------------------------------------------------------------------------------------------------------- -->
@@ -372,26 +369,26 @@ the bottom.</p>
     </div>
     <div><div class="tablewrap"><table id="cMetTable"></table></div></div>
   </div>
-  <h3>Try it</h3>
-  <div class="quiz" data-q="c1"><p>1. What is the skin depth of copper at 60 Hz?</p></div>
-  <div class="quiz" data-q="c2"><p>2. Seawater has σ ≈ 4.8 S/m. What is its skin depth at 10 kHz?</p></div>
-  <div class="quiz" data-q="c3"><p>3. What is the charge relaxation time τ = ε₀/σ of copper, in units of 10⁻¹⁹ s?</p></div>
+  <h3>Worked examples</h3>
+  <div class="qa" data-q="c1"><p>1. What is the skin depth of copper at 60 Hz?</p></div>
+  <div class="qa" data-q="c2"><p>2. Seawater has σ ≈ 4.8 S/m. What is its skin depth at 10 kHz?</p></div>
+  <div class="qa" data-q="c3"><p>3. What is the charge relaxation time τ = ε₀/σ of copper, in units of 10⁻¹⁹ s?</p></div>
 </section>
 
 <!-- 6 ---------------------------------------------------------------------------------------------------------- -->
 <section id="lorentz">
-  <h2>6. Absorption and anomalous dispersion: the Lorentz oscillator <span class="lec">HW 4</span></h2>
+  <h2>6. Absorption and anomalous dispersion: the Lorentz oscillator</h2>
   <p class="intro">A bound electron driven by the light field is a damped oscillator. Near its resonance ω₀ the medium
   absorbs, and n changes fast: below ω₀ it rises with frequency (normal dispersion), within γ/2 of ω₀ it falls
-  (anomalous dispersion), and above it rises again. HW 4-1 shows that n is largest and smallest exactly where α is half
-  its peak; HW 4-2 puts numbers on a 589 nm line. Load it below.</p>
+  (anomalous dispersion), and above it rises again. n is largest and smallest exactly where α is half
+  its peak, so the anomalous region is as wide as the absorption line. The first example puts numbers on a 589 nm line.</p>
   <div class="sliders" id="lF"></div>
   <div class="row">
     <label><input type="checkbox" id="lApprox" checked> Show the near-resonance formulas</label>
   </div>
   <div class="row">
     <span class="note">Examples:</span>
-    <button type="button" data-lpre="hw42">HW 4-2: 589 nm, 100 MHz, 10¹⁷ m⁻³</button>
+    <button type="button" data-lpre="hw42">589 nm, 100 MHz, 10¹⁷ m⁻³</button>
     <button type="button" data-lpre="na">Sodium D₂, natural width</button>
     <button type="button" data-lpre="dye">Dye in solution, 1.7 mM</button>
   </div>
@@ -415,23 +412,23 @@ the bottom.</p>
   <div class="legend" id="lLeg2"></div>
   <div class="plotbox" id="lOscBox"><canvas id="lOsc" role="img" aria-label="Field and electron displacement over time"></canvas></div>
   <p class="caption" id="lOscCap"></p>
-  <h3>Try it</h3>
-  <div class="quiz" data-q="l1"><p>1. HW 4-1: how wide is the anomalous-dispersion region, in units of γ?</p></div>
-  <div class="quiz" data-q="l2"><p>2. HW 4-2 (1): what is the peak absorption coefficient?</p></div>
-  <div class="quiz" data-q="l3"><p>3. HW 4-2 (2): how far from ν₀ (in MHz, with sign) is the frequency where the resonant contribution to n is largest?</p></div>
-  <div class="quiz" data-q="l4"><p>4. HW 4-2 (3): what is that largest value of n − 1?</p></div>
+  <h3>Worked examples</h3>
+  <div class="qa" data-q="l1"><p>1. How wide is the anomalous-dispersion region of one absorption line, in units of γ?</p></div>
+  <div class="qa" data-q="l2"><p>2. A 589 nm line has a 100 MHz FWHM, 10¹⁷ atoms per m³ and f = 1 (the first example). What is its peak absorption coefficient?</p></div>
+  <div class="qa" data-q="l3"><p>3. How far from ν₀ is the frequency where that line's contribution to n is largest?</p></div>
+  <div class="qa" data-q="l4"><p>4. What is that largest value of n − 1?</p></div>
 </section>
 
 <!-- 7 ---------------------------------------------------------------------------------------------------------- -->
 <section id="interface">
-  <h2>7. Reflection and refraction: s and p, R and T, Brewster's angle <span class="lec">HW 5-1</span></h2>
+  <h2>7. Reflection and refraction: s and p, R and T, Brewster's angle</h2>
   <p class="intro">At an interface the tangential E and H and the normal D and B must match. That fixes the directions (law
   of reflection, Snell's law) and the amplitudes (Fresnel equations), and the amplitudes depend on how E is oriented
   relative to the plane of incidence. The two cases, s and p, behave differently, and every other polarization is a
   mix of them.</p>
   <dl class="defs">
     <dt>Plane of incidence</dt>
-    <dd>The plane that holds the incident ray and the surface normal: the x–z plane here, the plane of the page, as in HW 5-1.</dd>
+    <dd>The plane that holds the incident ray and the surface normal: the x–z plane here, the plane of the page.</dd>
     <dt>s polarization (blue)</dt>
     <dd>E perpendicular to the plane of incidence (s from German <i>senkrecht</i>; also called TE). Here E points along y,
     out of or into the page: drawn as ⊙ (out) and ⊗ (in).</dd>
@@ -453,7 +450,7 @@ the bottom.</p>
     the field in medium 2 decays within about a wavelength (an evanescent wave).</dd>
     <dt>Phase on reflection</dt>
     <dd>At normal incidence r = (n₁ − n₂)/(n₁ + n₂): from low to high index r &lt; 0 and the reflected field is flipped
-    (a π phase shift). This page uses Griffiths' sign for p, the field directions of the HW 5-1 figure, which gives
+    (a π phase shift). This page uses Griffiths' sign for p (the field directions in the diagrams below), which gives
     r<sub>p</sub> = r<sub>s</sub> at normal incidence; Hecht's textbook flips the sign of r<sub>p</sub>.</dd>
   </dl>
   <div class="row">
@@ -463,7 +460,7 @@ the bottom.</p>
   <div class="sliders" id="iF"></div>
   <div class="row">
     <span class="note">Examples:</span>
-    <button type="button" data-ipre="hw51">HW 5-1: p, 45°, n = 1.57</button>
+    <button type="button" data-ipre="hw51">p at 45° into n = 1.57</button>
     <button type="button" data-ipre="brew">Brewster's angle, n = 1.57</button>
     <button type="button" data-ipre="normal">Normal incidence on N-BK7</button>
     <button type="button" data-ipre="tir">Glass to air: total internal reflection</button>
@@ -505,15 +502,15 @@ the bottom.</p>
       <div class="tablewrap" style="margin-top: 10px"><table id="iTable2"></table></div>
     </div>
   </div>
-  <h3>The fields written out (the form HW 5-1 asks for)</h3>
+  <h3>The fields written out as vectors</h3>
   <div class="row"><label for="iVecPol">Polarization</label><select id="iVecPol"><option value="p">p</option><option value="s">s</option></select></div>
   <div id="iVec"></div>
-  <h3>Try it</h3>
-  <div class="quiz" data-q="i1"><p>1. HW 5-1: what is the angle of refraction θ<sub>T</sub>?</p></div>
-  <div class="quiz" data-q="i2"><p>2. HW 5-1: what is E₀<sub>R</sub>, with its sign in Griffiths' convention (the field directions of the HW 5-1 figure)?</p></div>
-  <div class="quiz" data-q="i3"><p>3. HW 5-1: what is E₀<sub>T</sub>?</p></div>
-  <div class="quiz" data-q="i4"><p>4. What is Brewster's angle from air into glass with n = 1.57?</p></div>
-  <div class="quiz" data-q="i5"><p>5. What is the critical angle from N-BK7 into air at 587.6 nm?</p></div>
+  <h3>Worked examples</h3>
+  <div class="qa" data-q="i1"><p>1. 600 nm light in air meets glass with n = 1.57 at 45° (the first example). What is the angle of refraction θ<sub>T</sub>?</p></div>
+  <div class="qa" data-q="i2"><p>2. The light is p-polarized with E₀<sub>I</sub> = 25 V/m. What is E₀<sub>R</sub>, with its sign in Griffiths' convention (the field directions in the diagrams)?</p></div>
+  <div class="qa" data-q="i3"><p>3. What is E₀<sub>T</sub>?</p></div>
+  <div class="qa" data-q="i4"><p>4. What is Brewster's angle from air into glass with n = 1.57?</p></div>
+  <div class="qa" data-q="i5"><p>5. What is the critical angle from N-BK7 into air at 587.6 nm?</p></div>
 </section>
 
 <!-- 8 ---------------------------------------------------------------------------------------------------------- -->
@@ -552,19 +549,19 @@ the bottom.</p>
     </div>
     <div><div class="tablewrap"><table id="oTable"></table></div></div>
   </div>
-  <h3>Try it</h3>
-  <div class="quiz" data-q="o1"><p>1. A N-BK7 window at Brewster's angle at 633 nm: what percentage of s-polarized light reflects at each surface?</p></div>
-  <div class="quiz" data-q="o2"><p>2. How many such plates do you need before less than 25 % of the s-polarized light gets through?</p></div>
-  <div class="quiz" data-q="o3"><p>3. Glare off a lake is mostly polarized</p></div>
+  <h3>Worked examples</h3>
+  <div class="qa" data-q="o1"><p>1. A N-BK7 window at Brewster's angle at 633 nm: what percentage of s-polarized light reflects at each surface?</p></div>
+  <div class="qa" data-q="o2"><p>2. How many such plates do you need before less than 25 % of the s-polarized light gets through?</p></div>
+  <div class="qa" data-q="o3"><p>3. Glare off a lake is mostly polarized</p></div>
 </section>
 
 <!-- 9 ---------------------------------------------------------------------------------------------------------- -->
 <section id="polarizers">
-  <h2>9. Polarizers and Malus's law <span class="lec">HW 5-2, 5-3</span></h2>
+  <h2>9. Polarizers and Malus's law</h2>
   <p class="intro">An ideal linear polarizer passes the component of E along its transmission axis, so the intensity drops
   by cos²θ (Malus's law), with θ the angle between the light's polarization and the axis. Unpolarized (natural) light
   loses half its intensity at the first polarizer, whatever the angle. Set up to three polarizers, or let the middle one
-  turn (HW 5-3). Angles are measured from vertical.</p>
+  turn. Angles are measured from vertical.</p>
   <div class="row">
     <label for="zIn">Light in</label>
     <select id="zIn"><option value="unpol">Unpolarized</option><option value="lin">Linearly polarized</option></select>
@@ -578,11 +575,11 @@ the bottom.</p>
   <div class="sliders" id="zF"></div>
   <div class="row">
     <span class="note">Examples:</span>
-    <button type="button" data-zpre="q1">HW 5-2 (1)</button>
-    <button type="button" data-zpre="q2">(2)</button>
-    <button type="button" data-zpre="q3">(3)</button>
-    <button type="button" data-zpre="q4">(4)</button>
-    <button type="button" data-zpre="q53">HW 5-3: turning polarizer</button>
+    <button type="button" data-zpre="q1">Three vertical</button>
+    <button type="button" data-zpre="q2">0° and 45°</button>
+    <button type="button" data-zpre="q3">Crossed</button>
+    <button type="button" data-zpre="q4">0°, 30° and 90°</button>
+    <button type="button" data-zpre="q53">Turning polarizer</button>
   </div>
   <p id="zErr" class="error" role="alert" hidden></p>
   <div class="anim">
@@ -601,12 +598,12 @@ the bottom.</p>
     </div>
     <div><div class="tablewrap"><table id="zTable"></table></div></div>
   </div>
-  <h3>Try it</h3>
-  <div class="quiz" data-q="z1"><p>1. HW 5-2 (1): three vertical polarizers pass 1 W/m² of natural light. What is the incident intensity?</p></div>
-  <div class="quiz" data-q="z2"><p>2. HW 5-2 (2): without the second polarizer and the third at 45°, what is transmitted?</p></div>
-  <div class="quiz" data-q="z3"><p>3. HW 5-2 (3): with the third horizontal (ideal polarizers), what is transmitted?</p></div>
-  <div class="quiz" data-q="z4"><p>4. HW 5-2 (4): with the second back in at 30°, what is transmitted?</p></div>
-  <div class="quiz" data-q="z5"><p>5. HW 5-3: how many intensity maxima do you see per full turn of the middle polarizer?</p></div>
+  <h3>Worked examples</h3>
+  <div class="qa" data-q="z1"><p>1. Three vertical polarizers pass 1 W/m² of natural light. What is the incident intensity?</p></div>
+  <div class="qa" data-q="z2"><p>2. Remove the second polarizer and turn the third to 45°. What gets through?</p></div>
+  <div class="qa" data-q="z3"><p>3. Now turn the third polarizer horizontal (ideal polarizers). What gets through?</p></div>
+  <div class="qa" data-q="z4"><p>4. Put the second polarizer back at 30°. What gets through?</p></div>
+  <div class="qa" data-q="z5"><p>5. The middle polarizer turns steadily between crossed polarizers. How many intensity maxima are there per full turn?</p></div>
 </section>
 
 <!-- equations ---------------------------------------------------------------------------------------------------- -->
@@ -677,7 +674,7 @@ the bottom.</p>
     <li><p>Measured optical constants</p>
       <div class="eq"><i>ñ</i> = <i>n</i> + <i>i</i>κ,&emsp; <i>E</i> ∝ e<sup>−2πκ<i>z</i>/λ</sup>,&emsp; <i>d</i> = λ/2πκ,&emsp; <i>R</i> = |(<i>ñ</i> − 1)/(<i>ñ</i> + 1)|²</div></li>
   </ol>
-  <h3>Lorentz oscillator (HW 4)</h3>
+  <h3>Lorentz oscillator</h3>
   <ol class="eqs" start="22">
     <li><p>Driven, damped electron</p>
       <div class="eq"><i>ẍ</i> + γ<i>ẋ</i> + ω₀²<i>x</i> = (<i>q</i>/<i>m</i>)<i>E</i>₀e<sup>−<i>i</i>ω<i>t</i></sup> &ensp;→&ensp; <i>x̃</i> = (<i>q</i>/<i>m</i>)<i>E</i>₀/(ω₀² − ω² − <i>i</i>γω)</div>
@@ -686,11 +683,11 @@ the bottom.</p>
       <div class="eq">χ̃ = (<i>Nq</i>²/ε₀<i>m</i>) Σ<sub><i>j</i></sub> <i>f<sub>j</sub></i>/(ω<sub><i>j</i></sub>² − ω² − <i>i</i>γ<sub><i>j</i></sub>ω),&emsp; <i>ñ</i> = √(1 + χ̃),&emsp; <i>k̃</i> = <i>ñ</i>ω/<i>c</i> = <i>k</i> + <i>i</i>κ,&emsp; α = 2κ,&emsp; <i>n</i> = <i>ck</i>/ω</div></li>
     <li><p>Near one resonance (ω + ω₀ ≈ 2ω₀, dilute)</p>
       <div class="eq">α = (<i>Nq</i>²<i>f</i>/2ε₀<i>mc</i>) (γ/2)/[(ω − ω₀)² + (γ/2)²],&emsp; <i>n</i> − 1 = (<i>Nq</i>²<i>f</i>/4ε₀<i>m</i>ω₀) (ω₀ − ω)/[(ω − ω₀)² + (γ/2)²]</div></li>
-    <li><p>HW 4 results</p>
+    <li><p>Peak absorption and the extremes of n</p>
       <div class="eq">α<sub>max</sub> = <i>Nq</i>²<i>f</i>/(ε₀<i>mc</i>γ),&emsp; <i>n</i><sub>max, min</sub> at ω₀ ∓ γ/2 where α = α<sub>max</sub>/2,&emsp; (<i>n</i> − 1)<sub>max</sub> = <i>Nq</i>²<i>f</i>/(4ε₀<i>m</i>ω₀γ)</div>
       <p class="note">The anomalous region is γ wide in ω, so the FWHM Δν wide in frequency; γ = 2πΔν.</p></li>
   </ol>
-  <h3>Interfaces (HW 5-1)</h3>
+  <h3>Interfaces</h3>
   <ol class="eqs" start="26">
     <li><p>Phase matching: law of reflection and Snell's law</p>
       <div class="eq"><i>k<sub>I</sub></i> sin θ<sub>I</sub> = <i>k<sub>R</sub></i> sin θ<sub>R</sub> = <i>k<sub>T</sub></i> sin θ<sub>T</sub> &ensp;→&ensp; θ<sub>R</sub> = θ<sub>I</sub>,&emsp; <i>n</i>₁ sin θ<sub>I</sub> = <i>n</i>₂ sin θ<sub>T</sub></div></li>
@@ -698,21 +695,21 @@ the bottom.</p>
       <div class="eq"><b>k</b><sub>I</sub> = <i>n</i>₁<i>k</i>₀(sin θ<sub>I</sub>, 0, cos θ<sub>I</sub>),&emsp; <b>k</b><sub>R</sub> = <i>n</i>₁<i>k</i>₀(sin θ<sub>I</sub>, 0, −cos θ<sub>I</sub>),&emsp; <b>k</b><sub>T</sub> = <i>n</i>₂<i>k</i>₀(sin θ<sub>T</sub>, 0, cos θ<sub>T</sub>),&emsp; <i>k</i>₀ = 2π/λ₀ = ω/<i>c</i></div></li>
     <li><p>Fresnel equations in Griffiths' notation (μ₁ = μ₂)</p>
       <div class="eq">α = cos θ<sub>T</sub>/cos θ<sub>I</sub>,&emsp; β = <i>n</i>₂/<i>n</i>₁;&emsp; s: <i>r<sub>s</sub></i> = (1 − αβ)/(1 + αβ),&emsp; <i>t<sub>s</sub></i> = 2/(1 + αβ);&emsp; p: <i>r<sub>p</sub></i> = (α − β)/(α + β),&emsp; <i>t<sub>p</sub></i> = 2/(α + β)</div>
-      <p class="note">p field directions: E<sub>I</sub> ∥ (cos θ<sub>I</sub>, 0, −sin θ<sub>I</sub>), E<sub>R</sub> ∥ (cos θ<sub>I</sub>, 0, sin θ<sub>I</sub>), E<sub>T</sub> ∥ (cos θ<sub>T</sub>, 0, −sin θ<sub>T</sub>); s: all along +ŷ. At 45° r<sub>p</sub> = −r<sub>s</sub>², which is why HW 5-1 gives R<sub>p</sub> = R<sub>s</sub>².
+      <p class="note">p field directions: E<sub>I</sub> ∥ (cos θ<sub>I</sub>, 0, −sin θ<sub>I</sub>), E<sub>R</sub> ∥ (cos θ<sub>I</sub>, 0, sin θ<sub>I</sub>), E<sub>T</sub> ∥ (cos θ<sub>T</sub>, 0, −sin θ<sub>T</sub>); s: all along +ŷ. At 45° r<sub>p</sub> = −r<sub>s</sub>², so R<sub>p</sub> = R<sub>s</sub>² there (1.18 % and 10.85 % for n = 1.57).
       For an absorbing medium 2 or total internal reflection the same formulas hold with complex ñ₂ and cos θ<sub>T</sub>.</p></li>
     <li><p>Reflectance and transmittance</p>
       <div class="eq"><i>R</i> = |<i>r</i>|²,&emsp; <i>T</i> = αβ|<i>t</i>|² (in general Re(<i>ñ</i>₂ cos θ<sub>T</sub>)/(<i>n</i>₁ cos θ<sub>I</sub>) |<i>t</i>|², with <i>ñ</i>₂* for p),&emsp; <i>R</i> + <i>T</i> = 1</div></li>
     <li><p>Brewster's and the critical angle</p>
       <div class="eq">tan θ<sub>B</sub> = <i>n</i>₂/<i>n</i>₁ (θ<sub>B</sub> + θ<sub>T</sub> = 90°, <i>r<sub>p</sub></i> = 0);&emsp; sin θ<sub>c</sub> = <i>n</i>₂/<i>n</i>₁;&emsp; beyond θ<sub>c</sub> the field in medium 2 decays as e<sup>−<i>z</i>/δ</sup>, δ = λ₀/(2π√(<i>n</i>₁² sin²θ<sub>I</sub> − <i>n</i>₂²))</div></li>
   </ol>
-  <h3>Polarization in optics (HW 5-2, 5-3)</h3>
+  <h3>Polarization in optics</h3>
   <ol class="eqs" start="31">
     <li><p>Plates (incoherent multiple reflections, no absorption)</p>
       <div class="eq">one plate: <i>T</i> = (1 − <i>R</i>)/(1 + <i>R</i>);&emsp; <i>N</i> plates: <i>T</i> = (1 − <i>R</i>)/(1 + (2<i>N</i> − 1)<i>R</i>);&emsp; <i>P</i> = (<i>T<sub>p</sub></i> − <i>T<sub>s</sub></i>)/(<i>T<sub>p</sub></i> + <i>T<sub>s</sub></i>)</div>
       <p class="note">R is R<sub>s</sub> or R<sub>p</sub> of one surface. Reflected light: R′ = 1 − T and P = (R′<sub>s</sub> − R′<sub>p</sub>)/(R′<sub>s</sub> + R′<sub>p</sub>).</p></li>
     <li><p>Malus's law</p>
       <div class="eq"><i>I</i> = <i>I</i>₀ cos²θ;&emsp; unpolarized light: <i>I</i> = <i>I</i>₀/2 after the first polarizer (the average of cos²θ is ½)</div></li>
-    <li><p>Turning polarizer between crossed polarizers (HW 5-3)</p>
+    <li><p>Turning polarizer between crossed polarizers</p>
       <div class="eq">θ = ω<i>t</i> = 2π<i>ft</i>:&emsp; <i>I</i> = <i>I</i>₁ cos²θ sin²θ = (<i>I</i>₁/4) sin²2θ = (<i>I</i>₁/8)(1 − cos 4ω<i>t</i>)</div>
       <p class="note">I₁ is the intensity after the first polarizer; the output oscillates at 4f, four maxima per turn.</p></li>
     <li><p>Real polarizers (Jones matrix)</p>
@@ -739,7 +736,7 @@ the bottom.</p>
     the slab in part 4A keeps one internal reflection; one Lorentz oscillator without Doppler broadening; the DC conductivity
     model fails for metals at optical frequencies; each Sellmeier curve is only drawn inside its measured range.</li>
     <li>For several oscillators and real glasses built from them, see the <a href="../lorentz-explorer/index.html">Lorentz oscillator page</a>.</li>
-    <li>The calculations run in your browser and check against closed forms, published values and the homework numbers:
+    <li>The calculations run in your browser and check against closed forms, published values and an independent calculation of the examples:
     <code>node advanced-optics/tests/validate.mjs</code>.</li>
   </ul>
 </section>
@@ -829,7 +826,7 @@ function eField(phase, ps) { return { x: ps.ax * Math.cos(phase), y: ps.ay * Mat
    Sellmeier n² = 1 + Σ B λ²/(λ² − λj²), λ in µm. terms: [B, λj] or, with sq, [B, λj²], as the source gives them. */
 const MATERIALS = {
   vacuum: { name: "Vacuum or air (n = 1)", constant: 1 },
-  glass157: { name: "Glass, n = 1.57 (HW 5)", constant: 1.57 },
+  glass157: { name: "Glass, n = 1.57", constant: 1.57 },
   air: { name: "Air", cond: "15 °C, 1 atm", ciddor: true, range: [0.23, 1.69], ref: "Ciddor (1996)" },
   water: { name: "Water", cond: "20 °C", sq: true, range: [0.182, 1.129], ref: "Daimon & Masumura (2007)",
     terms: [[5.684027565e-1, 5.101829712e-3], [1.726177391e-1, 1.821153936e-2], [2.086189578e-2, 2.620722293e-2], [1.130748688e-1, 1.069792721e1]] },
@@ -964,7 +961,7 @@ function metalOptics(key, lamNm) {
   return { n: nt.re, kap: nt.im, R: normalR(nt), d: lamNm / (2 * Math.PI * nt.im), dDC: conductorK(omega, 1, CONDUCTORS[key].sigma).d * 1e9 };
 }
 
-/* ---------- 6. Lorentz oscillator (HW 4) ---------- */
+/* ---------- 6. Lorentz oscillator ---------- */
 function lorentzParams(lam0Nm, fwhmHz, N, f) {
   const omega0 = 2 * Math.PI * C0 / (lam0Nm * 1e-9);
   return { lam0: lam0Nm, nu0: C0 / (lam0Nm * 1e-9), omega0, fwhm: fwhmHz, gamma: 2 * Math.PI * fwhmHz, N, f, wp2: N * QE * QE * f / (EPS0 * ME) };
@@ -994,7 +991,7 @@ function drivenResponse(omega, omega0, gamma) {
   return { amp: cabs(x), lag: carg(x) };
 }
 
-/* ---------- 7. interfaces (Griffiths' notation, as in HW 5) ----------
+/* ---------- 7. interfaces (Griffiths' notation) ----------
    α = cos θT/cos θI, β = ñ2/n1 (μ1 = μ2). p: E_I ∥ (cos θI, 0, −sin θI), E_R ∥ (cos θI, 0, sin θI), E_T ∥ (cos θT, 0, −sin θT);
    s: E ∥ ŷ. n2 may be complex (metals); beyond the critical angle cos θT is imaginary. */
 function fresnel(n1, n2, thDeg) {
@@ -1015,7 +1012,7 @@ function fresnel(n1, n2, thDeg) {
 }
 function brewster(n1, n2) { return Math.atan(n2 / n1) / DEG; }
 function critical(n1, n2) { return n2 < n1 ? Math.asin(n2 / n1) / DEG : NaN; }
-// HW 5-1 form: wave vectors (rad/m) and field amplitudes × unit vectors for real n2 below the critical angle
+// wave vectors (rad/m) and field amplitudes × unit vectors for real n2 below the critical angle
 function interfaceVectors(n1, n2, lamNm, thDeg, pol, E0) {
   const F = fresnel(n1, n2, thDeg), k0 = 2 * Math.PI / (lamNm * 1e-9), sI = F.sI, cI = F.cI, sT = F.sT.re, cT = F.cT.re;
   const kI = [n1 * k0 * sI, 0, n1 * k0 * cI], kR = [n1 * k0 * sI, 0, -n1 * k0 * cI], kT = [n1 * k0 * sI, 0, n2 * k0 * cT];
@@ -1065,42 +1062,42 @@ function polarizerChain(input, angles, eps) {
   }
   return { steps, I: steps.length ? steps[steps.length - 1] : input.I0 };
 }
-// HW 5-3: first polarizer vertical, last horizontal, the middle one at 2πft; I1 after the first
+// turning polarizer: first polarizer vertical, last horizontal, the middle one at 2πft; I1 after the first
 function rotatingI(t, f, I1) { return I1 / 8 * (1 - Math.cos(8 * Math.PI * f * t)); }
 
 /* ---------- questions: answers from the functions above ---------- */
 const QUIZ = (function () {
   const q = {}, bk = k => nOf("bk7", k), f4 = (v, d) => v.toFixed(d);
   q.w1 = { value: C_NM_FS * 2 / 1.57, unit: "nm", tol: 0.005, how: `λ = cT/n = (299.79 nm/fs × 2.00 fs)/1.57 = ${f4(C_NM_FS * 2 / 1.57, 1)} nm. The period, set by the source, stays 2.00 fs.` };
-  q.w2 = { value: cabs(cadd(cx(1, 0), cexpi(120 * DEG))), unit: "A", tol: 0.01, how: "|1 + e^(i120°)| = √(1 + 1 + 2 cos 120°) = 1: the two phasors and their sum form an equilateral triangle." };
+  q.w2 = { value: cabs(cadd(cx(1, 0), cexpi(120 * DEG))), unit: "", tol: 0.01, how: "|1 + e^(i120°)| = √(1 + 1 + 2 cos 120°) = 1: the two phasors and their sum form an equilateral triangle." };
   q.w3 = { choices: [["cw", "clockwise"], ["ccw", "counterclockwise"]], answer: "ccw", how: "The phase kz + ωt grows with time, so the phasor turns counterclockwise; a wave along +z (kz − ωt) turns clockwise." };
   const sun = fieldFromIntensity(1361), hw = intensityFromField(25);
-  q.v1 = { value: sun, unit: "V/m", tol: 0.005, how: `E₀ = √(2I/cε₀) = √(2 × 1361 / (2.998 × 10⁸ × 8.854 × 10⁻¹²)) = ${f4(sun, 1)} V/m.` };
+  q.v1 = { value: sun, unit: "V/m", tol: 0.005, digits: 5, how: `E₀ = √(2I/cε₀) = √(2 × 1361 / (2.998 × 10⁸ × 8.854 × 10⁻¹²)) = ${f4(sun, 1)} V/m.` };
   q.v2 = { value: hw, unit: "W/m²", tol: 0.005, how: `I = ½cε₀E₀² = ½ × 2.998 × 10⁸ × 8.854 × 10⁻¹² × 25² = ${f4(hw, 4)} W/m².` };
   q.v3 = { value: 25 / C0 * 1e9, unit: "nT", tol: 0.005, how: `B₀ = E₀/c = 25/(2.998 × 10⁸) = ${f4(25 / C0 * 1e9, 2)} nT.` };
   const nd = bk(LINES.d), n600 = bk(600);
-  q.n1 = { value: nd, abs: 3e-4, unit: "", how: `n_d = ${f4(nd, 5)} (Schott lists 1.51680).` };
+  q.n1 = { value: nd, abs: 3e-4, unit: "", digits: 5, how: `n_d = ${f4(nd, 5)} (Schott lists 1.51680).` };
   q.n2 = { value: 600 / n600, unit: "nm", tol: 0.003, how: `λ = λ₀/n = 600 nm / ${f4(n600, 5)} = ${f4(600 / n600, 1)} nm.` };
   q.n3 = { value: prismMinDev(nd, 60), abs: 0.1, unit: "°", how: `δ_min = 2 arcsin(n sin 30°) − 60° = 2 arcsin(${f4(nd / 2, 5)}) − 60° = ${f4(prismMinDev(nd, 60), 2)}°.` };
   q.n4 = { choices: [["silica", "fused silica"], ["bk7", "N-BK7"], ["f2", "N-F2"], ["sf11", "N-SF11"]], answer: "sf11",
     how: `N-SF11: the lowest Abbe number (${f4(abbe("sf11"), 1)}, against ${f4(abbe("f2"), 1)} for N-F2, ${f4(abbe("bk7"), 1)} for N-BK7 and ${f4(abbe("silica"), 1)} for fused silica).` };
   const g8 = glassPulse("bk7", 800), tw = pulseWidth(20, g8.gvd * 10);
-  q.p1 = { value: g8.ng, abs: 5e-4, unit: "", how: `n_g = n − λ dn/dλ = ${f4(g8.n, 4)} + ${f4(g8.ng - g8.n, 4)} = ${f4(g8.ng, 4)}.` };
-  q.p2 = { value: tw, unit: "fs", tol: 0.02, how: `GVD = ${f4(g8.gvd, 1)} fs²/mm, so φ₂ = ${f4(g8.gvd * 10, 0)} fs² and τ = 20 fs × √(1 + (4 ln 2 × ${f4(g8.gvd * 10, 0)}/20²)²) = ${f4(tw, 1)} fs.` };
-  q.p3 = { value: g8.R * 100, unit: "%", tol: 0.02, how: `R = ((n − 1)/(n + 1))² = (${f4(g8.n - 1, 4)}/${f4(g8.n + 1, 4)})² = ${f4(g8.R * 100, 2)} %.` };
+  q.p1 = { value: g8.ng, abs: 5e-4, unit: "", digits: 5, how: `n_g = n − λ dn/dλ = ${f4(g8.n, 4)} + ${f4(g8.ng - g8.n, 4)} = ${f4(g8.ng, 4)}.` };
+  q.p2 = { value: tw, unit: "fs", tol: 0.02, how: `GVD = ${f4(g8.gvd, 1)} fs²/mm, so φ₂ = ${f4(g8.gvd * 10, 0)} fs² and τ = 20 fs × √(1 + (4 ln 2 × ${f4(g8.gvd * 10, 0)}/20²)²) = ${f4(tw, 2)} fs.` };
+  q.p3 = { value: g8.R * 100, unit: "%", tol: 0.02, how: `R = ((n − 1)/(n + 1))² = (${f4(g8.n - 1, 4)}/${f4(g8.n + 1, 4)})² = ${f4(g8.R * 100, 3)} %.` };
   const cu = conductorK(2 * Math.PI * 60, 1, 5.96e7), sea = conductorK(2 * Math.PI * 1e4, 81, 4.8);
-  q.c1 = { value: cu.d * 1e3, unit: "mm", tol: 0.01, how: `d ≈ √(2/σμ₀ω) = √(2/(5.96 × 10⁷ × 4π × 10⁻⁷ × 2π × 60)) = ${f4(cu.d * 1e3, 2)} mm.` };
-  q.c2 = { value: sea.d, unit: "m", tol: 0.01, how: `σ/εω = ${(sea.x / 1e5).toFixed(2)} × 10⁵ ≫ 1, so d ≈ √(2/σμ₀ω) = ${f4(sea.d, 2)} m: radio at 10 kHz reaches a few meters down.` };
-  q.c3 = { value: EPS0 / 5.96e7 * 1e19, unit: "× 10⁻¹⁹ s", tol: 0.04, how: `τ = ε₀/σ = 8.854 × 10⁻¹² / 5.96 × 10⁷ = ${f4(EPS0 / 5.96e7 * 1e19, 2)} × 10⁻¹⁹ s (1.53 × 10⁻¹⁹ s with the often-quoted 5.8 × 10⁷ S/m), far shorter than an optical period (~2 × 10⁻¹⁵ s).` };
+  q.c1 = { value: cu.d * 1e3, unit: "mm", tol: 0.01, how: `d ≈ √(2/σμ₀ω) = √(2/(5.96 × 10⁷ × 4π × 10⁻⁷ × 2π × 60)) = ${f4(cu.d * 1e3, 3)} mm.` };
+  q.c2 = { value: sea.d, unit: "m", tol: 0.01, how: `σ/εω = ${(sea.x / 1e5).toFixed(2)} × 10⁵ ≫ 1, so d ≈ √(2/σμ₀ω) = ${f4(sea.d, 3)} m: radio at 10 kHz reaches a few meters down.` };
+  q.c3 = { value: EPS0 / 5.96e7 * 1e19, unit: "× 10⁻¹⁹ s", tol: 0.04, how: `τ = ε₀/σ = 8.854 × 10⁻¹² / 5.96 × 10⁷ = ${f4(EPS0 / 5.96e7 * 1e19, 3)} × 10⁻¹⁹ s (1.53 × 10⁻¹⁹ s with the often-quoted 5.8 × 10⁷ S/m), far shorter than an optical period (~2 × 10⁻¹⁵ s).` };
   const P = lorentzParams(589, 1e8, 1e17, 1), K = lorentzKey(P);
   q.l1 = { value: 1, unit: "γ", tol: 0.02, how: "n − 1 ∝ (ω₀ − ω)/[(ω − ω₀)² + (γ/2)²] has its extremes at ω₀ ∓ γ/2, so n falls over a band γ wide: the FWHM of α. There α is exactly half its peak." };
   q.l2 = { value: K.aMax, unit: "m⁻¹", tol: 0.01, how: `α_max = Nq²f/(ε₀mcγ) with γ = 2π × 100 MHz = 6.283 × 10⁸ s⁻¹: ${f4(K.aMax, 0)} m⁻¹ (light loses 1/e of its intensity in ${f4(1000 / K.aMax, 2)} mm).` };
-  q.l3 = { value: -50, unit: "MHz", abs: 0.5, wrong: [{ value: 50, abs: 0.5, msg: "Right size, wrong side: n is largest just below the resonance, at ν₀ − Δν/2." }], how: "ω = ω₀ − γ/2, so ν = ν₀ − Δν/2 = ν₀ − 50 MHz (ν₀ = 509 THz)." };
+  q.l3 = { value: -50, unit: "MHz", abs: 0.5, how: "ω = ω₀ − γ/2, so ν = ν₀ − Δν/2 = ν₀ − 50 MHz, just below the line center (ν₀ = 509 THz)." };
   q.l4 = { value: K.nm1Max, tol: 0.01, unit: "", how: `(n − 1)_max = Nq²f/(4ε₀mω₀γ) = ${(K.nm1Max * 1e5).toFixed(3)} × 10⁻⁵, with ω₀ = 2πc/589 nm = 3.198 × 10¹⁵ s⁻¹.` };
   const F = fresnel(1, 1.57, 45);
   q.i1 = { value: F.thT, abs: 0.05, unit: "°", how: `sin θ_T = sin 45°/1.57 = ${f4(Math.sin(45 * DEG) / 1.57, 4)}, θ_T = ${f4(F.thT, 2)}°.` };
-  q.i2 = { value: 25 * F.rp.re, tol: 0.005, unit: "V/m", wrong: [{ value: -25 * F.rp.re, tol: 0.005, msg: "Right size. In Griffiths' convention (the HW 5-1 figure) E₀R = (α − β)/(α + β) E₀I is negative below Brewster's angle: α = 1.263 < β = 1.57." }],
-    how: `α = cos θ_T/cos θ_I = ${f4(F.alpha.re, 4)}, β = 1.57, E₀R = 25 V/m × (α − β)/(α + β) = ${f4(25 * F.rp.re, 3)} V/m.` };
+  q.i2 = { value: 25 * F.rp.re, tol: 0.005, unit: "V/m",
+    how: `α = cos θ_T/cos θ_I = ${f4(F.alpha.re, 4)}, β = 1.57, E₀R = 25 V/m × (α − β)/(α + β) = ${f4(25 * F.rp.re, 3)} V/m. It is negative because α < β below Brewster's angle: the reflected field points opposite to the drawn direction.` };
   q.i3 = { value: 25 * F.tp.re, tol: 0.005, unit: "V/m", how: `E₀T = 25 V/m × 2/(α + β) = ${f4(25 * F.tp.re, 2)} V/m. Check: R + T = ${f4(F.Rp, 4)} + ${f4(F.Tp, 4)} = 1.` };
   q.i4 = { value: brewster(1, 1.57), abs: 0.05, unit: "°", how: `θ_B = arctan 1.57 = ${f4(brewster(1, 1.57), 2)}°; then θ_T = ${f4(90 - brewster(1, 1.57), 2)}° and the two add to 90°.` };
   q.i5 = { value: critical(nd, 1), abs: 0.05, unit: "°", how: `θ_c = arcsin(1/${f4(nd, 4)}) = ${f4(critical(nd, 1), 2)}°.` };
@@ -1111,7 +1108,7 @@ const QUIZ = (function () {
   const ch = a => polarizerChain({ I0: 2, unpolarized: true }, a, 0).I;
   q.z1 = { value: 2, unit: "W/m²", tol: 0.001, how: "The first polarizer passes half of natural light; the other two (parallel) pass all of it: I₀/2 = 1 W/m², so I₀ = 2 W/m²." };
   q.z2 = { value: ch([0, 45]), unit: "W/m²", tol: 0.001, how: "I = 1 W/m² × cos²45° = 0.5 W/m²." };
-  q.z3 = { value: 0, unit: "W/m²", abs: 1e-9, wrong: [{ value: 1e-5, tol: 1.5, msg: "That is the leak of a real polarizer pair (ε ~ 10⁻⁵ gives about 2 × 10⁻⁵ W/m² here, try the Polarizers menu above). With ideal polarizers crossed axes pass nothing: 0 W/m²." }], how: "cos²90° = 0: crossed ideal polarizers pass nothing." };
+  q.z3 = { value: 0, unit: "W/m²", abs: 1e-9, how: "cos²90° = 0: crossed ideal polarizers pass nothing. Real ones leak: with a leak of 10⁻⁵ per polarizer the pair passes about 2 × 10⁻⁵ W/m² here (Polarizers menu above)." };
   q.z4 = { value: ch([0, 30, 90]), unit: "W/m²", tol: 0.001, how: "1 W/m² × cos²30° × cos²60° = 1 × 0.75 × 0.25 = 0.1875 W/m². The middle polarizer lets light through crossed polarizers." };
   q.z5 = { value: 4, unit: "", abs: 0.01, how: "I = (I₁/8)(1 − cos 4ωt): the output peaks every 90° of rotation, four times per turn (at 45°, 135°, 225° and 315°), and is dark in between." };
   return q;
@@ -1381,30 +1378,14 @@ function table(el, head, rows) {
 }
 
 /* ---------- questions ---------- */
-const subs = t => esc(t).replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
-function initQuizzes() {
-  document.querySelectorAll(".quiz").forEach(q => {
+const subs = t => esc(t).replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>").replace(/-(?=\d)/g, "−");
+// each worked example: the question in the page, the answer and how to get it from QUIZ (computed by the core)
+function initAnswers() {
+  document.querySelectorAll(".qa").forEach(q => {
     const spec = QUIZ[q.dataset.q];
     if (!spec) return;
-    const ctl = spec.choices ? `<select aria-label="Your answer"><option value="">choose…</option>${spec.choices.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>`
-      : `<input type="number" step="any" aria-label="Your answer"><span class="unit">${esc(spec.unit || "")}</span>`;
-    q.insertAdjacentHTML("beforeend", `<div class="row">${ctl}<button type="button" data-a="check">Check</button><button type="button" data-a="show">Show answer</button></div><p class="res note" aria-live="polite"></p>`);
-    const inp = q.querySelector("input, select"), res = q.querySelector(".res");
-    const answer = () => spec.choices ? spec.choices.find(([v]) => v === spec.answer)[1] : `${fmtG(spec.value, 4)}${spec.unit ? " " + spec.unit : ""}`;
-    const near = (v, w) => Math.abs(v - w.value) <= (w.abs !== undefined ? w.abs : Math.abs(w.value) * (w.tol !== undefined ? w.tol : 0.01));
-    q.querySelector('[data-a="check"]').addEventListener("click", () => {
-      if (spec.choices) {
-        if (!inp.value) { res.innerHTML = "Choose an answer first."; return; }
-        res.innerHTML = inp.value === spec.answer ? `<b>Right.</b> ${subs(spec.how)}` : `<b>Not quite.</b> Try again, or look at the plots above.`;
-        return;
-      }
-      const v = Number(inp.value);
-      if (inp.value.trim() === "" || !Number.isFinite(v)) { res.innerHTML = "Type a number first (1e-5 style works)."; return; }
-      if (near(v, spec)) { res.innerHTML = `<b>Right.</b> ${subs(spec.how)}`; return; }
-      const w = (spec.wrong || []).find(x => near(v, x));
-      res.innerHTML = w ? `<b>Close.</b> ${subs(w.msg)}` : `<b>Not quite.</b> Check units and signs, use the controls above, or show the answer.`;
-    });
-    q.querySelector('[data-a="show"]').addEventListener("click", () => { res.innerHTML = `<b>${esc(answer())}.</b> ${subs(spec.how)}`; });
+    const ans = spec.choices ? spec.choices.find(([v]) => v === spec.answer)[1] : `${fmtG(spec.value, spec.digits || 4)}${spec.unit === "°" ? "°" : spec.unit ? " " + spec.unit : ""}`;
+    q.insertAdjacentHTML("beforeend", `<p class="ans"><b>${esc(ans)}.</b> ${subs(spec.how)}</p>`);
   });
 }
 
@@ -2154,7 +2135,7 @@ function iTables() {
   const line = (sub, k, E) => `<div class="eq"><b>k</b><sub>${sub}</sub> = ${kv(k)},&emsp; <i>Ẽ</i><sub>${sub}</sub>(<b>r</b>, <i>t</i>) = ${fmtG(E.amp, 4)} V/m · ${uv(E.dir)} e<sup><i>i</i>(<b>k</b><sub>${sub}</sub>·<b>r</b> − ω<i>t</i>)</sup></div>`;
   $("iVec").innerHTML = `<div class="eq">ω = 2πc/λ₀ = ${fmtG(V.omega, 4)} rad/s,&emsp; k₀ = ω/c = ${fmtG(V.k0, 4)} rad/m,&emsp; θ<sub>T</sub> = ${deg(F.thT)}</div>` +
     line("I", V.kI, V.EI) + line("R", V.kR, V.ER) + line("T", V.kT, V.ET) +
-    `<p class="note">${pol === "p" ? "p: the unit vectors are Griffiths' directions for E<sub>I</sub>, E<sub>R</sub> and E<sub>T</sub> in the x–z plane, as in the HW 5-1 figure; a negative amplitude means the field points the other way." : "s: every field points along ŷ, out of the page."} The physical field is the real part. Wave vectors share k<sub>x</sub> = n₁k₀ sin θ<sub>I</sub>: that is Snell's law.</p>`;
+    `<p class="note">${pol === "p" ? "p: the unit vectors are Griffiths' directions for E<sub>I</sub>, E<sub>R</sub> and E<sub>T</sub> in the x–z plane, as in the diagrams; a negative amplitude means the field points the other way." : "s: every field points along ŷ, out of the page."} The physical field is the real part. Wave vectors share k<sub>x</sub> = n₁k₀ sin θ<sub>I</sub>: that is Snell's law.</p>`;
 }
 function iUpdate() {
   setOpts($("iF"), [...(IF.m1 === "custom" ? ["c1"] : []), ...(IF.m2 === "custom" ? ["c2"] : [])]);
@@ -2374,7 +2355,7 @@ legend($("lLeg2"), [["field E", COL.k], ["electron x", COL.o]]);
 legend($("oLeg1"), [["p (in the page)", COL.p, null, "arrow"], ["s (out of the page)", COL.s, null, "odot"]]);
 legend($("oLeg2"), [["T<sub>s</sub>", COL.s], ["T<sub>p</sub>", COL.p], ["P, transmitted", COL.k], ["P, reflected", COL.k, "6 3"]]);
 [wF, vF, vS, nF, nP, pF, pG, cF, cM, lF, lD, iF, oF, zF].forEach(f => f.write());
-initQuizzes();
+initAnswers();
 wUpdate(); vDrawAll(); vCalc(); nUpdate(); nCauchy(); drawPrism();
 pUpdate(); pAnimA.t = PS.t0; pDrawA();
 cUpdate(); cMetal(); lUpdate(); iUpdate(); oUpdate(); zUpdate();

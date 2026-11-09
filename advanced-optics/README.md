@@ -1,10 +1,9 @@
 # Advanced optics: interactive examples
 
-`index.html` is a single-page web app of worked, interactive examples for an advanced optics class (PHSX 855,
-with Homework 4 and 5): waves and phasors, light in vacuum, the refractive index of real glasses, pulses
+`index.html` is a single-page web app of worked, interactive optics examples: waves and phasors, light in vacuum, the refractive index of real glasses, pulses
 in glass, conductors, the Lorentz oscillator, reflection and refraction of s and p light, a tilted window, and
-polarizers. Each part loads the homework numbers or a real material, has plots that move in time (Play / Pause), and
-ends with questions that check a typed answer and explain it. Notation follows D. J. Griffiths,
+polarizers. Each part loads worked examples or a real material, has plots that move in time (Play / Pause), and
+ends with worked examples and their answers. Notation follows D. J. Griffiths,
 *Introduction to Electrodynamics*, ch. 9: e^i(kz − ωt), k̃ = k + iκ, α = 2κ, and the α, β of the Fresnel equations.
 
 **Inputs:** every part has sliders paired with number boxes (the boxes take values beyond the slider, e.g. `1e17`),
@@ -39,12 +38,12 @@ axes, ideal or leaking polarizers, a turning middle polarizer. Everything recalc
   region and the n extrema, a table of both; the driven electron against the field with its phase lag.
 - Interface: ray diagrams and animated field maps for s and p side by side, R and T (or r and t, or the phase of r)
   against angle with Brewster's and the critical angle, tables of r, t, E₀R, E₀T, R, T, θ_T, α and β, and the three
-  fields written out in the form HW 5-1 asks for.
+  fields written out as vectors.
 - Tilted window: plates in the beam with s and p symbols sized by amplitude, T_s, T_p and the degree of polarization
   against angle, and a table.
 - Polarizers: the chain seen face-on with the field after each polarizer, Malus's law step by step, and the output
   against the polarizer angle or, when the middle one turns, against time.
-- 33 questions, the equations (34 numbered items) and notes with the data sources.
+- 33 worked examples with their answers, the equations (34 numbered items) and notes with the data sources.
 
 ## Model
 
@@ -81,12 +80,12 @@ root from any static host, for example GitHub Pages with "Deploy from a branch" 
 node tests/validate.mjs     # well under 1 s
 ```
 
-- Homework 4-2: α_max = 1689.59 m⁻¹ and (n − 1)_max = 3.95966 × 10⁻⁵; the exact model puts the n extrema at
-  −0.49998γ and +0.50002γ, where α is 0.500001 of its peak (HW 4-1), and the anomalous region is 100 MHz wide. The
+- A 589 nm line (100 MHz FWHM, 10¹⁷ m⁻³, f = 1): α_max = 1689.59 m⁻¹ and (n − 1)_max = 3.95966 × 10⁻⁵; the exact model puts the n extrema at
+  −0.49998γ and +0.50002γ, where α is 0.500001 of its peak, and the anomalous region is 100 MHz wide. The
   near-resonance formulas agree with the exact curve to 8 × 10⁻⁵ of the peak, and ñ² = 1 + χ̃.
-- Homework 5-1: θ_T = 26.7685°, α = 1.26266, E₀R = −2.7125 V/m, E₀T = 17.6513 V/m, R = 0.011772, T = 0.988228,
+- Air to glass (n = 1.57) at 45° and 600 nm, p-polarized, 25 V/m: θ_T = 26.7685°, α = 1.26266, E₀R = −2.7125 V/m, E₀T = 17.6513 V/m, R = 0.011772, T = 0.988228,
   k_Tz = 1.46791 × 10⁷ rad/m and ω = 3.13942 × 10¹⁵ rad/s, as computed independently in Python.
-- Homework 5-2 and 5-3: 1, 0.5, 0 and 0.1875 W/m² from 2 W/m²; the turning polarizer gives four maxima per turn and the
+- Polarizers: 1, 0.5, 0 and 0.1875 W/m² from 2 W/m² of natural light in the four example setups; the turning polarizer gives four maxima per turn and the
   Jones chain matches (I₁/8)(1 − cos 4ωt) to 3 × 10⁻¹⁶; Malus's law to 4 × 10⁻¹⁶; crossed polarizers leaking 10⁻⁵ pass
   2 × 10⁻⁵ W/m².
 - Fresnel: R + T = 1 to 9 × 10⁻¹⁶ over all angles for glass, total internal reflection and silver; r_p = 0 at
@@ -113,4 +112,4 @@ node tests/validate.mjs     # well under 1 s
 - Plates: the closed form (1 − R)/(1 + (2N − 1)R) equals a surface-by-surface recursion to 6 × 10⁻¹⁶; N-BK7 at Brewster's
   angle (633 nm): R_s = 15.454 %, T_s = 0.7323 for one plate, 0.2148 for ten, nine plates to get below 25 %. The driven
   electron lags by 0°, 45°, 90° and 180°.
-- All 33 questions on the page have an answer and an explanation, and the homework ones carry the homework values.
+- All 33 worked examples on the page have an answer and an explanation, and the answers carry the values above.
