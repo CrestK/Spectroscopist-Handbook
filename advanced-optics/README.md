@@ -1,10 +1,10 @@
 # Advanced optics: interactive examples
 
 `index.html` is a single-page web app of worked, interactive examples for an advanced optics class (PHSX 855,
-Lectures 19–23 and Homework 4 and 5): waves and phasors, light in vacuum, the refractive index of real glasses, pulses
+with Homework 4 and 5): waves and phasors, light in vacuum, the refractive index of real glasses, pulses
 in glass, conductors, the Lorentz oscillator, reflection and refraction of s and p light, a tilted window, and
 polarizers. Each part loads the homework numbers or a real material, has plots that move in time (Play / Pause), and
-ends with questions that check a typed answer and explain it. Notation follows the lectures and D. J. Griffiths,
+ends with questions that check a typed answer and explain it. Notation follows D. J. Griffiths,
 *Introduction to Electrodynamics*, ch. 9: e^i(kz − ωt), k̃ = k + iκ, α = 2κ, and the α, β of the Fresnel equations.
 
 **Inputs:** every part has sliders paired with number boxes (the boxes take values beyond the slider, e.g. `1e17`),
@@ -35,7 +35,7 @@ axes, ideal or leaking polarizers, a turning middle polarizer. Everything recalc
 - Conductors: skin depth against frequency, E and B inside the conductor with their phase lag, a table of k, κ, d,
   φ, B₀/E₀, energy ratio and relaxation time; reflectance of silver, gold and copper and their skin depth from measured
   optical constants against the DC model.
-- Lorentz oscillator: α and n − 1 against detuning (exact and the lecture's near-resonance formulas), the anomalous
+- Lorentz oscillator: α and n − 1 against detuning (exact and near-resonance formulas), the anomalous
   region and the n extrema, a table of both; the driven electron against the field with its phase lag.
 - Interface: ray diagrams and animated field maps for s and p side by side, R and T (or r and t, or the phase of r)
   against angle with Brewster's and the critical angle, tables of r, t, E₀R, E₀T, R, T, θ_T, α and β, and the three
@@ -83,7 +83,7 @@ node tests/validate.mjs     # well under 1 s
 
 - Homework 4-2: α_max = 1689.59 m⁻¹ and (n − 1)_max = 3.95966 × 10⁻⁵; the exact model puts the n extrema at
   −0.49998γ and +0.50002γ, where α is 0.500001 of its peak (HW 4-1), and the anomalous region is 100 MHz wide. The
-  lecture's near-resonance formulas agree with the exact curve to 8 × 10⁻⁵ of the peak, and ñ² = 1 + χ̃.
+  near-resonance formulas agree with the exact curve to 8 × 10⁻⁵ of the peak, and ñ² = 1 + χ̃.
 - Homework 5-1: θ_T = 26.7685°, α = 1.26266, E₀R = −2.7125 V/m, E₀T = 17.6513 V/m, R = 0.011772, T = 0.988228,
   k_Tz = 1.46791 × 10⁷ rad/m and ω = 3.13942 × 10¹⁵ rad/s, as computed independently in Python.
 - Homework 5-2 and 5-3: 1, 0.5, 0 and 0.1875 W/m² from 2 W/m²; the turning polarizer gives four maxima per turn and the

@@ -161,7 +161,7 @@ const e = v => v.toExponential(1);
     && Math.abs(sea.d - 1.1042e-2) < 1e-6 && Math.abs(sea.phi / c.DEG - 23.404) < 1e-3 && Math.abs(cu.tau - 1.486e-19) < 1e-22, `worst ${e(worst)}, d_Cu ${g(cu.d * 1e3, 5)} mm`);
 }
 
-// 14. Lorentz, HW 4-2: closed forms (Python), exact extrema at ω₀ ∓ γ/2 where α = α_max/2, exact = lecture formula near the line
+// 14. Lorentz, HW 4-2: closed forms (Python), exact extrema at ω₀ ∓ γ/2 where α = α_max/2, exact = near-resonance formula near the line
 {
   const P = c.lorentzParams(589, 1e8, 1e17, 1), K = c.lorentzKey(P);
   const offMax = (K.wMax - P.omega0) / P.gamma, offMin = (K.wMin - P.omega0) / P.gamma;
@@ -171,7 +171,7 @@ const e = v => v.toExponential(1);
   check("14 HW 4-2: α_max = 1689.59 m⁻¹, (n − 1)_max = 3.95966 × 10⁻⁵; exact n extrema at ∓0.49998γ with α/α_max = 0.500001; anomalous width 100 MHz; ñ² = 1 + χ̃",
     Math.abs(K.aMax - 1689.59) < 0.01 && Math.abs(K.nm1Max - 3.95966e-5) < 1e-10 && Math.abs(offMax + 0.49998) < 2e-5 && Math.abs(offMin - 0.50002) < 2e-5
     && Math.abs(K.halfAtMax - 0.500001) < 2e-6 && rel(K.anomalous, 1e8) < 1e-4 && worst < 1e-4 && id < 1e-15 && rel(K.aMaxEx, K.aMax) < 1e-6,
-    `extrema at ${g(offMax, 6)}γ and ${g(offMin, 6)}γ, α ratio ${g(K.halfAtMax, 7)}, width ${g(K.anomalous / 1e6, 6)} MHz, lecture vs exact ${e(worst)}`);
+    `extrema at ${g(offMax, 6)}γ and ${g(offMin, 6)}γ, α ratio ${g(K.halfAtMax, 7)}, width ${g(K.anomalous / 1e6, 6)} MHz, near-resonance vs exact ${e(worst)}`);
 }
 
 // 15. driven electron: in phase far below, 90° at resonance, 45° at ω₀ − γ/2, out of phase far above

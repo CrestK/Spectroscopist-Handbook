@@ -76,19 +76,19 @@
 <body>
 <main>
 <h1>Advanced optics: waves, light in matter, interfaces and polarization</h1>
-<p class="intro">Interactive examples for PHSX 855 (Advanced Optics), Lectures 19–23 and Homework 4 and 5. Each part loads
+<p class="intro">Interactive examples for PHSX 855 (Advanced Optics) and Homework 4 and 5. Each part loads
 the homework numbers or a real material, has plots that move in time (Play / Pause) and ends with questions to check
 yourself. In every plot s-polarized light is blue and p-polarized light is red; E is black and B orange. Equations are at
 the bottom.</p>
 <noscript><p class="error">This page needs JavaScript.</p></noscript>
 <nav class="toc" aria-label="Contents">
   <ol>
-    <li><a href="#waves">Waves, pulses and phasors</a> <span class="note">Lecture 19</span></li>
-    <li><a href="#vacuum">Light in vacuum: E, B, intensity, polarization</a> <span class="note">Lecture 20</span></li>
-    <li><a href="#index">Refractive index of real glasses</a> <span class="note">Lectures 21, 23</span></li>
+    <li><a href="#waves">Waves, pulses and phasors</a></li>
+    <li><a href="#vacuum">Light in vacuum: E, B, intensity, polarization</a></li>
+    <li><a href="#index">Refractive index of real glasses</a></li>
     <li><a href="#pulses">Pulses in glass: group velocity and dispersion</a></li>
-    <li><a href="#conductors">Conductors and skin depth</a> <span class="note">Lectures 21–22</span></li>
-    <li><a href="#lorentz">Absorption and anomalous dispersion</a> <span class="note">Lectures 22–23, HW 4</span></li>
+    <li><a href="#conductors">Conductors and skin depth</a></li>
+    <li><a href="#lorentz">Absorption and anomalous dispersion</a> <span class="note">HW 4</span></li>
     <li><a href="#interface">Reflection and refraction: s and p, R and T, Brewster</a> <span class="note">HW 5-1</span></li>
     <li><a href="#optic">Polarization through a real optic</a></li>
     <li><a href="#polarizers">Polarizers and Malus's law</a> <span class="note">HW 5-2, 5-3</span></li>
@@ -98,7 +98,7 @@ the bottom.</p>
 
 <!-- 1 ---------------------------------------------------------------------------------------------------------- -->
 <section id="waves">
-  <h2>1. Waves, pulses and phasors <span class="lec">Lecture 19</span></h2>
+  <h2>1. Waves, pulses and phasors</h2>
   <p class="intro">A wave is a disturbance that travels: any shape f(z − vt) moves along +z unchanged, and f(z + vt) along −z.
   For a harmonic wave the source sets the period T, the medium sets the speed v = c/n, and together they fix the
   wavelength λ = vT and the wavenumber k = 2π/λ. Press Play and compare the snapshot (the whole wave at one time), the
@@ -160,7 +160,7 @@ the bottom.</p>
 
 <!-- 2 ---------------------------------------------------------------------------------------------------------- -->
 <section id="vacuum">
-  <h2>2. Light in vacuum: E, B, intensity and polarization <span class="lec">Lecture 20</span></h2>
+  <h2>2. Light in vacuum: E, B, intensity and polarization</h2>
   <p class="intro">Maxwell's equations in free space give waves with k² = μ₀ε₀ω², so every frequency travels at
   c = 1/√(μ₀ε₀). E, B and k are mutually perpendicular and right-handed, E and B are in phase, and B₀ = E₀/c. The direction
   of E is the polarization: it can stay in one plane (linear) or turn (circular, elliptical). Detectors respond to the
@@ -224,12 +224,12 @@ the bottom.</p>
 
 <!-- 3 ---------------------------------------------------------------------------------------------------------- -->
 <section id="index">
-  <h2>3. Refractive index of real glasses <span class="lec">Lectures 21, 23</span></h2>
+  <h2>3. Refractive index of real glasses</h2>
   <p class="intro">In a dielectric the wave moves at v = c/n with n = √ε<sub>r</sub>. The frequency stays the one the source
   set; the wavelength shrinks to λ₀/n. n depends on wavelength because bound electrons and ions respond like Lorentz
-  oscillators (Lecture 23): glass has resonances in the ultraviolet and the infrared, and visible light sits between them,
+  oscillators: glass has resonances in the ultraviolet and the infrared, and visible light sits between them,
   where n rises toward the blue (normal dispersion). The curves are measured Sellmeier fits for real materials (sources
-  in the notes); the lectures' glass with n = 1.57 lies between N-BK7 and N-F2.</p>
+  in the notes); the HW 5 glass with n = 1.57 lies between N-BK7 and N-F2.</p>
   <div class="row" id="nShow"><span class="note">Show:</span></div>
   <div class="row">
     <label for="nRange">Range</label>
@@ -246,7 +246,7 @@ the bottom.</p>
   is small for glasses that spread colors widely (flints) and large for low-dispersion ones (crowns, CaF₂). n<sub>g</sub>
   and GVD are used in part 4.</p>
   <h3>Cauchy's formula and the oscillators behind it</h3>
-  <p class="intro">Far below a single resonance the Lorentz model gives Cauchy's formula n ≈ 1 + A(1 + B/λ²) (Lecture 23).
+  <p class="intro">Far below a single resonance the Lorentz model gives Cauchy's formula n ≈ 1 + A(1 + B/λ²).
   Fit it to a material over 400–700 nm and see where it holds. Each Sellmeier term Bλ²/(λ² − λ<sub>j</sub>²) is an undamped
   Lorentz oscillator at λ<sub>j</sub>, so the fit coefficients are real resonances.</p>
   <div class="row"><label for="nCau">Material</label><select id="nCau"></select></div>
@@ -318,7 +318,7 @@ the bottom.</p>
 
 <!-- 5 ---------------------------------------------------------------------------------------------------------- -->
 <section id="conductors">
-  <h2>5. Conductors and skin depth <span class="lec">Lectures 21–22</span></h2>
+  <h2>5. Conductors and skin depth</h2>
   <p class="intro">Free charges add a current J = σE, and the wave equation then has a complex wavenumber
   k̃ = k + iκ: the field decays as e<sup>−κz</sup> over the skin depth d = 1/κ. In a good conductor (σ ≫ εω)
   d ≈ √(2/σμω), the wavelength inside is only 2πd, and B lags E by 45°. Free charge inside relaxes in τ = ε/σ
@@ -360,7 +360,7 @@ the bottom.</p>
   <p class="caption" id="cWaveCap"></p>
   <h3>Real metals at optical frequencies</h3>
   <p class="intro">For light, measured optical constants ñ = n + iκ replace the DC model. They give the skin depth of silver
-  at 500 nm as about 26 nm (Lecture 22 quotes ~27 nm), ten times the DC estimate, and they explain the colors of metals:
+  at 500 nm as about 26 nm, ten times the DC estimate, and they explain the colors of metals:
   silver reflects evenly across the visible, while gold and copper reflect less blue and green light.</p>
   <div class="row"><label for="cMet">Metal</label><select id="cMet"><option value="silver">Silver</option><option value="gold">Gold</option><option value="copper">Copper</option></select></div>
   <div class="sliders" id="cM"></div>
@@ -380,14 +380,14 @@ the bottom.</p>
 
 <!-- 6 ---------------------------------------------------------------------------------------------------------- -->
 <section id="lorentz">
-  <h2>6. Absorption and anomalous dispersion: the Lorentz oscillator <span class="lec">Lectures 22–23, HW 4</span></h2>
+  <h2>6. Absorption and anomalous dispersion: the Lorentz oscillator <span class="lec">HW 4</span></h2>
   <p class="intro">A bound electron driven by the light field is a damped oscillator. Near its resonance ω₀ the medium
   absorbs, and n changes fast: below ω₀ it rises with frequency (normal dispersion), within γ/2 of ω₀ it falls
   (anomalous dispersion), and above it rises again. HW 4-1 shows that n is largest and smallest exactly where α is half
   its peak; HW 4-2 puts numbers on a 589 nm line. Load it below.</p>
   <div class="sliders" id="lF"></div>
   <div class="row">
-    <label><input type="checkbox" id="lApprox" checked> Show the near-resonance formulas of the lecture</label>
+    <label><input type="checkbox" id="lApprox" checked> Show the near-resonance formulas</label>
   </div>
   <div class="row">
     <span class="note">Examples:</span>
@@ -400,7 +400,7 @@ the bottom.</p>
     <div>
       <div class="legend" id="lLeg"></div>
       <div class="plotbox" id="lPlotBox"><canvas id="lPlot" role="img" aria-label="Absorption coefficient and refractive index near the resonance"></canvas></div>
-      <p class="caption">Black: the exact single oscillator, ñ = √(1 + χ̃). Orange dashed: the lecture's near-resonance
+      <p class="caption">Black: the exact single oscillator, ñ = √(1 + χ̃). Orange dashed: the near-resonance
       formulas. Grey band: anomalous dispersion, where n falls with frequency. The dots mark the largest and smallest n;
       they sit at ν₀ ∓ Δν/2, where α is half its peak (dotted line). Hover to read values.</p>
     </div>
@@ -612,7 +612,7 @@ the bottom.</p>
 <!-- equations ---------------------------------------------------------------------------------------------------- -->
 <section id="equations">
   <h2>Equations</h2>
-  <h3>Waves (Lecture 19)</h3>
+  <h3>Waves</h3>
   <ol class="eqs" start="1">
     <li><p>Wave equation and its solutions</p>
       <div class="eq">∂²<i>f</i>/∂<i>z</i>² = (1/<i>v</i>²) ∂²<i>f</i>/∂<i>t</i>²,&emsp; <i>f</i> = <i>g</i>(<i>z</i> − <i>vt</i>) (along +<i>z</i>) or <i>g</i>(<i>z</i> + <i>vt</i>) (along −<i>z</i>)</div></li>
@@ -625,7 +625,7 @@ the bottom.</p>
     <li><p>Three dimensions</p>
       <div class="eq"><i>D</i> = <i>A</i> cos(<b>k</b>·<b>r</b> − ω<i>t</i> + φ₀),&emsp; |<b>k</b>| = 2π/λ;&emsp; spherical (<i>A</i>/<i>r</i>) cos(<i>kr</i> − ω<i>t</i>),&emsp; cylindrical (<i>A</i>/√<i>r</i>) cos(<i>kr</i> − ω<i>t</i>)</div></li>
   </ol>
-  <h3>Light in vacuum (Lecture 20)</h3>
+  <h3>Light in vacuum</h3>
   <ol class="eqs" start="5">
     <li><p>Dispersion relation</p>
       <div class="eq"><i>k</i>² = μ₀ε₀ω²,&emsp; <i>c</i> = ω/<i>k</i> = 1/√(μ₀ε₀) = 2.99792458 × 10⁸ m/s</div></li>
@@ -640,7 +640,7 @@ the bottom.</p>
     <li><p>Sources</p>
       <div class="eq">Gaussian beam: <i>I</i><sub>peak</sub> = 2<i>P</i>/π<i>w</i>²;&emsp; Gaussian pulse: <i>P</i><sub>peak</sub> = 2√(ln 2/π) <i>E</i><sub>p</sub>/τ ≈ 0.939 <i>E</i><sub>p</sub>/τ;&emsp; point source: <i>I</i> = <i>P</i>/4π<i>r</i>²;&emsp; photon flux <i>I</i>λ/<i>hc</i></div></li>
   </ol>
-  <h3>Light in dielectrics (Lectures 21, 23)</h3>
+  <h3>Light in dielectrics</h3>
   <ol class="eqs" start="10">
     <li><p>Linear dielectric</p>
       <div class="eq"><b>P</b> = ε₀χ<sub>e</sub><b>E</b>,&emsp; <b>D</b> = ε₀(1 + χ<sub>e</sub>)<b>E</b> = ε<b>E</b>,&emsp; <i>v</i> = 1/√(εμ),&emsp; <i>n</i> = <i>c</i>/<i>v</i> = √(ε<sub>r</sub>μ<sub>r</sub>) ≈ √ε<sub>r</sub>,&emsp; λ = λ₀/<i>n</i></div></li>
@@ -663,7 +663,7 @@ the bottom.</p>
     <li><p>Normal incidence</p>
       <div class="eq"><i>r</i> = (<i>n</i>₁ − <i>n</i>₂)/(<i>n</i>₁ + <i>n</i>₂),&emsp; <i>t</i> = 2<i>n</i>₁/(<i>n</i>₁ + <i>n</i>₂),&emsp; <i>R</i> = <i>r</i>²,&emsp; <i>T</i> = (<i>n</i>₂/<i>n</i>₁)<i>t</i>² = 1 − <i>R</i></div></li>
   </ol>
-  <h3>Conductors (Lectures 21–22)</h3>
+  <h3>Conductors</h3>
   <ol class="eqs" start="17">
     <li><p>Ohm's law and free-charge relaxation</p>
       <div class="eq"><b>J</b> = σ<b>E</b>,&emsp; ρ<sub>f</sub>(<i>t</i>) = ρ<sub>f</sub>(0) e<sup>−<i>t</i>/τ</sup>,&emsp; τ = ε/σ</div></li>
@@ -677,7 +677,7 @@ the bottom.</p>
     <li><p>Measured optical constants</p>
       <div class="eq"><i>ñ</i> = <i>n</i> + <i>i</i>κ,&emsp; <i>E</i> ∝ e<sup>−2πκ<i>z</i>/λ</sup>,&emsp; <i>d</i> = λ/2πκ,&emsp; <i>R</i> = |(<i>ñ</i> − 1)/(<i>ñ</i> + 1)|²</div></li>
   </ol>
-  <h3>Lorentz oscillator (Lectures 22–23, HW 4)</h3>
+  <h3>Lorentz oscillator (HW 4)</h3>
   <ol class="eqs" start="22">
     <li><p>Driven, damped electron</p>
       <div class="eq"><i>ẍ</i> + γ<i>ẋ</i> + ω₀²<i>x</i> = (<i>q</i>/<i>m</i>)<i>E</i>₀e<sup>−<i>i</i>ω<i>t</i></sup> &ensp;→&ensp; <i>x̃</i> = (<i>q</i>/<i>m</i>)<i>E</i>₀/(ω₀² − ω² − <i>i</i>γω)</div>
@@ -724,9 +724,7 @@ the bottom.</p>
 <section id="notes">
   <h2>Notes</h2>
   <ul class="notes">
-    <li>Built from PHSX 855 Lectures 19–23 (wave basics; light in a vacuum; light in dielectrics and conductors; complex
-    wavenumber and Lorentz oscillators; dielectric constant, absorption coefficient and index of refraction) and Homework 4
-    and 5. Notation follows the lectures and D. J. Griffiths, <i>Introduction to Electrodynamics</i>, ch. 9: e<sup>i(kz − ωt)</sup>,
+    <li>Notation follows D. J. Griffiths, <i>Introduction to Electrodynamics</i>, ch. 9: e<sup>i(kz − ωt)</sup>,
     k̃ = k + iκ, α = 2κ, and the α, β of the Fresnel equations.</li>
     <li>Glass and crystal data (Sellmeier coefficients as in the refractiveindex.info database): N-BK7, N-F2 and N-SF11 from the
     Schott catalogue (2017); fused silica, I. H. Malitson, J. Opt. Soc. Am. 55, 1205 (1965); CaF₂, I. H. Malitson, Appl. Opt. 2,
@@ -735,7 +733,7 @@ the bottom.</p>
     and J. J. Villa, J. Opt. Soc. Am. 47, 244 (1957), transparent only beyond 1.1 µm; air at 15 °C and 1 atm, P. E. Ciddor,
     Appl. Opt. 35, 1566 (1996). Metals: P. B. Johnson and R. W. Christy, Phys. Rev. B 6, 4370 (1972).</li>
     <li>DC conductivities at 20 °C: copper 5.96 × 10⁷, silver 6.30 × 10⁷, gold 4.10 × 10⁷, aluminum 3.77 × 10⁷, 304 stainless
-    steel 1.45 × 10⁶ S/m (CRC Handbook); seawater 4.8 S/m with ε<sub>r</sub> = 81. The lecture's 5.8 × 10⁷ S/m for copper gives the
+    steel 1.45 × 10⁶ S/m (CRC Handbook); seawater 4.8 S/m with ε<sub>r</sub> = 81. The often-quoted 5.8 × 10⁷ S/m for copper gives the
     same τ ≈ 1.5 × 10⁻¹⁹ s.</li>
     <li>Limits: plane waves and flat, sharp interfaces; no thin-film interference; the plates add reflections in intensity;
     the slab in part 4A keeps one internal reflection; one Lorentz oscillator without Doppler broadening; the DC conductivity
@@ -789,7 +787,7 @@ function goldenMax(fn, a, b, maximize, iters) {
   return (a + b) / 2;
 }
 
-/* ---------- 1. waves (Lecture 19) ---------- */
+/* ---------- 1. waves ---------- */
 // the source sets the period T, the medium the speed v = c/n; then λ = vT and k = 2π/λ
 function waveParams(Tfs, n) {
   const v = C_NM_FS / n, lam = v * Tfs;
@@ -800,7 +798,7 @@ function harmonic(z, t, A, k, omega, phi0, dir) { return A * Math.cos(k * z - di
 function phasor(z, t, A, k, omega, phi0, dir) { return cscale(cexpi(k * z - dir * omega * t + phi0), A); }
 function gaussPulse(s, w) { return Math.exp(-4 * LN2 * s * s / (w * w)); }   // FWHM w
 
-/* ---------- 2. light in vacuum (Lecture 20) ---------- */
+/* ---------- 2. light in vacuum ---------- */
 function intensityFromField(E0, n) { return 0.5 * (n || 1) * C0 * EPS0 * E0 * E0; }
 function fieldFromIntensity(I, n) { return Math.sqrt(2 * I / ((n || 1) * C0 * EPS0)); }
 function gaussBeamPeak(P, d) { const w = d / 2; return 2 * P / (Math.PI * w * w); }   // d = 1/e² diameter
@@ -827,7 +825,7 @@ function polState(kind, psiDeg, ratio, deltaDeg) {
 }
 function eField(phase, ps) { return { x: ps.ax * Math.cos(phase), y: ps.ay * Math.cos(phase + ps.delta) }; }
 
-/* ---------- 3. refractive index of real materials (Lectures 21, 23) ----------
+/* ---------- 3. refractive index of real materials ----------
    Sellmeier n² = 1 + Σ B λ²/(λ² − λj²), λ in µm. terms: [B, λj] or, with sq, [B, λj²], as the source gives them. */
 const MATERIALS = {
   vacuum: { name: "Vacuum or air (n = 1)", constant: 1 },
@@ -947,7 +945,7 @@ function slabField(z, t, S) {
   return wave(S.t01 * S.t10, t - S.k1 * L - (z - L) / C_UM_FS, S.k2 * L, S.k0 * L + kv * (z - L));
 }
 
-/* ---------- 5. conductors (Lectures 21–22): k̃² = μεω² + iμσω, k̃ = k + iκ ---------- */
+/* ---------- 5. conductors: k̃² = μεω² + iμσω, k̃ = k + iκ ---------- */
 const CONDUCTORS = {
   copper: { name: "Copper", sigma: 5.96e7, epsR: 1 }, silver: { name: "Silver", sigma: 6.30e7, epsR: 1 },
   gold: { name: "Gold", sigma: 4.10e7, epsR: 1 }, aluminum: { name: "Aluminum", sigma: 3.77e7, epsR: 1 },
@@ -966,7 +964,7 @@ function metalOptics(key, lamNm) {
   return { n: nt.re, kap: nt.im, R: normalR(nt), d: lamNm / (2 * Math.PI * nt.im), dDC: conductorK(omega, 1, CONDUCTORS[key].sigma).d * 1e9 };
 }
 
-/* ---------- 6. Lorentz oscillator (Lectures 22–23, HW 4) ---------- */
+/* ---------- 6. Lorentz oscillator (HW 4) ---------- */
 function lorentzParams(lam0Nm, fwhmHz, N, f) {
   const omega0 = 2 * Math.PI * C0 / (lam0Nm * 1e-9);
   return { lam0: lam0Nm, nu0: C0 / (lam0Nm * 1e-9), omega0, fwhm: fwhmHz, gamma: 2 * Math.PI * fwhmHz, N, f, wp2: N * QE * QE * f / (EPS0 * ME) };
@@ -977,7 +975,7 @@ function lorentzAt(omega, P) {
   const nm1 = cdiv(chi, cadd(cx(1, 0), csqrt(cadd(cx(1, 0), chi))));
   return { chi, nm1: nm1.re, kap: nm1.im, alpha: 2 * omega * nm1.im / C0 };
 }
-// the lecture's near-resonance (ω + ω0 ≈ 2ω0) and dilute (ñ ≈ 1 + χ̃/2) formulas
+// near-resonance (ω + ω0 ≈ 2ω0) and dilute (ñ ≈ 1 + χ̃/2) formulas
 function lorentzApprox(omega, P) {
   const D = omega - P.omega0, g2 = P.gamma / 2, den = D * D + g2 * g2;
   return { alpha: P.wp2 / (2 * C0) * g2 / den, nm1: P.wp2 / (4 * P.omega0) * (-D) / den };
@@ -996,7 +994,7 @@ function drivenResponse(omega, omega0, gamma) {
   return { amp: cabs(x), lag: carg(x) };
 }
 
-/* ---------- 7. interfaces (Griffiths' notation, as in the lectures and HW 5) ----------
+/* ---------- 7. interfaces (Griffiths' notation, as in HW 5) ----------
    α = cos θT/cos θI, β = ñ2/n1 (μ1 = μ2). p: E_I ∥ (cos θI, 0, −sin θI), E_R ∥ (cos θI, 0, sin θI), E_T ∥ (cos θT, 0, −sin θT);
    s: E ∥ ŷ. n2 may be complex (metals); beyond the critical angle cos θT is imaginary. */
 function fresnel(n1, n2, thDeg) {
@@ -1093,7 +1091,7 @@ const QUIZ = (function () {
   const cu = conductorK(2 * Math.PI * 60, 1, 5.96e7), sea = conductorK(2 * Math.PI * 1e4, 81, 4.8);
   q.c1 = { value: cu.d * 1e3, unit: "mm", tol: 0.01, how: `d ≈ √(2/σμ₀ω) = √(2/(5.96 × 10⁷ × 4π × 10⁻⁷ × 2π × 60)) = ${f4(cu.d * 1e3, 2)} mm.` };
   q.c2 = { value: sea.d, unit: "m", tol: 0.01, how: `σ/εω = ${(sea.x / 1e5).toFixed(2)} × 10⁵ ≫ 1, so d ≈ √(2/σμ₀ω) = ${f4(sea.d, 2)} m: radio at 10 kHz reaches a few meters down.` };
-  q.c3 = { value: EPS0 / 5.96e7 * 1e19, unit: "× 10⁻¹⁹ s", tol: 0.04, how: `τ = ε₀/σ = 8.854 × 10⁻¹² / 5.96 × 10⁷ = ${f4(EPS0 / 5.96e7 * 1e19, 2)} × 10⁻¹⁹ s (1.53 × 10⁻¹⁹ s with the lecture's 5.8 × 10⁷ S/m), far shorter than an optical period (~2 × 10⁻¹⁵ s).` };
+  q.c3 = { value: EPS0 / 5.96e7 * 1e19, unit: "× 10⁻¹⁹ s", tol: 0.04, how: `τ = ε₀/σ = 8.854 × 10⁻¹² / 5.96 × 10⁷ = ${f4(EPS0 / 5.96e7 * 1e19, 2)} × 10⁻¹⁹ s (1.53 × 10⁻¹⁹ s with the often-quoted 5.8 × 10⁷ S/m), far shorter than an optical period (~2 × 10⁻¹⁵ s).` };
   const P = lorentzParams(589, 1e8, 1e17, 1), K = lorentzKey(P);
   q.l1 = { value: 1, unit: "γ", tol: 0.02, how: "n − 1 ∝ (ω₀ − ω)/[(ω − ω₀)² + (γ/2)²] has its extremes at ω₀ ∓ γ/2, so n falls over a band γ wide: the FWHM of α. There α is exactly half its peak." };
   q.l2 = { value: K.aMax, unit: "m⁻¹", tol: 0.01, how: `α_max = Nq²f/(ε₀mcγ) with γ = 2π × 100 MHz = 6.283 × 10⁸ s⁻¹: ${f4(K.aMax, 0)} m⁻¹ (light loses 1/e of its intensity in ${f4(1000 / K.aMax, 2)} mm).` };
@@ -1705,7 +1703,7 @@ function nCauchy() {
   const uv = m.res.filter(([, Lj]) => Lj < 0.4).length, ir = m.res.length - uv;
   const err = l => (l >= a && l <= b ? fmtG(Math.abs(cauchyN(f, l) - nOf(k, l)), 2) : null), e2 = err(2000), eUV = err(Math.max(a, 250));
   $("nCauOut").innerHTML = `Least-squares fit over 400–700 nm (grey band): n = ${fix(f.A, 5)} + ${fix(f.B * 1e6, 0)} nm²/λ², within ${fmtG(f.max, 2)} of the measured curve
-    (rms ${fmtG(f.rms, 2)}). In the lecture's form n = 1 + A(1 + B/λ²): A = ${fix(f.a, 4)} and B = ${fix(f.b * 1e6, 0)} nm², so one effective
+    (rms ${fmtG(f.rms, 2)}). In the single-oscillator form n = 1 + A(1 + B/λ²): A = ${fix(f.a, 4)} and B = ${fix(f.b * 1e6, 0)} nm², so one effective
     resonance at λ₀ = √B = ${fix(f.lam0, 0)} nm, in the ultraviolet.<br><br>The Sellmeier formula (B and λ<sub>j</sub>): ${res.join("; ")}. The
     ${uv === 1 ? "ultraviolet term comes" : words[uv] + " ultraviolet terms come"} from bound electrons${ir ? `, the infrared ${ir === 1 ? "one" : "ones"} from vibrations of the atoms` : ""}. Away from the fit
     range the Cauchy curve misses the rise toward the UV resonance${eUV ? ` (off by ${eUV} at ${fix(Math.max(a, 250), 0)} nm)` : ""}${e2 ? ` and the fall toward the IR one (off by ${e2} at 2 µm)` : ""}.`;
@@ -1949,7 +1947,7 @@ function lDraw() {
 }
 function lTable() {
   const P = LP, K = LK, off = w => fmtFreq((w - P.omega0) / (2 * Math.PI), 4), molar = K.aMaxEx / 100 / (Math.LN10 * LO.N / 6.02214076e23 / 1000);
-  table($("lTable"), ["quantity", "lecture formula", "exact model"], [
+  table($("lTable"), ["quantity", "near-resonance formula", "exact model"], [
     ["Line center ν₀ = c/λ₀", fmtFreq(P.nu0, 5), ""], ["Damping γ = 2πΔν", `${fmtG(P.gamma, 4)} s⁻¹`, ""],
     ["Peak absorption α<sub>max</sub>", `${fmtG(K.aMax, 5)} m⁻¹`, `${fmtG(K.aMaxEx, 5)} m⁻¹`], ["Absorption length 1/α<sub>max</sub>", fmtLen(1 / K.aMax, 3), fmtLen(1 / K.aMaxEx, 3)],
     ["Largest n − 1", fmtG(K.nm1Max, 5), fmtG(K.nMaxEx, 5)], ["… at ν − ν₀", fmtFreq(-LO.fwhm / 2, 4), off(K.wMax)],
@@ -2371,7 +2369,7 @@ legend($("cLeg1"), [["skin depth d = 1/κ", COL.k], ["good-conductor formula √
 legend($("cLeg2"), [["E", COL.k], ["B, scaled", COL.o], ["envelope e^(−z/d)", COL.g, "4 3"]]);
 legend($("cLeg3"), [["silver", COL.k], ["gold", COL.o], ["copper", COL.g, "6 3"]]);
 legend($("nCauLeg"), [["measured (Sellmeier)", COL.k], ["Cauchy fit", COL.o, "6 3"], ["fit range", COL.region, null, "band"]]);
-legend($("lLeg"), [["exact", COL.k], ["lecture formula", COL.o, "6 3"], ["anomalous dispersion", COL.region, null, "band"], ["n largest / smallest", COL.k, null, "dot"]]);
+legend($("lLeg"), [["exact", COL.k], ["near-resonance formula", COL.o, "6 3"], ["anomalous dispersion", COL.region, null, "band"], ["n largest / smallest", COL.k, null, "dot"]]);
 legend($("lLeg2"), [["field E", COL.k], ["electron x", COL.o]]);
 legend($("oLeg1"), [["p (in the page)", COL.p, null, "arrow"], ["s (out of the page)", COL.s, null, "odot"]]);
 legend($("oLeg2"), [["T<sub>s</sub>", COL.s], ["T<sub>p</sub>", COL.p], ["P, transmitted", COL.k], ["P, reflected", COL.k, "6 3"]]);
