@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Spectroscopist Handbook</title>
-<meta name="description" content="Spectroscopy calculations as web pages: Franck–Condon overlap factors, Gaussian beam focal overlap, a beam overlap game, solvent subtraction for Raman spectra and spectral narrowing by SHG in BBO.">
+<meta name="description" content="Spectroscopy calculations as web pages: Franck–Condon overlap factors, Gaussian beam focal overlap, a beam overlap game, solvent subtraction for Raman spectra, spectral narrowing by SHG in BBO and interactive optics examples.">
 <style>
   /* Plain page: white, black text, system font, native controls. Layout only. */
   :root { color-scheme: light; }
@@ -121,6 +121,17 @@ site.</p>
         <p class="note">Sellmeier equations of Kato, Eimerl and Tamošauskas; the 2, 7 and 25 mm crystals of Lorenzo et al. (2024).</p>
       </div>
     </div>
+
+    <div class="entry" id="advanced-optics">
+      <a class="thumb" href="advanced-optics/index.html" tabindex="-1" aria-hidden="true"><img src="previews/advanced-optics.webp" width="128" height="128" alt=""></a>
+      <div>
+        <h3><a href="advanced-optics/index.html">Advanced optics: interactive examples</a></h3>
+        <p>Worked, interactive optics examples: waves and phasors, light in vacuum, the refractive index of real glasses,
+        femtosecond pulses in glass, skin depth, the Lorentz oscillator, s and p reflection with Brewster's angle, a tilted
+        window and polarizers. The plots move in time, and each part ends with worked examples and their answers.</p>
+        <p class="note">Glass data from the Schott catalogue and Malitson; metals from Johnson and Christy.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -146,10 +157,10 @@ site.</p>
     <li>The calculations run in your browser. Nothing you type or load is uploaded.</li>
     <li>Each page is a static folder in this repository (<code>franck-condon/</code>, <code>focal-overlap/</code>,
     <code>overlap-game/</code>, <code>screensaver/</code>, <code>solvent-subtraction/</code>, <code>lorentz-explorer/</code>,
-    <code>shg-narrowing/</code>, <code>exam-scan/</code>): open its <code>index.html</code> and it runs with no build step. The exam scan page has to
+    <code>shg-narrowing/</code>, <code>advanced-optics/</code>, <code>exam-scan/</code>): open its <code>index.html</code> and it runs with no build step. The exam scan page has to
     be served, by this site or any local web server, because browsers do not load its PDF reader straight from disk.
     The calculation pages list their model and equations at the bottom.</li>
-    <li>The Franck–Condon, solvent subtraction, Lorentz oscillator, SHG narrowing and exam scan pages come with their tests
+    <li>The Franck–Condon, solvent subtraction, Lorentz oscillator, SHG narrowing, advanced optics and exam scan pages come with their tests
     (<code>node franck-condon/tests/validate.mjs</code>), which check the calculation against closed forms,
     numerical integration and published values; their READMEs give the numbers.</li>
   </ul>
