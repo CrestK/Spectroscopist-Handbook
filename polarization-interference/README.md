@@ -52,8 +52,9 @@ range get a red outline and one sentence.
   colors of white-light fringes.
 - Polarization and interference: fringes with an optic over one slit against no optic, and the visibility against
   its angle.
-- 40 worked examples with their answers, the equations (23 numbered items, 41 typeset with KaTeX in all, steps
-  included) and notes with conventions and data sources.
+- 40 worked examples with their answers, the equations (23 numbered items) and notes with conventions and data
+  sources. All the math is typeset with KaTeX: 41 displayed equations and about 480 inline formulas in the text,
+  captions, tables, slider labels and worked answers, the live captions included.
 
 ## Model
 
@@ -82,7 +83,7 @@ root from any static host, for example GitHub Pages with "Deploy from a branch" 
 
 | path | what |
 |---|---|
-| `index.html` | the app: markup, the core (`<script id="core">`: complex arithmetic, crystal data and dispersion, e-wave index, walk-off and refraction, Wollaston prism, Jones matrices and vectors, Stokes, Mueller and Poincaré, the closed forms, real plates and achromats, CIE colors, slits, spectra, wave trains, polarization and interference, the answers to the worked examples), the UI and the equations as LaTeX source |
+| `index.html` | the app: markup (math as LaTeX: display equations in `<div class="eq">`, inline math between `\(` and `\)`), the core (`<script id="core">`: complex arithmetic, crystal data and dispersion, e-wave index, walk-off and refraction, Wollaston prism, Jones matrices and vectors, Stokes, Mueller and Poincaré, the closed forms, real plates and achromats, CIE colors, slits, spectra, wave trains, polarization and interference, the answers to the worked examples), the UI and the equations as LaTeX source |
 | `vendor/katex/` | KaTeX 0.16.47 (MIT license) and its woff2 fonts, which typeset the equations; the same copy as `advanced-optics/vendor/katex/`. Without it the page still works and shows the LaTeX source |
 | `tests/validate.mjs` | checks the core inside `index.html` |
 
@@ -120,5 +121,7 @@ node tests/validate.mjs     # under 1 s
   e^{−0.73} = 48.2 %, and average 1.701I₁ against 1.702I₁.
 - Polarization and interference: a half-wave plate at θ over one slit gives V = |cos 2θ|, a polarizer 2cos²θ/(1 + cos²θ),
   a quarter-wave plate at 45° V = 0.7071 and a shift of ⅛ fringe; crossed polarizations give no fringes.
-- All 40 worked examples have an answer and an explanation with the values above, and all 41 equations parse in the
-  bundled KaTeX.
+- All 40 worked examples have an answer and an explanation with the values above.
+- KaTeX in strict mode parses all 41 displayed equations, the 250 inline formulas in the page text and the 115 in the
+  worked answers, and no formula is left as plain text with HTML sub- and superscripts. In the browser the live
+  captions (every preset and menu option) render with no KaTeX errors or warnings.

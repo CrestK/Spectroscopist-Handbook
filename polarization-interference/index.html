@@ -45,7 +45,10 @@
   tr.sel td { font-weight: 600; }
   table.cheat td, table.cheat th { white-space: normal; text-align: left; vertical-align: top; }
   .eq { overflow-x: auto; overflow-y: hidden; margin: 4px 0 10px; padding-block: 2px; }
+  .katex { font-size: 1.07em; }
   .eq .katex { font-size: 1.12em; }
+  .mraw { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.92em; }
+  .nb { white-space: nowrap; }
   .eq .katex-display { margin: 0.35em 0; }
   .raw { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; white-space: pre-wrap; color: #333; }
   ol.eqs, ol.steps { padding-left: 2.3em; margin: 0; max-width: 100ch; }
@@ -83,10 +86,10 @@
 interference. Each part has presets, plots that move in time (Play / Pause) and worked examples with their answers. The
 general wave-plate equations are worked out step by step in part 4. In the wave-plate parts the field component along the
 plate's fast axis is blue and along its slow axis red; the total field is black. Equations are at the bottom.</p>
-<p class="conv"><b>Conventions.</b> The light travels along +z, out of the screen, so every face-on picture shows the field
-as you see it looking back at the source: x to the right, y up, angles counterclockwise from x.
-E = Re[(E<sub>x</sub>, E<sub>y</sub>) e<sup>i(kz − ωt)</sup>]. Right-circular light turns clockwise in these pictures and has the
-Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it left-circular).</p>
+<p class="conv"><b>Conventions.</b> The light travels along \(+z\), out of the screen, so every face-on picture shows the
+field as you see it looking back at the source: \(x\) to the right, \(y\) up, angles counterclockwise from \(x\), and
+\(\mathbf E = \mathrm{Re}\big[(E_x, E_y)\,e^{i(kz-\omega t)}\big]\). Right-circular light turns clockwise in these
+pictures and has the Jones vector \((1, -i)/\sqrt2\) (Hecht's convention; many engineering texts call it left-circular).</p>
 <noscript><p class="error">This page needs JavaScript.</p></noscript>
 <nav class="toc" aria-label="Contents">
   <ol>
@@ -108,13 +111,13 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
 <section id="crystal">
   <h2>1. Birefringence: two refractive indices in one crystal</h2>
   <p class="intro">Think of each electron in a crystal as tied to its atom by springs. In glass the springs are the same in
-  every direction. In a crystal they can be stiffer along one axis than across it, so the index depends on which way E
-  pushes the electrons. In a uniaxial crystal the odd direction is the optic axis (a direction, not a line). A wave whose E
-  is perpendicular to the optic axis, the ordinary or o-wave, always sees n<sub>o</sub>. A wave whose E lies in the plane of
-  k and the optic axis, the extraordinary or e-wave, sees n<sub>e</sub> when it travels across the axis and an index between
-  n<sub>o</sub> and n<sub>e</sub> at other angles. Along the optic axis both see n<sub>o</sub>: no birefringence.
-  Δn = n<sub>e</sub> − n<sub>o</sub> is positive for quartz and negative for calcite. The polarization that sees the smaller
-  index travels faster; in a wave plate its direction is the fast axis.</p>
+  every direction. In a crystal they can be stiffer along one axis than across it, so the index depends on which way
+  \(\mathbf E\) pushes the electrons. In a uniaxial crystal the odd direction is the optic axis (a direction, not a line). A
+  wave whose \(\mathbf E\) is perpendicular to the optic axis, the ordinary or o-wave, always sees \(n_o\). A wave whose
+  \(\mathbf E\) lies in the plane of \(\mathbf k\) and the optic axis, the extraordinary or e-wave, sees \(n_e\) when it
+  travels across the axis and an index between \(n_o\) and \(n_e\) at other angles. Along the optic axis both see
+  \(n_o\): no birefringence. \(\Delta n = n_e - n_o\) is positive for quartz and negative for calcite. The polarization
+  that sees the smaller index travels faster; in a wave plate its direction is the fast axis.</p>
   <div class="row"><label for="kMat">Crystal</label><select id="kMat"></select></div>
   <div class="sliders" id="kF"></div>
   <p id="kErr" class="error" role="alert" hidden></p>
@@ -127,26 +130,27 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
     <div>
       <div class="tablewrap"><table id="kTable"></table></div>
       <p class="note">Values at the wavelength above, from published dispersion formulas (sources in the notes). † no dispersion
-      data: the 589.3 nm values. * outside the measured range of the formula. Δn &gt; 0: a positive crystal. At 589.3 nm the
+      data: the 589.3 nm values. * outside the measured range of the formula. \(\Delta n \gt 0\): a positive crystal. At 589.3 nm the
       formulas agree with Hecht's table (Table 8.1) to the digits it gives, except rutile (0.003 and 0.006 higher).</p>
     </div>
   </div>
   <h3>Worked examples</h3>
   <div class="qa" data-q="k1"><p>1. In calcite at 589.3 nm, how much faster does an e-wave travelling across the optic axis go than the o-wave?</p></div>
   <div class="qa" data-q="k2"><p>2. An e-wave in calcite travels at 45° to the optic axis. What index does it see?</p></div>
-  <div class="qa" data-q="k3"><p>3. Which crystals in the table are positive (n<sub>e</sub> &gt; n<sub>o</sub>)?</p></div>
+  <div class="qa" data-q="k3"><p>3. Which crystals in the table are positive (\(n_e \gt n_o\))?</p></div>
 </section>
 
 <!-- 2 ---------------------------------------------------------------------------------------------------------- -->
 <section id="double">
   <h2>2. Double refraction: the o-ray and the e-ray</h2>
   <p class="intro">Unpolarized light entering a birefringent crystal splits into an o-wave and an e-wave polarized at right
-  angles. The o-wave follows Snell's law with n<sub>o</sub>. The e-wave follows Snell's law for its wave normal k, but with an
-  index that depends on the angle between k and the optic axis, and its energy (the ray) does not travel along k: it walks
-  off by an angle ρ. Through a calcite rhomb this gives two images. With the optic axis perpendicular to the plane of
-  incidence the e-wave sees n<sub>e</sub> in every direction in that plane, so both rays obey Snell's law, one with
-  n<sub>o</sub> and one with n<sub>e</sub>. With the optic axis along the face and light at normal incidence the two waves stay
-  together and only their phase differs: a wave plate (part 3).</p>
+  angles. The o-wave follows Snell's law with \(n_o\). The e-wave follows Snell's law for its wave normal \(\mathbf k\),
+  but with an index that depends on the angle between \(\mathbf k\) and the optic axis, and its energy (the ray) does not
+  travel along \(\mathbf k\): it walks off by an angle \(\rho\). Through a calcite rhomb this gives two images. With the
+  optic axis perpendicular to the plane of incidence the e-wave sees \(n_e\) in every direction in that plane, so both rays
+  obey Snell's law, \(\sin\theta_I = n_o\sin\theta_o\) and \(\sin\theta_I = n_e\sin\theta_e\). With the optic axis
+  along the face and light at normal incidence the two waves stay together and only their phase differs: a wave plate
+  (part 3).</p>
   <div class="row">
     <label for="dMat">Crystal</label><select id="dMat"></select>
     <label for="dAxis">Optic axis</label>
@@ -165,14 +169,14 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <div class="legend" id="dLeg"></div>
   <div class="plotbox" id="dBox"><canvas id="dCv" role="img" aria-label="A beam split into an o-ray and an e-ray by a crystal slab"></canvas></div>
   <p class="caption">The beam comes in from the left, unpolarized, and splits in the crystal (gray). The lines across each
-  beam are wave crests, perpendicular to k; the o-beam runs perpendicular to its crests, the e-beam at the walk-off angle ρ
-  to its own. Dots: E out of the page; double arrows: E in the page. The dashed curves at the entry point are Huygens
+  beam are wave crests, perpendicular to \(\mathbf k\); the o-beam runs perpendicular to its crests, the e-beam at the
+  walk-off angle \(\rho\) to its own. Dots: \(\mathbf E\) out of the page; double arrows: \(\mathbf E\) in the page. The dashed curves at the entry point are Huygens
   wavelets, how far each wave gets in the same time (a circle for the o-wave, an ellipse with its long axis across the optic
   axis for the e-wave in calcite). Each ray goes from the entry point to where its wavelet touches its crest. The two beams
   leave parallel to the incident beam. The crest spacing is not to scale.</p>
   <div class="tablewrap tw"><table id="dTable"></table></div>
   <h3>Worked examples</h3>
-  <p class="note">Questions 1 to 4: a calcite crystal (n<sub>o</sub> = 1.6584, n<sub>e</sub> = 1.4864) is cut and polished so
+  <p class="note">Questions 1 to 4: a calcite crystal (\(n_o = 1.6584\), \(n_e = 1.4864\)) is cut and polished so
   the optic axis is perpendicular to the plane of the drawing. Unpolarized light hits it at 40° (second example button).</p>
   <div class="qa" data-q="d1"><p>1. At what angle is the e-ray refracted?</p></div>
   <div class="qa" data-q="d2"><p>2. At what angle is the o-ray refracted?</p></div>
@@ -187,9 +191,10 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <h2>3. Inside a wave plate: how the phase difference builds up</h2>
   <p class="intro">Cut a birefringent crystal so the optic axis lies in its faces and send light in at normal incidence. The
   two waves then travel in the same direction with no walk-off, but at different speeds: the component along the fast axis
-  at c/n<sub>f</sub>, the component along the slow axis at c/n<sub>s</sub>. After a thickness d the slow component has fallen
-  behind by the retardance Γ = 2π(n<sub>s</sub> − n<sub>f</sub>)d/λ₀. A quarter-wave plate has Γ = 90° (a quarter of a period),
-  a half-wave plate Γ = 180°. Nothing else changes: each component keeps its amplitude, only their relative phase moves.</p>
+  at \(c/n_f\), the component along the slow axis at \(c/n_s\). After a thickness \(d\) the slow component has fallen
+  behind by the retardance \(\Gamma = 2\pi(n_s - n_f)\,d/\lambda_0\). A quarter-wave plate has \(\Gamma = 90^\circ\) (a
+  quarter of a period), a half-wave plate \(\Gamma = 180^\circ\). Nothing else changes: each component keeps its amplitude,
+  only their relative phase moves.</p>
   <div class="row">
     <label for="iPlate">Plate</label>
     <select id="iPlate"><option value="qwp">Quarter-wave (Γ = 90°)</option><option value="hwp">Half-wave (Γ = 180°)</option><option value="full">Full-wave (Γ = 360°)</option><option value="custom">Any Γ</option></select>
@@ -208,8 +213,9 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <div class="plotbox" id="i3Box"><canvas id="i3" role="img" aria-label="Field components through a wave plate"></canvas></div>
   <p class="caption">The wave runs left to right through the plate (gray box). Blue: the field component along the fast axis,
   drawn in the slanted plane (the fast axis points into the screen). Red: the component along the slow axis, in the
-  vertical plane. Black arrows: the total field E along the beam. Inside the plate the slow component's wavelength is
-  shorter, so it falls behind; after the plate the components keep the phase difference Γ they gained, and the black arrow
+  vertical plane. Black arrows: the total field \(\mathbf E\) along the beam. Inside the plate the slow component's
+  wavelength is shorter, so it falls behind; after the plate the components keep the phase difference \(\Gamma\) they
+  gained, and the black arrow
   tips trace the new polarization. The birefringence is exaggerated so the plate is only a few wavelengths thick; a real
   zero-order quartz quarter-wave plate is about 28 wavelengths thick (part 7).</p>
   <div class="plotbox" id="iRowBox"><canvas id="iRow" role="img" aria-label="Polarization at five depths in the plate"></canvas></div>
@@ -224,86 +230,95 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
 <!-- 4 ---------------------------------------------------------------------------------------------------------- -->
 <section id="general">
   <h2>4. Wave plates: the general equations, step by step</h2>
-  <p class="intro">One matrix describes every wave plate: a plate with retardance Γ and its fast axis at θ. The quarter- and
-  half-wave plates are Γ = π/2 and Γ = π in it. Work in Jones vectors: the column (E<sub>x</sub>, E<sub>y</sub>) of complex
-  amplitudes, with the real field E = Re[(E<sub>x</sub>, E<sub>y</sub>) e<sup>i(kz − ωt)</sup>].</p>
+  <p class="intro">One matrix describes every wave plate: a plate with retardance \(\Gamma\) and its fast axis at
+  \(\theta\). The quarter- and half-wave plates are \(\Gamma = \pi/2\) and \(\Gamma = \pi\) in it. Work in Jones
+  vectors, the column \((E_x, E_y)\) of complex amplitudes, with the real field
+  \(\mathbf E = \mathrm{Re}\big[(E_x, E_y)\,e^{i(kz-\omega t)}\big]\).</p>
   <ol class="steps">
-    <li><p><b>The retardance.</b> Across the thickness d the fast component gains the phase n<sub>f</sub>k₀d and the slow one
-      n<sub>s</sub>k₀d. Only the difference matters:</p>
+    <li><p><b>The retardance.</b> Across the thickness \(d\) the fast component gains the phase \(n_f k_0 d\) and the slow
+      one \(n_s k_0 d\). Only the difference matters:</p>
       <div class="eq">\Gamma = \frac{2\pi}{\lambda_0}\,(n_s - n_f)\,d = \frac{2\pi\,|\Delta n|\,d}{\lambda_0}</div>
       <div class="eq">\begin{aligned} \text{quarter-wave:}\quad \Gamma &= \frac{\pi}{2} + 2\pi m, & d &= \left(m + \tfrac14\right)\frac{\lambda_0}{|\Delta n|} \\[6pt] \text{half-wave:}\quad \Gamma &= \pi + 2\pi m, & d &= \left(m + \tfrac12\right)\frac{\lambda_0}{|\Delta n|} \end{aligned}</div>
-      <p class="note">m = 0 is a zero-order plate. Adding whole waves (m ≥ 1) changes nothing at the design wavelength.</p></li>
-    <li><p><b>In the plate's own axes.</b> Put x′ along the fast axis and y′ along the slow axis. The plate leaves the fast
-      component alone and delays the slow one by Γ:</p>
+      <p class="note">\(m = 0\) is a zero-order plate. Adding whole waves (\(m \ge 1\)) changes nothing at the design wavelength.</p></li>
+    <li><p><b>In the plate's own axes.</b> Put \(x'\) along the fast axis and \(y'\) along the slow axis. The plate leaves
+      the fast component alone and delays the slow one by \(\Gamma\):</p>
       <div class="eq">\begin{pmatrix} E_f' \\ E_s' \end{pmatrix} = \begin{pmatrix} 1 & 0 \\ 0 & e^{i\Gamma} \end{pmatrix} \begin{pmatrix} E_f \\ E_s \end{pmatrix}</div>
-      <p class="note">With e<sup>i(kz − ωt)</sup>, the factor e<sup>iΓ</sup> makes the slow component reach each value a time Γ/ω
-      later. The common phase n<sub>f</sub>k₀d is dropped: nothing measures it.</p></li>
-    <li><p><b>Components along the plate's axes.</b> With the fast axis at θ from x, the unit vectors along the axes are
-      f̂ = (cos θ, sin θ) and ŝ = (−sin θ, cos θ). The components along them are dot products, a rotation by −θ:</p>
+      <p class="note">With \(e^{i(kz-\omega t)}\), the factor \(e^{i\Gamma}\) makes the slow component reach each value a
+      time \(\Gamma/\omega\) later. The common phase \(n_f k_0 d\) is dropped: nothing measures it.</p></li>
+    <li><p><b>Components along the plate's axes.</b> With the fast axis at \(\theta\) from \(x\), the unit vectors along
+      the axes are \(\hat{\mathbf f} = (\cos\theta, \sin\theta)\) and \(\hat{\mathbf s} = (-\sin\theta, \cos\theta)\).
+      The components along them are dot products, a rotation by \(-\theta\):</p>
       <div class="eq">\begin{pmatrix} E_f \\ E_s \end{pmatrix} = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix} \begin{pmatrix} E_x \\ E_y \end{pmatrix} = \mathbf R(-\theta) \begin{pmatrix} E_x \\ E_y \end{pmatrix}</div></li>
-    <li><p><b>Back to x and y.</b> Rotate back by +θ. The plate's matrix in the lab is R(θ) · diag(1, e<sup>iΓ</sup>) · R(−θ):</p>
+    <li><p><b>Back to \(x\) and \(y\).</b> Rotate back by \(+\theta\). The plate's matrix in the lab is
+      \(\mathbf R(\theta)\,\mathrm{diag}(1, e^{i\Gamma})\,\mathbf R(-\theta)\):</p>
       <div class="eq">\mathbf J(\theta,\Gamma) = \begin{pmatrix} \cos^2\theta + e^{i\Gamma}\sin^2\theta & (1 - e^{i\Gamma})\sin\theta\cos\theta \\[4pt] (1 - e^{i\Gamma})\sin\theta\cos\theta & \sin^2\theta + e^{i\Gamma}\cos^2\theta \end{pmatrix}</div></li>
-    <li><p><b>The same matrix in its most useful form.</b> Take out the common phase e<sup>iΓ/2</sup>:</p>
+    <li><p><b>The same matrix in its most useful form.</b> Take out the common phase \(e^{i\Gamma/2}\):</p>
       <div class="eq">\mathbf J(\theta,\Gamma) = e^{i\Gamma/2}\left[\cos\frac{\Gamma}{2}\;\mathbf 1 \;-\; i\sin\frac{\Gamma}{2}\;\mathbf M(\theta)\right]</div>
       <div class="eq">\mathbf M(\theta) = \begin{pmatrix} \cos 2\theta & \sin 2\theta \\ \sin 2\theta & -\cos 2\theta \end{pmatrix}, \qquad \mathbf M(\theta) \begin{pmatrix} \cos\alpha \\ \sin\alpha \end{pmatrix} = \begin{pmatrix} \cos(2\theta - \alpha) \\ \sin(2\theta - \alpha) \end{pmatrix}</div>
-      <p class="note">M(θ) is the mirror in the fast axis: it sends a line at α to the line at 2θ − α. So every wave plate is a
-      mix of "do nothing" (weight cos Γ/2) and "mirror in the fast axis" (weight sin Γ/2), a quarter period out of step.
-      This one line is the general equation; the rest follows from it.</p></li>
-    <li><p><b>Half-wave plate (Γ = π).</b> cos(π/2) = 0 and e<sup>iπ/2</sup>(−i) = 1, so the plate is exactly the mirror:</p>
+      <p class="note">\(\mathbf M(\theta)\) is the mirror in the fast axis: it sends a line at \(\alpha\) to the line at
+      \(2\theta - \alpha\). So every wave plate is a mix of "do nothing" (weight \(\cos\frac{\Gamma}{2}\)) and "mirror in
+      the fast axis" (weight \(\sin\frac{\Gamma}{2}\)), a quarter period out of step. This one line is the general equation;
+      the rest follows from it.</p></li>
+    <li><p><b>Half-wave plate (\(\Gamma = \pi\)).</b> \(\cos(\pi/2) = 0\) and \(e^{i\pi/2}(-i) = 1\), so the plate is
+      exactly the mirror:</p>
       <div class="eq">\mathbf J_{\lambda/2}(\theta) = \begin{pmatrix} \cos 2\theta & \sin 2\theta \\ \sin 2\theta & -\cos 2\theta \end{pmatrix}</div>
       <div class="eq">\begin{aligned} \text{linear at } \alpha &\;\longrightarrow\; \text{linear at } 2\theta - \alpha \\[5pt] \mathbf J_{\lambda/2}\,\frac{1}{\sqrt2}\begin{pmatrix} 1 \\ \mp i \end{pmatrix} &= e^{\mp 2i\theta}\,\frac{1}{\sqrt2}\begin{pmatrix} 1 \\ \pm i \end{pmatrix} \end{aligned}</div>
-      <p class="note">Linear light comes out mirrored in the fast axis: at φ = α − θ from the fast axis in, at −φ out, turned by
-      −2φ. Turning the plate by Δθ turns the light by 2Δθ. Circular light flips handedness (right ↔ left) at any θ, and any
-      ellipse is mirrored: azimuth ψ → 2θ − ψ, ellipticity χ → −χ.</p></li>
-    <li><p><b>Quarter-wave plate (Γ = π/2).</b> cos(π/4) = sin(π/4) = 1/√2:</p>
+      <p class="note">Linear light comes out mirrored in the fast axis: at \(\varphi = \alpha - \theta\) from the fast axis
+      in, at \(-\varphi\) out, turned by \(-2\varphi\). Turning the plate by \(\Delta\theta\) turns the light by
+      \(2\Delta\theta\). Circular light flips handedness (right \(\leftrightarrow\) left) at any \(\theta\), and any ellipse is
+      mirrored: azimuth \(\psi \to 2\theta - \psi\), ellipticity \(\chi \to -\chi\).</p></li>
+    <li><p><b>Quarter-wave plate (\(\Gamma = \pi/2\)).</b> \(\cos(\pi/4) = \sin(\pi/4) = 1/\sqrt2\):</p>
       <div class="eq">\mathbf J_{\lambda/4}(\theta) = \frac{e^{i\pi/4}}{\sqrt2}\begin{pmatrix} 1 - i\cos 2\theta & -i\sin 2\theta \\ -i\sin 2\theta & 1 + i\cos 2\theta \end{pmatrix}</div>
       <div class="eq">\mathbf J_{\lambda/4}\begin{pmatrix} \cos\alpha \\ \sin\alpha \end{pmatrix} = \frac{e^{i\pi/4}}{\sqrt2}\left[\begin{pmatrix} \cos\alpha \\ \sin\alpha \end{pmatrix} - i\begin{pmatrix} \cos(2\theta - \alpha) \\ \sin(2\theta - \alpha) \end{pmatrix}\right]</div>
-      <p class="note">The real field is ∝ û cos ωt − v̂ sin ωt: it swings from the input direction û to its mirror image v̂ a
-      quarter period later, so the ellipse's axes lie along the bisectors of û and v̂, which are the fast and slow axes. In
-      the plate's own axes, with φ = α − θ:</p>
+      <p class="note">The real field is \(\mathbf E \propto \hat{\mathbf u}\cos\omega t - \hat{\mathbf v}\sin\omega t\): it
+      swings from the input direction \(\hat{\mathbf u}\) to its mirror image \(\hat{\mathbf v}\) a quarter period later, so
+      the ellipse's axes lie along the bisectors of \(\hat{\mathbf u}\) and \(\hat{\mathbf v}\), which are the fast and slow
+      axes. In the plate's own axes, with \(\varphi = \alpha - \theta\):</p>
       <div class="eq">\begin{pmatrix} E_f \\ E_s \end{pmatrix} = \begin{pmatrix} \cos\varphi \\ i\sin\varphi \end{pmatrix}, \qquad \frac{b}{a} = |\tan\varphi| \ \text{or}\ |\cot\varphi|</div>
-      <p class="note">Semi-axes |cos φ| along the fast axis and |sin φ| along the slow axis. E turns counterclockwise (left) for
-      0 &lt; φ &lt; 90° and clockwise (right) for −90° &lt; φ &lt; 0; φ = ±45° gives circular light, φ = 0° or 90° leaves the light
-      unchanged. Run backward: circular light comes out linear at 45° to the axes, right-circular at θ + 45° and left-circular
-      at θ − 45°.</p></li>
-    <li><p><b>Any plate, linear light in.</b> The output ellipse has azimuth ψ and ellipticity angle χ
-      (tan |χ| = b/a, χ &gt; 0 right-handed):</p>
+      <p class="note">Semi-axes \(|\cos\varphi|\) along the fast axis and \(|\sin\varphi|\) along the slow axis.
+      \(\mathbf E\) turns counterclockwise (left) for \(0 \lt \varphi \lt 90^\circ\) and clockwise (right) for
+      \(-90^\circ \lt \varphi \lt 0\); \(\varphi = \pm 45^\circ\) gives circular light, \(\varphi = 0^\circ\) or
+      \(90^\circ\) leaves the light unchanged. Run backward: circular light comes out linear at 45° to the axes,
+      right-circular at \(\theta + 45^\circ\) and left-circular at \(\theta - 45^\circ\).</p></li>
+    <li><p><b>Any plate, linear light in.</b> The output ellipse has azimuth \(\psi\) and ellipticity angle \(\chi\)
+      (\(\tan|\chi| = b/a\), \(\chi \gt 0\) right-handed):</p>
       <div class="eq">\begin{aligned} \tan 2(\psi - \theta) &= \cos\Gamma\;\tan 2(\alpha - \theta) \\[5pt] \sin 2\chi &= -\sin\Gamma\;\sin 2(\alpha - \theta) \end{aligned}</div>
-      <p class="note">Γ = π gives ψ = 2θ − α and χ = 0 (step 6); Γ = π/2 gives ψ = θ or θ + 90° and χ = −(α − θ) (step 7).</p></li>
+      <p class="note">\(\Gamma = \pi\) gives \(\psi = 2\theta - \alpha\) and \(\chi = 0\) (step 6); \(\Gamma = \pi/2\)
+      gives \(\psi = \theta\) or \(\theta + 90^\circ\) and \(\chi = -(\alpha - \theta)\) (step 7).</p></li>
     <li><p><b>Any plate, any light: the Poincaré sphere.</b> Write the light as its Stokes vector, a point on a unit sphere:</p>
       <div class="eq">\mathbf S = \begin{pmatrix} S_1 \\ S_2 \\ S_3 \end{pmatrix} = \begin{pmatrix} |E_x|^2 - |E_y|^2 \\ 2\,\mathrm{Re}(E_x^*E_y) \\ -2\,\mathrm{Im}(E_x^*E_y) \end{pmatrix} = S_0 \begin{pmatrix} \cos 2\chi\,\cos 2\psi \\ \cos 2\chi\,\sin 2\psi \\ \sin 2\chi \end{pmatrix}</div>
-      <p class="note">Linear light lies on the equator at longitude 2ψ, right-circular at the north pole, left-circular at the
-      south pole. A wave plate turns the sphere by Γ about the axis through its fast-axis point â = (cos 2θ, sin 2θ, 0),
-      clockwise seen from outside at â:</p>
+      <p class="note">Linear light lies on the equator at longitude \(2\psi\), right-circular at the north pole,
+      left-circular at the south pole. A wave plate turns the sphere by \(\Gamma\) about the axis through its fast-axis point
+      \(\hat{\mathbf a} = (\cos 2\theta, \sin 2\theta, 0)\), clockwise seen from outside at \(\hat{\mathbf a}\):</p>
       <div class="eq">\mathbf S' = \mathbf S\cos\Gamma - (\hat{\mathbf a}\times\mathbf S)\sin\Gamma + \hat{\mathbf a}\,(\hat{\mathbf a}\cdot\mathbf S)(1 - \cos\Gamma)</div>
       <p class="note">A half-wave plate is a half turn, a quarter-wave plate a quarter turn. Light whose point lies on the axis
       (linear along the fast or slow axis) does not move.</p></li>
-    <li><p><b>Between a polarizer at α and an analyzer at β.</b> Project the output onto the analyzer:</p>
+    <li><p><b>Between a polarizer at \(\alpha\) and an analyzer at \(\beta\).</b> Project the output onto the analyzer:</p>
       <div class="eq">\frac{I}{I_0} = \cos^2(\beta - \alpha) - \sin 2(\theta - \alpha)\;\sin 2(\theta - \beta)\;\sin^2\frac{\Gamma}{2}</div>
       <div class="eq">\begin{aligned} \text{crossed } (\beta = \alpha + 90^\circ):\quad \frac{I}{I_0} &= \sin^2 2(\theta - \alpha)\;\sin^2\frac{\Gamma}{2} \\[5pt] \text{parallel } (\beta = \alpha):\quad \frac{I}{I_0} &= 1 - \sin^2 2(\theta - \alpha)\;\sin^2\frac{\Gamma}{2} \end{aligned}</div></li>
   </ol>
   <h3>Cheat sheet</h3>
   <div class="tablewrap tw"><table class="cheat">
-    <thead><tr><th>Light in (φ = α − θ from the fast axis)</th><th>Quarter-wave plate, fast axis at θ</th><th>Half-wave plate, fast axis at θ</th></tr></thead>
+    <thead><tr><th>Light in (\(\varphi = \alpha - \theta\) from the fast axis)</th><th>Quarter-wave plate, fast axis at \(\theta\)</th><th>Half-wave plate, fast axis at \(\theta\)</th></tr></thead>
     <tbody>
       <tr><td>Linear along the fast or slow axis</td><td>unchanged</td><td>unchanged</td></tr>
-      <tr><td>Linear at α</td><td>elliptical, axes along the fast and slow axes, b/a = |tan φ|; left-handed for 0 &lt; φ &lt; 90°, right-handed for −90° &lt; φ &lt; 0</td><td>linear at 2θ − α: mirrored in the fast axis</td></tr>
-      <tr><td>Linear at ±45° to the fast axis</td><td>circular: left for φ = +45°, right for φ = −45°</td><td>linear, turned by 90°</td></tr>
-      <tr><td>Right-circular</td><td>linear at θ + 45°</td><td>left-circular</td></tr>
-      <tr><td>Left-circular</td><td>linear at θ − 45°</td><td>right-circular</td></tr>
-      <tr><td>Elliptical, azimuth ψ, ellipticity χ</td><td>quarter turn on the Poincaré sphere (part 5)</td><td>azimuth 2θ − ψ, ellipticity −χ</td></tr>
+      <tr><td>Linear at \(\alpha\)</td><td>elliptical, axes along the fast and slow axes, \(b/a = |\tan\varphi|\) or \(|\cot\varphi|\), whichever is \(\le 1\); left-handed for \(0 \lt \varphi \lt 90^\circ\), right-handed for \(-90^\circ \lt \varphi \lt 0\)</td><td>linear at \(2\theta - \alpha\): mirrored in the fast axis</td></tr>
+      <tr><td>Linear at ±45° to the fast axis</td><td>circular: left for \(\varphi = +45^\circ\), right for \(\varphi = -45^\circ\)</td><td>linear, turned by 90°</td></tr>
+      <tr><td>Right-circular</td><td>linear at \(\theta + 45^\circ\)</td><td>left-circular</td></tr>
+      <tr><td>Left-circular</td><td>linear at \(\theta - 45^\circ\)</td><td>right-circular</td></tr>
+      <tr><td>Elliptical, azimuth \(\psi\), ellipticity \(\chi\)</td><td>quarter turn on the Poincaré sphere (part 5)</td><td>azimuth \(2\theta - \psi\), ellipticity \(-\chi\)</td></tr>
       <tr><td>Unpolarized</td><td>unpolarized</td><td>unpolarized</td></tr>
     </tbody>
   </table></div>
   <h3>Recipes</h3>
   <ul class="recipes">
-    <li>Turn linear polarization by β: a half-wave plate with its fast axis at β/2 from the light's polarization. To set a
+    <li>Turn linear polarization by \(\beta\): a half-wave plate with its fast axis at \(\beta/2\) from the light's polarization. To set a
     probe at the magic angle, 54.7° from the pump, put the plate at 27.4°.</li>
     <li>Make circular light: a quarter-wave plate with its fast axis at 45° to the linear polarization; −45° gives the
     other hand.</li>
     <li>Find a plate's axes: between crossed polarizers, turn the plate until the light goes out. An axis then lies along the
     polarizer. The fast one is not marked by this test.</li>
-    <li>Adjust power: a half-wave plate before a polarizer passes cos² 2θ of the light, θ measured from the polarizer's axis.</li>
+    <li>Adjust power: a half-wave plate before a polarizer passes \(\cos^2 2\theta\) of the light, \(\theta\) measured from the polarizer's axis.</li>
     <li>Optical isolator: a polarizer, then a quarter-wave plate at 45°. Light reflected back crosses the plate twice, a
     half-wave plate at 45°, and returns turned by 90°, so the polarizer blocks it.</li>
     <li>Two quarter-wave plates with parallel fast axes make a half-wave plate; with crossed fast axes they cancel.</li>
@@ -311,7 +326,7 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <h3>Worked examples</h3>
   <div class="qa" data-q="g1"><p>1. Light polarized at 30° goes through a half-wave plate with its fast axis at 0°. At what angle is it polarized after the plate?</p></div>
   <div class="qa" data-q="g2"><p>2. Horizontal light goes through a half-wave plate with its fast axis at 22.5°. At what angle is it polarized after the plate?</p></div>
-  <div class="qa" data-q="g3"><p>3. Horizontal light goes through a quarter-wave plate with its fast axis at 30°. What is the ratio of the ellipse's axes, and which way does E turn?</p></div>
+  <div class="qa" data-q="g3"><p>3. Horizontal light goes through a quarter-wave plate with its fast axis at 30°. What is the ratio of the ellipse's axes, and which way does \(\mathbf E\) turn?</p></div>
   <div class="qa" data-q="g4"><p>4. Right-circular light goes through a quarter-wave plate with its fast axis horizontal. What comes out?</p></div>
   <div class="qa" data-q="g5"><p>5. At what angle to the input polarization do you set a half-wave plate to put a probe at the magic angle, 54.74°?</p></div>
 </section>
@@ -320,9 +335,9 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
 <section id="explorer">
   <h2>5. Wave plate explorer and the Poincaré sphere</h2>
   <p class="intro">Choose the light going in and the plate. The two panels show the field face-on, looking back at the source,
-  with the tip of E going round in time; the plate's fast axis is blue and its slow axis red. On the Poincaré sphere every
-  polarization is a point: linear on the equator, right-circular at the top, left-circular at the bottom. The plate turns the
-  sphere by Γ about the axis through its fast-axis point, and the orange arc is the path from the light going in to the
+  with the tip of \(\mathbf E\) going round in time; the plate's fast axis is blue and its slow axis red. On the Poincaré
+  sphere every polarization is a point: linear on the equator, right-circular at the top, left-circular at the bottom. The
+  plate turns the sphere by \(\Gamma\) about the axis through its fast-axis point, and the orange arc is the path from the light going in to the
   light coming out. The table gives the numbers.</p>
   <div class="row">
     <label for="xIn">Light in</label>
@@ -351,16 +366,17 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
       <div class="legend" id="xLeg"></div>
       <div class="plotbox" id="xTimeBox"><canvas id="xTime" role="img" aria-label="Field components along the plate axes against time"></canvas></div>
       <p class="caption">Below the panels: the field components along the fast axis (blue) and slow axis (red) against time,
-      before and after the plate. Before, linear light has both components in step; after, the slow one lags by Γ (marked).</p>
+      before and after the plate. Before, linear light has both components in step; after, the slow one lags by \(\Gamma\) (marked).</p>
     </div>
     <div>
       <div class="plotbox" id="xSphBox"><canvas id="xSph" class="drag" role="img" aria-label="Poincaré sphere"></canvas></div>
       <p class="caption">Poincaré sphere. Drag to turn it. Black: the light going in; orange: coming out; blue dashed: the
-      plate's axis, through its fast-axis point (longitude 2θ). H, V: horizontal and vertical; ±45°: linear at ±45°; R, L:
+      plate's axis, through its fast-axis point (longitude \(2\theta\)). H, V: horizontal and vertical; ±45°: linear at ±45°; R, L:
       right- and left-circular.</p>
     </div>
   </div>
   <p class="caption" id="xRule"></p>
+  <div class="eq" id="xJ"></div>
   <div class="tablewrap tw"><table id="xTable"></table></div>
   <h3>Worked examples</h3>
   <div class="qa" data-q="x1"><p>1. Right-handed elliptical light with azimuth 20° and ellipticity angle 10° goes through a half-wave plate with its fast axis at 0°. What azimuth and ellipticity come out?</p></div>
@@ -370,9 +386,9 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
 <!-- 6 ---------------------------------------------------------------------------------------------------------- -->
 <section id="between">
   <h2>6. A wave plate between polarizers; interference colors in white light</h2>
-  <p class="intro">Put the plate between a polarizer at α and an analyzer at β and turn it. Between crossed polarizers light
-  gets through only where the plate changes its polarization: nothing when an axis of the plate lies along the polarizer, the
-  most with the plate at 45°, where I/I₀ = sin²(Γ/2). This is how the axes of an unmarked plate are found, and how a half-wave
+  <p class="intro">Put the plate between a polarizer at \(\alpha\) and an analyzer at \(\beta\) and turn it. Between
+  crossed polarizers light gets through only where the plate changes its polarization: nothing when an axis of the plate lies
+  along the polarizer, the most with the plate at 45°, where \(I/I_0 = \sin^2(\Gamma/2)\). This is how the axes of an unmarked plate are found, and how a half-wave
   plate and a polarizer make a variable attenuator.</p>
   <div class="row">
     <label for="bPlate">Plate</label>
@@ -397,9 +413,9 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
     </div>
   </div>
   <h3>White light: interference colors</h3>
-  <p class="intro">In white light the retardance differs for every color, Γ = 2π|Δn|d/λ, so between crossed polarizers some
-  colors are blocked and the plate looks colored. With the plate at 45° the transmission is sin²(πR/λ), and the color depends
-  only on the retardation R = |Δn|d: gray and white below 300 nm, then yellow, orange, the magenta "first-order red" near
+  <p class="intro">In white light the retardance differs for every color, \(\Gamma = 2\pi|\Delta n|\,d/\lambda\), so
+  between crossed polarizers some colors are blocked and the plate looks colored. With the plate at 45° the transmission is
+  \(T = \sin^2(\pi R/\lambda)\), and the color depends only on the retardation \(R = |\Delta n|\,d\): gray and white below 300 nm, then yellow, orange, the magenta "first-order red" near
   550 nm, blue, green, and paler and paler pinks and greens in higher orders. Mineralogists identify crystals in thin
   sections this way (the Michel-Lévy chart); cellophane or a plastic ruler between polarizers shows the same colors. Parallel
   polarizers show the complementary colors.</p>
@@ -427,10 +443,10 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
 <section id="real">
   <h2>7. Real wave plates: thickness, order and wavelength</h2>
   <p class="intro">A zero-order quartz quarter-wave plate for 633 nm is only 17.5 µm thick, too thin to handle on its own, so
-  real plates come in a few kinds. A multi-order plate is thicker by whole waves, Γ = 2π(m + ¼): sturdy and cheap, but its
+  real plates come in a few kinds. A multi-order plate is thicker by whole waves, \(\Gamma = 2\pi(m + \tfrac14)\): sturdy and cheap, but its
   retardance changes quickly with wavelength, temperature and angle. A compound zero-order plate is two multi-order plates
   with crossed axes whose thicknesses differ by the zero-order thickness: it behaves like the thin plate. An achromatic plate
-  crosses two materials with different dispersion of Δn (here quartz and MgF₂) so the retardance is right at two wavelengths
+  crosses two materials with different dispersion of \(\Delta n\) (here quartz and MgF₂) so the retardance is right at two wavelengths
   and close to right between them. Every plate is a quarter- or half-wave plate at one wavelength only; elsewhere it is
   something else.</p>
   <div class="row">
@@ -460,24 +476,26 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
     <div><div class="tablewrap"><table id="rTable"></table></div></div>
   </div>
   <h3>Worked examples</h3>
-  <div class="qa" data-q="r1"><p>1. How thick is a tenth-order (m = 10) quartz quarter-wave plate for 632.8 nm?</p></div>
+  <div class="qa" data-q="r1"><p>1. How thick is a tenth-order (\(m = 10\)) quartz quarter-wave plate for 632.8 nm?</p></div>
   <div class="qa" data-q="r2"><p>2. A zero-order quartz quarter-wave plate made for 800 nm is used at 400 nm. What is its retardance there?</p></div>
-  <div class="qa" data-q="r3"><p>3. Over what wavelength range does the zero-order quartz quarter-wave plate for 632.8 nm stay within ±0.01 waves of λ/4? And the tenth-order one?</p></div>
+  <div class="qa" data-q="r3"><p>3. Over what wavelength range does the zero-order quartz quarter-wave plate for 632.8 nm stay within ±0.01 waves of \(\lambda/4\)? And the tenth-order one?</p></div>
 </section>
 
 <!-- 8 ---------------------------------------------------------------------------------------------------------- -->
 <section id="young">
   <h2>8. Young's two slits</h2>
-  <p class="intro">A plane wave falls on two narrow slits a distance d apart. Each slit sends out a cylindrical wave, and
-  where the two overlap their fields add. At angle θ the path from the far slit is longer by Δr = d sin θ: bright fringes
-  where Δr = mλ, dark ones where Δr = (m + ½)λ. On a screen at distance L ≫ d the bright fringes sit at y<sub>m</sub> = mλL/d,
-  Δy = λL/d apart, and I = 4I₁cos²(πdy/λL): four times one slit's intensity at the bright fringes, zero at the dark ones,
-  2I₁ on average, so energy is conserved. Real slits have a width a, and each slit's own diffraction pattern,
-  sinc²(πay/λL), sets the envelope. More slits keep the bright fringes where they are and make them sharper.</p>
+  <p class="intro">A plane wave falls on two narrow slits a distance \(d\) apart. Each slit sends out a cylindrical wave,
+  and where the two overlap their fields add. At angle \(\theta\) the path from the far slit is longer by
+  \(\Delta r = d\sin\theta\): bright fringes where \(\Delta r = m\lambda\), dark ones where
+  \(\Delta r = (m + \tfrac12)\lambda\). On a screen at distance \(L \gg d\) the bright fringes sit at
+  \(y_m = m\lambda L/d\), \(\Delta y = \lambda L/d\) apart, and \(I = 4I_1\cos^2(\pi d\,y/\lambda L)\): four times one
+  slit's intensity at the bright fringes, zero at the dark ones, \(2I_1\) on average, so energy is conserved. Real slits have
+  a width \(a\), and each slit's own diffraction pattern, \(\mathrm{sinc}^2(\pi a\,y/\lambda L)\), sets the envelope. More
+  slits keep the bright fringes where they are and make them sharper.</p>
   <div class="sliders" id="yF"></div>
   <div class="row">
     <span class="note">Examples:</span>
-    <button type="button" data-ypre="hene">He–Ne laser, d = 0.25 mm, L = 1.5 m</button>
+    <button type="button" data-ypre="hene">He–Ne laser, \(d = 0.25\) mm, \(L = 1.5\) m</button>
     <button type="button" data-ypre="green">Green laser, slits 0.05 mm wide</button>
     <button type="button" data-ypre="narrow">Very narrow slits</button>
     <button type="button" data-ypre="three">Three slits</button>
@@ -495,7 +513,7 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <div class="anim"><button type="button" class="play" id="yPlay">Pause</button></div>
   <div class="plotbox" id="yWaveBox"><canvas id="yWave" role="img" aria-label="Waves spreading from the slits"></canvas></div>
   <p class="caption">Waves from the left pass the slits (black wall) and spread; dark bands are wave crests. The red lines are
-  the directions where d sin θ = mλ, where crests from all slits meet and the light is bright. The strip on the right is
+  the directions where \(d\sin\theta = m\lambda\), where crests from all slits meet and the light is bright. The strip on the right is
   the time-averaged intensity there. Not to scale: the slits here are only a few wavelengths apart so the waves can be seen;
   the screen below uses the real numbers.</p>
   <h3>The pattern on the screen</h3>
@@ -505,8 +523,8 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <div class="two">
     <div>
       <div class="plotbox" id="yPhBox"><canvas id="yPh" role="img" aria-label="Phasors at the chosen point"></canvas></div>
-      <p class="caption">Phasors at the orange point on the screen: one arrow per slit, each turned by δ = 2πd sin θ/λ from the
-      last, added head to tail. They all turn clockwise at ω; the orange sum's length is the amplitude there.</p>
+      <p class="caption">Phasors at the orange point on the screen: one arrow per slit, each turned by
+      \(\delta = 2\pi d\sin\theta/\lambda\) from the last, added head to tail. They all turn clockwise at \(\omega\); the orange sum's length is the amplitude there.</p>
     </div>
     <div>
       <div class="plotbox" id="yTrBox"><canvas id="yTr" role="img" aria-label="Field against time at the chosen point"></canvas></div>
@@ -517,7 +535,7 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <h3>Worked examples</h3>
   <p class="note">Questions 1 to 4: a He–Ne laser (632.8 nm) lights two slits 0.25 mm apart; the screen is 1.5 m away (first example button).</p>
   <div class="qa" data-q="y1"><p>1. How far apart are the bright fringes?</p></div>
-  <div class="qa" data-q="y2"><p>2. At what angle is the third bright fringe (m = 3)?</p></div>
+  <div class="qa" data-q="y2"><p>2. At what angle is the third bright fringe (\(m = 3\))?</p></div>
   <div class="qa" data-q="y3"><p>3. How far from the center is the second dark fringe?</p></div>
   <div class="qa" data-q="y4"><p>4. What is the intensity a quarter of a fringe from the center, as a fraction of the brightest?</p></div>
   <div class="qa" data-q="y5"><p>5. The slits are 0.05 mm wide. How many bright fringes fit inside the central maximum of the envelope?</p></div>
@@ -529,9 +547,10 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <h2>9. Coherence and white-light fringes</h2>
   <p class="intro">Real light is not one endless sine wave. An atom sends out a train of waves, and the phase jumps at random
   from one train to the next. Fringes need the two waves that meet at a point to belong to the same train, so they fade once
-  the path difference passes the coherence length, ℓ<sub>c</sub> ≈ λ²/Δλ. A laser line (Δλ ≪ 1 nm) gives fringes over
-  meters of path difference, an LED (Δλ ≈ 20 nm) a few tens of fringes, white light only the central few. White fringes are
-  also colored: each color has its own spacing λL/d, and the colors only line up at m = 0.</p>
+  the path difference passes the coherence length, \(\ell_c \approx \lambda^2/\Delta\lambda\). A laser line
+  (\(\Delta\lambda \ll 1\) nm) gives fringes over centimeters of path difference or more, an LED
+  (\(\Delta\lambda \approx 20\) nm) a few tens of fringes, white light only the central few. White fringes are also
+  colored: each color has its own spacing \(\lambda L/d\), and the colors only line up at \(m = 0\).</p>
   <h3>Wave trains with phase jumps</h3>
   <div class="sliders" id="cF"></div>
   <p id="cErr" class="error" role="alert" hidden></p>
@@ -551,8 +570,8 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <p class="caption" id="fCap"></p>
   <div class="tablewrap tw"><table id="fTable"></table></div>
   <h3>Worked examples</h3>
-  <div class="qa" data-q="c1"><p>1. What is the coherence length of a red LED at 630 nm with Δλ = 20 nm?</p></div>
-  <div class="qa" data-q="c2"><p>2. For a line with a Gaussian spectrum, at what path difference has the fringe visibility fallen to ½?</p></div>
+  <div class="qa" data-q="c1"><p>1. What is the coherence length of a red LED at 630 nm with \(\Delta\lambda = 20\) nm?</p></div>
+  <div class="qa" data-q="c2"><p>2. For a line with a Gaussian spectrum, at what path difference has the fringe visibility fallen to \(\tfrac12\)?</p></div>
   <div class="qa" data-q="c3"><p>3. Roughly how many fringes does white light (400–700 nm) show on each side of the center?</p></div>
 </section>
 
@@ -560,9 +579,10 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
 <section id="polint">
   <h2>10. Polarization and interference</h2>
   <p class="intro">Fields add as vectors, so only the parts of two waves with the same polarization interfere:
-  I = I₁ + I₂ + 2√(I₁I₂) Re(ê₁*·ê₂ e<sup>iδ</sup>). Two beams polarized at right angles make no fringes at all (one of the
-  Fresnel–Arago laws). Light two slits with horizontally polarized light and cover slit 2 with a half-wave plate at θ: that
-  slit's light turns to 2θ and the fringe visibility falls to |cos 2θ|. At θ = 45° the fringes vanish, though each slit still
+  \(I = I_1 + I_2 + 2\sqrt{I_1I_2}\,\mathrm{Re}(\hat{\mathbf e}_1^*\cdot\hat{\mathbf e}_2\,e^{i\delta})\). Two beams
+  polarized at right angles make no fringes at all (one of the Fresnel–Arago laws). Light two slits with horizontally
+  polarized light and cover slit 2 with a half-wave plate at \(\theta\): that slit's light turns to \(2\theta\) and the
+  fringe visibility falls to \(|\cos 2\theta|\). At \(\theta = 45^\circ\) the fringes vanish, though each slit still
   sends the same light to the screen. This ties the two halves of this page together.</p>
   <div class="row">
     <label for="pEl">Over slit 2</label>
@@ -594,15 +614,15 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
   <ol class="eqs" start="1">
     <li><p>Uniaxial crystal: o- and e-wave</p>
       <div class="eq">\begin{aligned} \Delta n &= n_e - n_o \\[5pt] \frac{1}{n^2(\theta)} &= \frac{\cos^2\theta}{n_o^2} + \frac{\sin^2\theta}{n_e^2} \end{aligned}</div>
-      <p class="note">θ is the angle between the e-wave's k and the optic axis. The o-wave sees n<sub>o</sub> in every direction.</p></li>
+      <p class="note">\(\theta\) is the angle between the e-wave's \(\mathbf k\) and the optic axis. The o-wave sees \(n_o\) in every direction.</p></li>
     <li><p>Walk-off of the e-ray</p>
       <div class="eq">\begin{aligned} \tan\theta_\text{ray} &= \frac{n_o^2}{n_e^2}\,\tan\theta \\[5pt] \tan\rho &= \frac{(n_o^2 - n_e^2)\sin\theta\cos\theta}{n_e^2\cos^2\theta + n_o^2\sin^2\theta} \\[5pt] \tan\rho_\text{max} &= \frac{n_o^2 - n_e^2}{2n_on_e} \quad\text{at}\quad \tan\theta = \frac{n_e}{n_o} \end{aligned}</div>
-      <p class="note">ρ &gt; 0: the ray lies farther from the optic axis than k (negative crystals such as calcite).</p></li>
+      <p class="note">\(\rho \gt 0\): the ray lies farther from the optic axis than \(\mathbf k\) (negative crystals such as calcite).</p></li>
     <li><p>Refraction into a uniaxial crystal</p>
       <div class="eq">\begin{aligned} k_x &= n_1 k_0\sin\theta_I \\[5pt] \text{o-wave:}\quad n_1\sin\theta_I &= n_o\sin\theta_o \\[5pt] \text{e-wave:}\quad \frac{k_\perp^2}{n_e^2} + \frac{k_\parallel^2}{n_o^2} &= k_0^2 \end{aligned}</div>
-      <p class="note">k<sub>∥</sub> and k<sub>⊥</sub> are the parts of k along and across the optic axis. With the optic axis
-      perpendicular to the plane of incidence, k<sub>∥</sub> = 0 and n<sub>1</sub> sin θ<sub>I</sub> = n<sub>e</sub> sin θ<sub>e</sub>.</p></li>
-    <li><p>Wollaston prism (normal incidence, wedge angle α)</p>
+      <p class="note">\(k_\parallel\) and \(k_\perp\) are the parts of \(\mathbf k\) along and across the optic axis. With
+      the optic axis perpendicular to the plane of incidence, \(k_\parallel = 0\) and \(n_1\sin\theta_I = n_e\sin\theta_e\).</p></li>
+    <li><p>Wollaston prism (normal incidence, wedge angle \(\alpha\))</p>
       <div class="eq">\begin{aligned} n_o\sin\alpha &= n_e\sin\theta_A, & \sin\varphi_A &= n_e\sin(\theta_A - \alpha) \\[5pt] n_e\sin\alpha &= n_o\sin\theta_B, & \sin\varphi_B &= n_o\sin(\theta_B - \alpha) \\[5pt] \varphi_A - \varphi_B &\approx 2\arcsin\!\big(|\Delta n|\tan\alpha\big) \end{aligned}</div></li>
   </ol>
   <h3>Wave plates: Jones calculus</h3>
@@ -611,14 +631,14 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
       <div class="eq">\begin{aligned} \Gamma &= \frac{2\pi\,|\Delta n|\,d}{\lambda_0} \\[5pt] d_{\lambda/4} &= \left(m + \tfrac14\right)\frac{\lambda_0}{|\Delta n|} \\[5pt] d_{\lambda/2} &= \left(m + \tfrac12\right)\frac{\lambda_0}{|\Delta n|} \\[5pt] \Delta t &= \frac{\Gamma}{\omega} = \frac{|\Delta n|\,d}{c} \end{aligned}</div></li>
     <li><p>Jones vectors</p>
       <div class="eq">\begin{aligned} \text{linear at } \alpha:&\quad \begin{pmatrix} \cos\alpha \\ \sin\alpha \end{pmatrix} \\[6pt] \text{right, left:}&\quad \frac{1}{\sqrt2}\begin{pmatrix} 1 \\ -i \end{pmatrix},\ \ \frac{1}{\sqrt2}\begin{pmatrix} 1 \\ i \end{pmatrix} \\[6pt] \text{elliptical:}&\quad \mathbf R(\psi)\begin{pmatrix} \cos\chi \\ -i\sin\chi \end{pmatrix} \end{aligned}</div>
-      <p class="note">ψ is the azimuth of the major axis and tan |χ| = b/a; χ &gt; 0 is right-handed (clockwise looking back at the source).</p></li>
-    <li><p>Wave plate with its fast axis at θ</p>
+      <p class="note">\(\psi\) is the azimuth of the major axis and \(\tan|\chi| = b/a\); \(\chi \gt 0\) is right-handed (clockwise looking back at the source).</p></li>
+    <li><p>Wave plate with its fast axis at \(\theta\)</p>
       <div class="eq">\begin{aligned} \mathbf J(\theta,\Gamma) &= \mathbf R(\theta)\begin{pmatrix} 1 & 0 \\ 0 & e^{i\Gamma} \end{pmatrix}\mathbf R(-\theta) \\[6pt] &= e^{i\Gamma/2}\left[\cos\frac{\Gamma}{2}\,\mathbf 1 - i\sin\frac{\Gamma}{2}\,\mathbf M(\theta)\right] \\[6pt] \mathbf R(\theta) &= \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix} \\[6pt] \mathbf M(\theta) &= \begin{pmatrix} \cos 2\theta & \sin 2\theta \\ \sin 2\theta & -\cos 2\theta \end{pmatrix} \end{aligned}</div></li>
     <li><p>Half-wave and quarter-wave plates</p>
       <div class="eq">\begin{aligned} \mathbf J_{\lambda/2}(\theta) &= \mathbf M(\theta) \\[6pt] \mathbf J_{\lambda/4}(\theta) &= \frac{e^{i\pi/4}}{\sqrt2}\big[\mathbf 1 - i\,\mathbf M(\theta)\big] \end{aligned}</div></li>
-    <li><p>What they do to linear light at α (φ = α − θ)</p>
+    <li><p>What they do to linear light at \(\alpha\) (\(\varphi = \alpha - \theta\))</p>
       <div class="eq">\begin{aligned} \lambda/2:&\quad \text{linear at } 2\theta - \alpha \\[5pt] \lambda/4:&\quad \begin{pmatrix} E_f \\ E_s \end{pmatrix} = \begin{pmatrix} \cos\varphi \\ i\sin\varphi \end{pmatrix}, \quad \frac{b}{a} = |\tan\varphi|^{\pm 1},\quad \chi = -\varphi \end{aligned}</div>
-      <p class="note">For a quarter-wave plate χ = −φ when |φ| ≤ 45°. For larger |φ| the major axis lies along the slow axis and sin 2χ = −sin 2φ still holds: φ = 60° gives χ = −30°.</p></li>
+      <p class="note">For a quarter-wave plate \(\chi = -\varphi\) when \(|\varphi| \le 45^\circ\). For larger \(|\varphi|\) the major axis lies along the slow axis and \(\sin 2\chi = -\sin 2\varphi\) still holds: \(\varphi = 60^\circ\) gives \(\chi = -30^\circ\).</p></li>
     <li><p>Any plate, linear light in</p>
       <div class="eq">\begin{aligned} \tan 2(\psi - \theta) &= \cos\Gamma\;\tan 2(\alpha - \theta) \\[5pt] \sin 2\chi &= -\sin\Gamma\;\sin 2(\alpha - \theta) \end{aligned}</div></li>
     <li><p>Polarizer</p>
@@ -631,48 +651,51 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
       <div class="eq">\tan 2\psi = \frac{S_2}{S_1}, \qquad \sin 2\chi = \frac{S_3}{S_0}</div></li>
     <li><p>A wave plate turns the Poincaré sphere</p>
       <div class="eq">\begin{aligned} \mathbf S' &= \mathbf S\cos\Gamma - (\hat{\mathbf a}\times\mathbf S)\sin\Gamma + \hat{\mathbf a}\,(\hat{\mathbf a}\cdot\mathbf S)(1 - \cos\Gamma) \\[5pt] \hat{\mathbf a} &= (\cos 2\theta,\ \sin 2\theta,\ 0) \end{aligned}</div></li>
-    <li><p>Mueller matrix of a wave plate (c = cos 2θ, s = sin 2θ)</p>
+    <li><p>Mueller matrix of a wave plate (\(c = \cos 2\theta\), \(s = \sin 2\theta\))</p>
       <div class="eq">\mathbf M = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & c^2 + s^2\cos\Gamma & cs\,(1 - \cos\Gamma) & -s\sin\Gamma \\ 0 & cs\,(1 - \cos\Gamma) & s^2 + c^2\cos\Gamma & c\sin\Gamma \\ 0 & s\sin\Gamma & -c\sin\Gamma & \cos\Gamma \end{pmatrix}</div></li>
-    <li><p>Wave plate between a polarizer at α and an analyzer at β</p>
+    <li><p>Wave plate between a polarizer at \(\alpha\) and an analyzer at \(\beta\)</p>
       <div class="eq">\frac{I}{I_0} = \cos^2(\beta - \alpha) - \sin 2(\theta - \alpha)\,\sin 2(\theta - \beta)\,\sin^2\frac{\Gamma}{2}</div></li>
-    <li><p>Interference colors (plate at 45°, retardation R = |Δn|d)</p>
+    <li><p>Interference colors (plate at 45°, retardation \(R = |\Delta n|\,d\))</p>
       <div class="eq">\begin{aligned} T_\text{crossed}(\lambda) &= \sin^2\frac{\pi R}{\lambda} \\[5pt] T_\text{parallel}(\lambda) &= \cos^2\frac{\pi R}{\lambda} \end{aligned}</div>
-      <p class="note">The color is ∫ T(λ) x̄, ȳ, z̄(λ) dλ for a flat (equal-energy) white source, converted to sRGB with white kept white.</p></li>
+      <p class="note">The color is \(X = \int T(\lambda)\,\bar x(\lambda)\,d\lambda\), and \(Y\), \(Z\) with \(\bar y\), \(\bar z\), for a flat (equal-energy) white source, converted to sRGB with white kept white.</p></li>
     <li><p>Compound and achromatic plates (axes crossed)</p>
       <div class="eq">\begin{aligned} \text{compound zero-order:}\quad \Gamma &= \frac{2\pi\,|\Delta n|\,(d_1 - d_2)}{\lambda} \\[5pt] \text{achromatic:}\quad \Gamma(\lambda) &= \frac{2\pi}{\lambda}\,\big(\Delta n_1(\lambda)\,d_1 - \Delta n_2(\lambda)\,d_2\big) \end{aligned}</div>
-      <p class="note">For the achromatic plate d₁ and d₂ solve Γ(λ₁) = Γ(λ₂) = the target: two linear equations.</p></li>
+      <p class="note">For the achromatic plate \(d_1\) and \(d_2\) solve \(\Gamma(\lambda_1) = \Gamma(\lambda_2) =\) the target: two linear equations.</p></li>
   </ol>
   <h3>Interference</h3>
   <ol class="eqs" start="18">
     <li><p>Two slits: path difference and fringes</p>
       <div class="eq">\begin{aligned} \Delta r &= d\sin\theta \\[5pt] \text{bright:}\quad d\sin\theta_m &= m\lambda, & y_m &= m\,\frac{\lambda L}{d} \\[5pt] \text{dark:}\quad d\sin\theta_m &= \left(m + \tfrac12\right)\lambda, & y_m &= \left(m + \tfrac12\right)\frac{\lambda L}{d} \\[5pt] \Delta y &= y_{m+1} - y_m = \frac{\lambda L}{d} \end{aligned}</div>
-      <p class="note">Small angles, L ≫ y: sin θ ≈ tan θ ≈ θ = y/L.</p></li>
+      <p class="note">Small angles, \(L \gg y\): \(\sin\theta \approx \tan\theta \approx \theta = y/L\).</p></li>
     <li><p>Adding the two fields</p>
       <div class="eq">\begin{aligned} E &= a\sin(kr_1 - \omega t) + a\sin(kr_2 - \omega t) \\[5pt] &= 2a\cos\frac{\Delta\phi}{2}\;\sin(kr_\text{avg} - \omega t) \\[5pt] \Delta\phi &= k\,\Delta r = \frac{2\pi d\sin\theta}{\lambda} \approx \frac{2\pi d}{\lambda L}\,y \\[5pt] I(y) &= 4I_1\cos^2\frac{\pi d\,y}{\lambda L} \end{aligned}</div>
-      <p class="note">The average over the fringes is 2I₁, the sum of the two slits' intensities.</p></li>
-    <li><p>Slit width and N slits</p>
+      <p class="note">The average over the fringes is \(2I_1\), the sum of the two slits' intensities.</p></li>
+    <li><p>Slit width and \(N\) slits</p>
       <div class="eq">\begin{aligned} I &= I_1\left(\frac{\sin\beta}{\beta}\right)^2\left(\frac{\sin(N\delta/2)}{\sin(\delta/2)}\right)^2 \\[5pt] \beta &= \frac{\pi a\sin\theta}{\lambda}, \qquad \delta = \frac{2\pi d\sin\theta}{\lambda} \end{aligned}</div>
-      <p class="note">I₁ is one slit's intensity at the center. Principal maxima N²I₁ at d sin θ = mλ with N − 2 small maxima between;
-      envelope zeros at a sin θ = λ, 2λ, …; with d/a whole, those orders are missing.</p></li>
+      <p class="note">\(I_1\) is one slit's intensity at the center. Principal maxima \(N^2 I_1\) at \(d\sin\theta = m\lambda\)
+      with \(N - 2\) small maxima between; envelope zeros at \(a\sin\theta = \lambda, 2\lambda, \dots\); with \(d/a\) whole,
+      those orders are missing.</p></li>
     <li><p>Phasors</p>
       <div class="eq">\begin{aligned} A\,e^{i\varphi} &= \sum_j A_j\,e^{i\varphi_j} \\[5pt] \text{two equal phasors:}\quad A &= 2A_1\left|\cos\frac{\delta}{2}\right| \end{aligned}</div></li>
     <li><p>Coherence</p>
       <div class="eq">\begin{aligned} \ell_c &= \frac{\lambda^2}{\Delta\lambda} = \frac{c}{\Delta\nu} \\[5pt] \text{Gaussian line:}\quad V(\Delta r) &= \exp\!\left[-\frac{(\pi\,\Delta r/\ell_c)^2}{4\ln 2}\right] \\[5pt] \text{random phase jumps:}\quad V(\Delta r) &= e^{-\Delta r/\ell} \\[5pt] I &= 2I_1\big[1 + V\cos(k\,\Delta r)\big] \end{aligned}</div>
-      <p class="note">V = (I<sub>max</sub> − I<sub>min</sub>)/(I<sub>max</sub> + I<sub>min</sub>) is the fringe visibility. For a Gaussian line V = ½ at
-      Δr = (2 ln 2/π)ℓ<sub>c</sub> = 0.44ℓ<sub>c</sub>; ℓ is the mean length of the wave trains.</p></li>
+      <p class="note">\(V = (I_\text{max} - I_\text{min})/(I_\text{max} + I_\text{min})\) is the fringe visibility. For a
+      Gaussian line \(V = \tfrac12\) at \(\Delta r = (2\ln 2/\pi)\,\ell_c = 0.44\,\ell_c\); \(\ell\) is the mean length of
+      the wave trains.</p></li>
     <li><p>Polarization and interference</p>
       <div class="eq">\begin{aligned} I &= I_1 + I_2 + 2\sqrt{I_1I_2}\;\mathrm{Re}\!\left(\hat{\mathbf e}_1^*\cdot\hat{\mathbf e}_2\,e^{i\delta}\right) \\[5pt] V &= \frac{2\sqrt{I_1I_2}}{I_1 + I_2}\,\big|\hat{\mathbf e}_1^*\cdot\hat{\mathbf e}_2\big| \end{aligned}</div>
-      <p class="note">A half-wave plate at θ over one slit: ê₁*·ê₂ = cos 2θ. A quarter-wave plate: cos²θ + i sin²θ.</p></li>
+      <p class="note">A half-wave plate at \(\theta\) over one slit: \(\hat{\mathbf e}_1^*\cdot\hat{\mathbf e}_2 = \cos 2\theta\). A quarter-wave plate: \(\cos^2\theta + i\sin^2\theta\).</p></li>
   </ol>
 </section>
 
 <section id="notes">
   <h2>Notes</h2>
   <ul class="notes">
-    <li>Conventions: E = Re[(E<sub>x</sub>, E<sub>y</sub>) e<sup>i(kz − ωt)</sup>] as in Griffiths and Hecht; face-on pictures look
-    back at the source; angles counterclockwise from x. Right-circular light turns clockwise in those pictures, as in Hecht and
-    Born and Wolf; engineering (IEEE) texts call that left-handed. Jones matrices drop common phases. With e<sup>i(ωt − kz)</sup>
-    instead, every i becomes −i and the slow component's factor is e<sup>−iΓ</sup>; the physics is the same.</li>
+    <li>Conventions: \(\mathbf E = \mathrm{Re}\big[(E_x, E_y)\,e^{i(kz-\omega t)}\big]\) as in Griffiths and Hecht; face-on
+    pictures look back at the source; angles counterclockwise from \(x\). Right-circular light turns clockwise in those
+    pictures, as in Hecht and Born and Wolf; engineering (IEEE) texts call that left-handed. Jones matrices drop common phases.
+    With \(e^{i(\omega t-kz)}\) instead, every \(i\) becomes \(-i\) and the slow component's factor is \(e^{-i\Gamma}\); the
+    physics is the same.</li>
     <li>Crystal data (dispersion formulas as in the refractiveindex.info database): calcite and quartz, G. Ghosh, Opt. Commun.
     163, 95 (1999); MgF₂, M. J. Dodge, Appl. Opt. 23, 1980 (1984); sapphire, I. H. Malitson and M. J. Dodge, J. Opt. Soc. Am.
     62, 1405 (1972); LiNbO₃ (congruent), D. E. Zelmon, D. L. Small and D. Jundt, J. Opt. Soc. Am. B 14, 3319 (1997); KDP,
@@ -681,9 +704,9 @@ Jones vector (1, −i)/√2 (Hecht's convention; many engineering texts call it 
     <li>Colors: CIE 1931 color-matching functions from the fit of C. Wyman, P.-P. Sloan and P. Shirley, J. Comput. Graph. Tech.
     2, 1 (2013), an equal-energy white source and sRGB, scaled so unfiltered white stays white. Colors outside the sRGB
     range are mixed with white; screens differ.</li>
-    <li>Hecht writes the slit spacing as a and the distance to the screen as s (E₀ = 2E₀₁ cos(yaπ/sλ)); here they are d and L.</li>
+    <li>Hecht writes the slit spacing as \(a\) and the distance to the screen as \(s\) (\(E_0 = 2E_{01}\cos(ya\pi/s\lambda)\)); here they are \(d\) and \(L\).</li>
     <li>Limits: plane waves; uniaxial crystals only; no reflection losses at crystal faces; wave plates at normal incidence and
-    one temperature; the interference colors take Δn as constant; Fraunhofer (far-field) slits; the wave picture in part 8
+    one temperature; the interference colors take \(\Delta n\) as constant; Fraunhofer (far-field) slits; the wave picture in part 8
     is not to scale.</li>
     <li>For polarizers, Malus's law, s and p reflection and Brewster's angle, see the <a href="../advanced-optics/index.html">advanced
     optics page</a>.</li>
@@ -968,75 +991,76 @@ function twoSlitPol(delta, e1, e2) {
   return { I: i1 + i2 + 2 * t.re, V: i1 + i2 > 0 ? 2 * cabs(c) / (i1 + i2) : 0, shift: carg(c), overlap: c, i1, i2 };
 }
 
-/* ---------- worked examples: answers from the functions above ---------- */
+/* ---------- worked examples: answers from the functions above; \( … \) is inline TeX ---------- */
 const QUIZ = (function () {
-  const q = {}, f = (v, d) => v.toFixed(d), H = CRYSTALS.calcite.hecht, no = H[0], ne = H[1];
-  q.k1 = { value: (no / ne - 1) * 100, unit: "%", tol: 0.002, how: `v_e/v_o = n_o/n_e = 1.6584/1.4864 = ${f(no / ne, 4)}: the e-wave is ${f((no / ne - 1) * 100, 1)} % faster. In calcite, E along the optic axis is fast.` };
-  q.k2 = { value: neTheta(no, ne, 45), unit: "", tol: 1e-4, digits: 5, how: `1/n² = cos²45°/n_o² + sin²45°/n_e² = ½(1/1.6584² + 1/1.4864²), so n = ${f(neTheta(no, ne, 45), 4)}, between n_e and n_o.` };
+  const q = {}, f = (v, d) => v.toFixed(d), tx = String.raw, H = CRYSTALS.calcite.hecht, no = H[0], ne = H[1];
+  q.k1 = { value: (no / ne - 1) * 100, unit: "%", tol: 0.002, how: tx`\(v_e/v_o = n_o/n_e = 1.6584/1.4864 = ${f(no / ne, 4)}\): the e-wave is ${f((no / ne - 1) * 100, 1)} % faster. In calcite, \(\mathbf E\) along the optic axis is fast.` };
+  q.k2 = { value: neTheta(no, ne, 45), unit: "", tol: 1e-4, digits: 5, how: tx`\(1/n^2 = \cos^2 45^\circ/n_o^2 + \sin^2 45^\circ/n_e^2 = \tfrac12\,(1/1.6584^2 + 1/1.4864^2)\), so \(n = ${f(neTheta(no, ne, 45), 4)}\), between \(n_e\) and \(n_o\).` };
   const pos = Object.keys(CRYSTALS).filter(k => deltaN(k, 589.3) > 0), neg = Object.keys(CRYSTALS).filter(k => deltaN(k, 589.3) < 0);
   const nm = k => ({ calcite: "calcite", quartz: "quartz", mgf2: "MgF₂", sapphire: "sapphire", linbo3: "LiNbO₃", kdp: "KDP", bbo: "BBO", rutile: "rutile", ice: "ice", nano3: "sodium nitrate", tourmaline: "tourmaline" }[k]);
   q.k3 = { choices: [["pos", "quartz, magnesium fluoride, rutile and ice"], ["neg", "calcite and sapphire"]], answer: pos.length === 4 && ["quartz", "mgf2", "rutile", "ice"].every(k => pos.includes(k)) ? "pos" : "neg",
-    how: `Δn > 0 at 589.3 nm for ${pos.map(k => `${nm(k)} (+${f(deltaN(k, 589.3), 4)})`).join(", ")}. The rest are negative: ${neg.map(nm).join(", ")}.` };
-  const R = refractUniaxial(1, no, ne, 40, "perp");
-  q.d1 = { value: R.e.thK, unit: "°", abs: 0.01, how: `The e-ray's E (out of the page) lies along the optic axis, so it sees n_e = 1.4864 in every direction in the page: sin θ_e = sin 40°/1.4864 = ${f(Math.sin(40 * DEG) / ne, 4)}, θ_e = ${f(R.e.thK, 2)}°.` };
-  q.d2 = { value: R.o.thK, unit: "°", abs: 0.01, how: `The o-ray's E lies in the page, perpendicular to the optic axis: sin θ_o = sin 40°/1.6584 = ${f(Math.sin(40 * DEG) / no, 4)}, θ_o = ${f(R.o.thK, 2)}°. n_o is larger, so the o-ray bends more.` };
-  q.d3 = { value: R.e.thK - R.o.thK, unit: "°", abs: 0.01, how: `${f(R.e.thK, 2)}° − ${f(R.o.thK, 2)}° = ${f(R.e.thK - R.o.thK, 2)}°.` };
-  q.d4 = { choices: [["o", "the o-ray, refracted to 22.8°"], ["e", "the e-ray, refracted to 25.6°"]], answer: "o", how: "Its E lies in the page, perpendicular to the optic axis, which points out of the page. That is what makes it ordinary." };
+    how: tx`\(\Delta n \gt 0\) at 589.3 nm for ${pos.map(k => tx`${nm(k)} (\(+${f(deltaN(k, 589.3), 4)}\))`).join(", ")}. The rest are negative: ${neg.map(nm).join(", ")}.` };
+  const Rf = refractUniaxial(1, no, ne, 40, "perp");
+  q.d1 = { value: Rf.e.thK, unit: "°", abs: 0.01, how: tx`The e-ray's \(\mathbf E\) (out of the page) lies along the optic axis, so it sees \(n_e = 1.4864\) in every direction in the page: \(\sin\theta_e = \sin 40^\circ/1.4864 = ${f(Math.sin(40 * DEG) / ne, 4)}\), \(\theta_e = ${f(Rf.e.thK, 2)}^\circ\).` };
+  q.d2 = { value: Rf.o.thK, unit: "°", abs: 0.01, how: tx`The o-ray's \(\mathbf E\) lies in the page, perpendicular to the optic axis: \(\sin\theta_o = \sin 40^\circ/1.6584 = ${f(Math.sin(40 * DEG) / no, 4)}\), \(\theta_o = ${f(Rf.o.thK, 2)}^\circ\). \(n_o\) is larger, so the o-ray bends more.` };
+  q.d3 = { value: Rf.e.thK - Rf.o.thK, unit: "°", abs: 0.01, how: tx`\(\theta_e - \theta_o = ${f(Rf.e.thK, 2)}^\circ - ${f(Rf.o.thK, 2)}^\circ = ${f(Rf.e.thK - Rf.o.thK, 2)}^\circ\).` };
+  q.d4 = { choices: [["o", "the o-ray, refracted to 22.8°"], ["e", "the e-ray, refracted to 25.6°"]], answer: "o", how: tx`Its \(\mathbf E\) lies in the page, perpendicular to the optic axis, which points out of the page. That is what makes it ordinary.` };
   const rho = walkoff(no, ne, 45), gap = 10 * Math.tan(rho * DEG);
-  q.d5 = { value: gap, unit: "mm", tol: 0.002, how: `The wave normal is along the face normal, at θ = 45° to the optic axis: tan ρ = (n_o² − n_e²) sin θ cos θ/(n_e² cos²θ + n_o² sin²θ) = ${f(Math.tan(rho * DEG), 4)}, ρ = ${f(rho, 2)}°. The images are 10 mm × tan ρ = ${f(gap, 2)} mm apart.` };
+  q.d5 = { value: gap, unit: "mm", tol: 0.002, how: tx`The wave normal is along the face normal, at \(\theta = 45^\circ\) to the optic axis: \(\tan\rho = (n_o^2 - n_e^2)\sin\theta\cos\theta/(n_e^2\cos^2\theta + n_o^2\sin^2\theta) = ${f(Math.tan(rho * DEG), 4)}\), \(\rho = ${f(rho, 2)}^\circ\). The images are \(10\,\mathrm{mm}\times\tan\rho = ${f(gap, 2)}\,\mathrm{mm}\) apart.` };
   const wo = wollaston(no, ne, 45);
-  q.d6 = { value: wo.split, unit: "°", abs: 0.02, digits: 5, how: `One beam goes from n_o to n_e at the 45° cut and leaves at ${f(wo.a, 2)}°; the other goes from n_e to n_o and leaves at ${f(wo.b, 2)}°. Together ${f(wo.split, 1)}° (the rule of thumb 2 arcsin(|Δn| tan α) gives ${f(2 * Math.asin(Math.abs(ne - no)) / DEG, 1)}°).` };
+  q.d6 = { value: wo.split, unit: "°", abs: 0.02, digits: 5, how: tx`One beam goes from \(n_o\) to \(n_e\) at the 45° cut and leaves at \(${f(wo.a, 2)}^\circ\); the other goes from \(n_e\) to \(n_o\) and leaves at \(${f(wo.b, 2)}^\circ\). Together \(${f(wo.split, 1)}^\circ\) (the rule of thumb \(2\arcsin(|\Delta n|\tan\alpha)\) gives \(${f(2 * Math.asin(Math.abs(ne - no)) / DEG, 1)}^\circ\)).` };
   const dq = deltaN("quartz", 632.8), dQ = plateThickness(dq, 632.8, 0.25);
-  q.i1 = { value: dQ, unit: "µm", tol: 0.002, how: `Δn = n_e − n_o = ${f(dq, 6)} for quartz at 632.8 nm, so d = λ₀/(4Δn) = 632.8 nm/(4 × ${f(dq, 6)}) = ${f(dQ, 2)} µm.` };
-  q.i2 = { value: dQ / 0.6328, unit: "wavelengths", tol: 0.002, how: `${f(dQ, 2)} µm / 0.6328 µm = ${f(dQ / 0.6328, 1)}. In general d/λ₀ = 1/(4|Δn|).` };
+  q.i1 = { value: dQ, unit: "µm", tol: 0.002, how: tx`\(\Delta n = n_e - n_o = ${f(dq, 6)}\) for quartz at 632.8 nm, so \(d = \lambda_0/(4\Delta n) = 632.8\,\mathrm{nm}/(4\times ${f(dq, 6)}) = ${f(dQ, 2)}\,\mu\mathrm{m}\).` };
+  q.i2 = { value: dQ / 0.6328, unit: "wavelengths", tol: 0.002, how: tx`\(${f(dQ, 2)}\,\mu\mathrm{m}/0.6328\,\mu\mathrm{m} = ${f(dQ / 0.6328, 1)}\). In general \(d/\lambda_0 = 1/(4|\Delta n|)\).` };
   const dt = 800e-9 / (2 * C0) * 1e15;
-  q.i3 = { value: dt, unit: "fs", tol: 0.001, how: `Γ = π, so Δt = Γ/ω = λ₀/(2c) = 800 nm/(2 × 299.79 nm/fs) = ${f(dt, 3)} fs: half an optical period. In general Δt = |Δn|d/c.` };
-  q.i4 = { value: 0.5, unit: "", abs: 1e-9, how: "Γ grows in proportion to depth, so it reaches 90° halfway through: there light at 45° to the axes is circular. At the full thickness it is linear again, turned by 90°." };
+  q.i3 = { value: dt, unit: "fs", tol: 0.001, how: tx`\(\Gamma = \pi\), so \(\Delta t = \Gamma/\omega = \lambda_0/2c = 800\,\mathrm{nm}/(2\times 299.79\,\mathrm{nm/fs}) = ${f(dt, 3)}\,\mathrm{fs}\): half an optical period. In general \(\Delta t = |\Delta n|\,d/c\).` };
+  q.i4 = { value: 0.5, unit: "", abs: 1e-9, how: tx`\(\Gamma\) grows in proportion to depth, so it reaches 90° halfway through: there light at 45° to the axes is circular. At the full thickness it is linear again, turned by 90°.` };
   const g3 = ellipseOf(jApply(waveplateJ(30, Math.PI / 2), jonesLinear(0)));
-  q.g1 = { value: ellipseOf(jApply(waveplateJ(0, Math.PI), jonesLinear(30))).psi, unit: "°", abs: 1e-6, how: "A half-wave plate mirrors the light in its fast axis: 2θ − α = 2 × 0° − 30° = −30°, a turn of 60°." };
-  q.g2 = { value: ellipseOf(jApply(waveplateJ(22.5, Math.PI), jonesLinear(0))).psi, unit: "°", abs: 1e-6, how: "2θ − α = 2 × 22.5° − 0° = 45°: the plate turns the light by twice its angle." };
-  q.g3 = { value: g3.ratio, unit: "", tol: 1e-4, how: `φ = α − θ = −30°, so b/a = |tan 30°| = ${f(g3.ratio, 3)}, with the major axis along the fast axis (ψ = ${f(g3.psi, 0)}°). φ < 0, so E turns clockwise: right-handed, χ = +${f(g3.chi, 0)}°.` };
+  q.g1 = { value: ellipseOf(jApply(waveplateJ(0, Math.PI), jonesLinear(30))).psi, unit: "°", abs: 1e-6, how: tx`A half-wave plate mirrors the light in its fast axis: \(2\theta - \alpha = 2\times 0^\circ - 30^\circ = -30^\circ\), a turn of 60°.` };
+  q.g2 = { value: ellipseOf(jApply(waveplateJ(22.5, Math.PI), jonesLinear(0))).psi, unit: "°", abs: 1e-6, how: tx`\(2\theta - \alpha = 2\times 22.5^\circ - 0^\circ = 45^\circ\): the plate turns the light by twice its angle.` };
+  q.g3 = { value: g3.ratio, unit: "", tol: 1e-4, how: tx`\(\varphi = \alpha - \theta = -30^\circ\), so \(b/a = |\tan 30^\circ| = ${f(g3.ratio, 3)}\), with the major axis along the fast axis (\(\psi = ${f(g3.psi, 0)}^\circ\)). \(\varphi \lt 0\), so \(\mathbf E\) turns clockwise: right-handed, \(\chi = +${f(g3.chi, 0)}^\circ\).` };
   const g4 = ellipseOf(jApply(waveplateJ(0, Math.PI / 2), RIGHT));
   q.g4 = { choices: [["l45", `linear light at ${f(g4.psi, 0)}°`], ["left", "left-circular light"]], answer: g4.hand === "linear" && Math.abs(g4.psi - 45) < 1e-6 ? "l45" : "left",
-    how: "In the plate's axes right-circular light is (1, −i)/√2. The plate multiplies the slow (y) part by i: (1, −i·i)/√2 = (1, 1)/√2, linear at θ + 45° = 45°." };
-  q.g5 = { value: 0.5 * Math.acos(1 / Math.sqrt(3)) / DEG, unit: "°", abs: 0.005, how: `The magic angle is arccos(1/√3) = ${f(Math.acos(1 / Math.sqrt(3)) / DEG, 2)}°, and a half-wave plate turns the light by twice its angle: θ = ${f(0.5 * Math.acos(1 / Math.sqrt(3)) / DEG, 2)}°.` };
+    how: tx`In the plate's axes right-circular light is \((1, -i)/\sqrt2\). The plate multiplies the slow (\(y\)) part by \(i\): \((1, -i\cdot i)/\sqrt2 = (1, 1)/\sqrt2\), linear at \(\theta + 45^\circ = 45^\circ\).` };
+  const magic = Math.acos(1 / Math.sqrt(3)) / DEG;
+  q.g5 = { value: 0.5 * magic, unit: "°", abs: 0.005, how: tx`The magic angle is \(\arccos(1/\sqrt3) = ${f(magic, 2)}^\circ\), and a half-wave plate turns the light by twice its angle: \(\theta = ${f(magic, 2)}^\circ/2 = ${f(0.5 * magic, 2)}^\circ\).` };
   const x1 = ellipseOf(jApply(waveplateJ(0, Math.PI), jonesEllipse(20, 10)));
   q.x1 = { choices: [["a", `azimuth ${f(x1.psi, 0)}°, ellipticity angle ${f(x1.chi, 0)}°: left-handed`], ["b", "azimuth 20°, ellipticity angle −10°"]], answer: Math.abs(x1.psi + 20) < 1e-6 && Math.abs(x1.chi + 10) < 1e-6 ? "a" : "b",
-    how: "A half-wave plate mirrors in its fast axis: ψ → 2θ − ψ = −20° and χ → −χ = −10°. On the Poincaré sphere: a half turn about the H point." };
+    how: tx`A half-wave plate mirrors in its fast axis: \(\psi \to 2\theta - \psi = -20^\circ\) and \(\chi \to -\chi = -10^\circ\). On the Poincaré sphere: a half turn about the H point.` };
   const two = jMul(waveplateJ(17, Math.PI / 2), waveplateJ(17, Math.PI / 2)), hw = waveplateJ(17, Math.PI);
   q.x2 = { choices: [["hwp", "a half-wave plate with the same fast axis"], ["none", "nothing: they cancel"]], answer: two.every((z, i) => cabs(csub(z, hw[i])) < 1e-12) ? "hwp" : "none",
-    how: "The retardances add: Γ = 90° + 90° = 180°. With the fast axes crossed they subtract to 0 and the pair does nothing." };
-  q.b1 = { value: 45, unit: "°", abs: 1e-9, how: "I/I₀ = sin² 2θ · sin²(Γ/2) = sin² 2θ for Γ = 180°, largest at θ = 45°." };
-  q.b2 = { value: betweenPolarizers(0, 90, 22.5, Math.PI), unit: "", abs: 1e-9, how: "sin²(2 × 22.5°) · sin²(90°) = sin²45° = 0.5. The plate turns the light by 45°, and the analyzer passes cos²45° of it." };
-  q.b3 = { value: betweenPolarizers(0, 90, 45, Math.PI / 2), unit: "", abs: 1e-9, how: "sin²(90°) · sin²(45°) = 0.5: the light after the plate is circular, and any analyzer passes half of it." };
-  q.b4 = { value: betweenPolarizers(0, 0, 30, Math.PI), unit: "", abs: 1e-9, how: "The plate turns the light by 2θ = 60°; the polarizer passes cos²60° = 0.25 (parallel formula: 1 − sin²60° = 0.25)." };
+    how: tx`The retardances add: \(\Gamma = 90^\circ + 90^\circ = 180^\circ\). With the fast axes crossed they subtract to 0 and the pair does nothing.` };
+  q.b1 = { value: 45, unit: "°", abs: 1e-9, how: tx`\(I/I_0 = \sin^2 2\theta\,\sin^2(\Gamma/2) = \sin^2 2\theta\) for \(\Gamma = 180^\circ\), largest at \(\theta = 45^\circ\).` };
+  q.b2 = { value: betweenPolarizers(0, 90, 22.5, Math.PI), unit: "", abs: 1e-9, how: tx`\(\sin^2(2\times 22.5^\circ)\,\sin^2 90^\circ = \sin^2 45^\circ = 0.5\). The plate turns the light by 45°, and the analyzer passes \(\cos^2 45^\circ\) of it.` };
+  q.b3 = { value: betweenPolarizers(0, 90, 45, Math.PI / 2), unit: "", abs: 1e-9, how: tx`\(\sin^2 90^\circ\,\sin^2 45^\circ = 0.5\): the light after the plate is circular, and any analyzer passes half of it.` };
+  q.b4 = { value: betweenPolarizers(0, 0, 30, Math.PI), unit: "", abs: 1e-9, how: tx`The plate turns the light by \(2\theta = 60^\circ\); the polarizer passes \(\cos^2 60^\circ = 0.25\) (parallel formula: \(1 - \sin^2 60^\circ = 0.25\)).` };
   q.b5 = { choices: [["m", "magenta: the \"first-order red\" or sensitive tint"], ["w", "white"]], answer: "m",
-    how: "sin²(πR/λ) is zero at λ = 550 nm, where the plate is a full wave: the green-yellow middle of the spectrum is blocked and red and blue get through. A tiny extra retardation shifts it toward blue or yellow, which makes this plate a sensitive test." };
+    how: tx`\(\sin^2(\pi R/\lambda)\) is zero at \(\lambda = 550\) nm, where the plate is a full wave: the green-yellow middle of the spectrum is blocked and red and blue get through. A tiny extra retardation shifts it toward blue or yellow, which makes this plate a sensitive test.` };
   const m10 = plateThickness(dq, 632.8, 10.25);
-  q.r1 = { value: m10, unit: "µm", tol: 0.002, how: `d = (m + ¼)λ₀/Δn = 10.25 × 632.8 nm/${f(dq, 6)} = ${f(m10, 1)} µm, 41 times the zero-order plate.` };
+  q.r1 = { value: m10, unit: "µm", tol: 0.002, how: tx`\(d = (m + \tfrac14)\,\lambda_0/\Delta n = 10.25\times 632.8\,\mathrm{nm}/${f(dq, 6)} = ${f(m10, 1)}\,\mu\mathrm{m}\), 41 times the zero-order plate.` };
   const z8 = designPlate({ kind: "zero", mat: "quartz", lam: 800, target: 0.25 });
-  q.r2 = { value: z8.waves(400), unit: "waves", tol: 0.002, how: `The plate is ${f(z8.d, 2)} µm thick. At 400 nm, Γ/2π = Δn(400) d/400 nm = ${f(deltaN("quartz", 400), 6)} × ${f(z8.d, 2)} µm/0.400 µm = ${f(z8.waves(400), 3)} waves: nearly a half-wave plate. Half the wavelength doubles Γ, and Δn is ${f((deltaN("quartz", 400) / deltaN("quartz", 800) - 1) * 100, 1)} % larger at 400 nm.` };
+  q.r2 = { value: z8.waves(400), unit: "waves", tol: 0.002, how: tx`The plate is \(d = ${f(z8.d, 2)}\,\mu\mathrm{m}\) thick. At 400 nm, \(\Gamma/2\pi = \Delta n(400)\,d/400\,\mathrm{nm} = ${f(deltaN("quartz", 400), 6)}\times ${f(z8.d, 2)}\,\mu\mathrm{m}/0.400\,\mu\mathrm{m} = ${f(z8.waves(400), 3)}\) waves: nearly a half-wave plate. Half the wavelength doubles \(\Gamma\), and \(\Delta n\) is ${f((deltaN("quartz", 400) / deltaN("quartz", 800) - 1) * 100, 1)} % larger at 400 nm.` };
   const zb = plateBand(designPlate({ kind: "zero", mat: "quartz", lam: 632.8, target: 0.25 }), 632.8, 0.01, 200, 2000);
   const mb = plateBand(designPlate({ kind: "multi", m: 10, mat: "quartz", lam: 632.8, target: 0.25 }), 632.8, 0.01, 200, 2000);
   q.r3 = { choices: [["a", `zero-order: ${f(zb[0], 0)}–${f(zb[1], 0)} nm (${f(zb[1] - zb[0], 0)} nm wide); tenth-order: ${f(mb[0], 1)}–${f(mb[1], 1)} nm (${f(mb[1] - mb[0], 1)} nm)`]], answer: "a",
-    how: "The retardance of an order-m plate is (m + ¼) times larger at every wavelength, so it changes (4m + 1) times faster with λ. Multi-order plates are for one laser line." };
+    how: tx`An order-\(m\) quarter-wave plate has \((m + \tfrac14)/\tfrac14 = 4m + 1\) times the zero-order retardance at every wavelength, so its retardance changes \(4m + 1 = 41\) times faster with \(\lambda\). Multi-order plates are for one laser line.` };
   const lam = 632.8e-9, d = 0.25e-3, L = 1.5, dy = fringeSpacing(lam, d, L);
-  q.y1 = { value: dy * 1e3, unit: "mm", tol: 1e-4, how: `Δy = λL/d = 632.8 × 10⁻⁹ m × 1.5 m/0.25 × 10⁻³ m = ${f(dy * 1e3, 2)} mm.` };
-  q.y2 = { value: Math.asin(3 * lam / d) / DEG, unit: "°", tol: 1e-4, how: `sin θ₃ = 3λ/d = ${f(3 * lam / d, 6)}, θ₃ = ${f(Math.asin(3 * lam / d) / DEG, 3)}° (${f(3 * lam / d * 1e3, 2)} mrad). Small, which is why sin θ ≈ tan θ ≈ θ works.` };
-  q.y3 = { value: 1.5 * dy * 1e3, unit: "mm", tol: 1e-4, how: `Dark fringes are at (m + ½)λL/d; the second one is m = 1: 1.5 × ${f(dy * 1e3, 3)} mm = ${f(1.5 * dy * 1e3, 2)} mm.` };
-  q.y4 = { value: slitsI(dy / 4, lam, d, 0, L, 2) / 4, unit: "", abs: 1e-5, how: "πdy/λL = π/4 there, and cos²(π/4) = ½: I = 2I₁, half the maximum 4I₁." };
-  q.y5 = { value: 9, unit: "fringes", abs: 1e-9, how: "The envelope's first zeros are at y = ±λL/a, which is d/a = 5 fringe spacings. The m = ±5 orders fall on those zeros and vanish, so m = 0, ±1, …, ±4 remain: 9 bright fringes." };
+  q.y1 = { value: dy * 1e3, unit: "mm", tol: 1e-4, how: tx`\(\Delta y = \lambda L/d = 632.8\times 10^{-9}\,\mathrm{m}\times 1.5\,\mathrm{m}/(0.25\times 10^{-3}\,\mathrm{m}) = ${f(dy * 1e3, 2)}\,\mathrm{mm}\).` };
+  q.y2 = { value: Math.asin(3 * lam / d) / DEG, unit: "°", tol: 1e-4, how: tx`\(\sin\theta_3 = 3\lambda/d = ${f(3 * lam / d, 6)}\), \(\theta_3 = ${f(Math.asin(3 * lam / d) / DEG, 3)}^\circ\) (${f(3 * lam / d * 1e3, 2)} mrad). Small, which is why \(\sin\theta \approx \tan\theta \approx \theta\) works.` };
+  q.y3 = { value: 1.5 * dy * 1e3, unit: "mm", tol: 1e-4, how: tx`Dark fringes are at \((m + \tfrac12)\,\lambda L/d\); the second one is \(m = 1\): \(1.5\times ${f(dy * 1e3, 3)}\,\mathrm{mm} = ${f(1.5 * dy * 1e3, 2)}\,\mathrm{mm}\).` };
+  q.y4 = { value: slitsI(dy / 4, lam, d, 0, L, 2) / 4, unit: "", abs: 1e-5, how: tx`\(\pi d\,y/\lambda L = \pi/4\) there, and \(\cos^2(\pi/4) = \tfrac12\): \(I = 2I_1\), half the maximum \(4I_1\).` };
+  q.y5 = { value: 9, unit: "fringes", abs: 1e-9, how: tx`The envelope's first zeros are at \(y = \pm\lambda L/a\), which is \(d/a = 5\) fringe spacings. The \(m = \pm 5\) orders fall on those zeros and vanish, so \(m = 0, \pm 1, \dots, \pm 4\) remain: 9 bright fringes.` };
   q.y6 = { choices: [["red", "red"], ["blue", "blue"]], answer: fringeSpacing(650e-9, d, L) > fringeSpacing(450e-9, d, L) ? "red" : "blue",
-    how: "Δy = λL/d grows with λ: red fringes (650 nm) are 1.44 times as far apart as blue ones (450 nm). That is what spreads white-light fringes into colors." };
+    how: tx`\(\Delta y = \lambda L/d\) grows with \(\lambda\): red fringes (650 nm) are 1.44 times as far apart as blue ones (450 nm). That is what spreads white-light fringes into colors.` };
   const lc = cohLength(630e-9, 20e-9);
-  q.c1 = { value: lc * 1e6, unit: "µm", tol: 1e-4, how: `ℓ_c = λ²/Δλ = (630 nm)²/20 nm = ${f(lc * 1e6, 1)} µm, about ${f(lc / 630e-9, 0)} wavelengths. The visibility is ½ by 0.44ℓ_c, about ${f(0.4413 * lc / 630e-9, 0)} fringes out.` };
-  q.c2 = { value: 2 * LN2 / Math.PI, unit: "ℓ_c", tol: 1e-4, how: "V = exp[−(πΔr/ℓ_c)²/(4 ln 2)] = ½ when (πΔr/ℓ_c)² = 4 (ln 2)², so Δr = (2 ln 2/π)ℓ_c = 0.441ℓ_c." };
-  q.c3 = { value: 2, unit: "", abs: 1e-9, how: "Take λ ≈ 550 nm and Δλ ≈ 300 nm: ℓ_c ≈ λ²/Δλ ≈ 1 µm, about two wavelengths. You see the white central fringe and one or two colored ones on each side." };
+  q.c1 = { value: lc * 1e6, unit: "µm", tol: 1e-4, how: tx`\(\ell_c = \lambda^2/\Delta\lambda = (630\,\mathrm{nm})^2/20\,\mathrm{nm} = ${f(lc * 1e6, 1)}\,\mu\mathrm{m}\), about ${f(lc / 630e-9, 0)} wavelengths. The visibility is \(\tfrac12\) by \(0.44\,\ell_c\), about ${f(0.4413 * lc / 630e-9, 0)} fringes out.` };
+  q.c2 = { value: 2 * LN2 / Math.PI, unit: tx`\(\ell_c\)`, tol: 1e-4, how: tx`\(V = \exp[-(\pi\Delta r/\ell_c)^2/(4\ln 2)] = \tfrac12\) when \((\pi\Delta r/\ell_c)^2 = 4(\ln 2)^2\), so \(\Delta r = (2\ln 2/\pi)\,\ell_c = 0.441\,\ell_c\).` };
+  q.c3 = { value: 2, unit: "", abs: 1e-9, how: tx`Take \(\lambda \approx 550\) nm and \(\Delta\lambda \approx 300\) nm: \(\ell_c \approx \lambda^2/\Delta\lambda \approx 1\,\mu\mathrm{m}\), about two wavelengths. You see the white central fringe and one or two colored ones on each side.` };
   const tp = (J, a) => twoSlitPol(0, jonesLinear(0), jApply(J, jonesLinear(a || 0)));
-  q.f1 = { value: Math.round(tp(waveplateJ(45, Math.PI)).V * 1e9) / 1e9, unit: "", abs: 1e-9, how: "The plate turns slit 2's light to 2θ = 90°: ê₁*·ê₂ = cos 90° = 0. No fringes; I = 2I₁ everywhere." };
-  q.f2 = { value: tp(waveplateJ(22.5, Math.PI)).V, unit: "", tol: 1e-6, how: "The light from slit 2 is turned by 45°: V = |cos 45°| = 0.707. Only the component parallel to slit 1's light interferes." };
+  q.f1 = { value: Math.round(tp(waveplateJ(45, Math.PI)).V * 1e9) / 1e9, unit: "", abs: 1e-9, how: tx`The plate turns slit 2's light to \(2\theta = 90^\circ\): \(\hat{\mathbf e}_1^*\cdot\hat{\mathbf e}_2 = \cos 90^\circ = 0\). No fringes; \(I = 2I_1\) everywhere.` };
+  q.f2 = { value: tp(waveplateJ(22.5, Math.PI)).V, unit: "", tol: 1e-6, how: tx`The light from slit 2 is turned by 45°: \(V = |\cos 45^\circ| = 0.707\). Only the component parallel to slit 1's light interferes.` };
   const q3 = tp(waveplateJ(45, Math.PI / 2));
-  q.f3 = { value: q3.V, unit: "", tol: 1e-6, how: `ê₁*·ê₂ = cos²45° + i sin²45° = (1 + i)/2, so V = |(1 + i)/2| = ${f(q3.V, 3)} and the fringes move by arg = ${f(q3.shift / DEG, 0)}°, ⅛ of a fringe.` };
+  q.f3 = { value: q3.V, unit: "", tol: 1e-6, how: tx`\(\hat{\mathbf e}_1^*\cdot\hat{\mathbf e}_2 = \cos^2 45^\circ + i\sin^2 45^\circ = (1 + i)/2\), so \(V = |(1 + i)/2| = ${f(q3.V, 3)}\) and the fringes move by \(\arg = ${f(q3.shift / DEG, 0)}^\circ\), \(\tfrac18\) of a fringe.` };
   return q;
 })();
 </script>
@@ -1238,13 +1262,15 @@ function frame(ts) {
 
 /* ---------- inputs: slider + number box rows ---------- */
 // spec: [key, label (HTML), unit, min, max, step, { lo, hi, opt, msg }]
+const GREEK = { "\\lambda": "λ", "\\theta": "θ", "\\varphi": "φ", "\\psi": "ψ", "\\chi": "χ", "\\alpha": "α", "\\beta": "β", "\\gamma": "γ", "\\Gamma": "Γ", "\\Delta": "Δ", "\\ell": "ℓ" };
 function makeFields(hostId, prefix, specs, state, onChange, errId) {
   const host = $(hostId), out = {};
   const fmtIn = (v, f) => String(Number(v.toFixed(Math.max(0, Math.min(6, -Math.floor(Math.log10(f.step) + 1e-9))))));
   for (const [key, lab, unit, min, max, step, o = {}] of specs) {
     const id = prefix + key, opt = o.opt ? ` data-opt="${o.opt}"` : "", plain = lab.replace(/<[^>]+>/g, "");
+    const aria = plain.replace(/\\\(([\s\S]+?)\\\)/g, (m0, x) => x.replace(/\\[a-zA-Z]+/g, w => GREEK[w] || "").replace(/[{}\\,]/g, "").trim());
     host.insertAdjacentHTML("beforeend", `<label for="${id}N"${opt}>${lab}</label>` +
-      `<input type="range" id="${id}R" min="${min}" max="${max}" step="${step}" autocomplete="off" aria-label="${esc(plain)} (slider)"${opt}>` +
+      `<input type="range" id="${id}R" min="${min}" max="${max}" step="${step}" autocomplete="off" aria-label="${esc(aria)} (slider)"${opt}>` +
       `<input type="number" id="${id}N" step="any" autocomplete="off"${opt}><span class="unit"${opt}>${unit}</span>`);
     const f = { key, id, step: step || 1, lo: o.lo !== undefined ? o.lo : min, hi: o.hi !== undefined ? o.hi : max };
     f.msg = o.msg || `${plain.split(",")[0]} must be between ${fmtG(f.lo)} and ${fmtG(f.hi)}${unit ? " " + unit.replace(/<[^>]+>/g, "") : ""}.`;
@@ -1257,7 +1283,7 @@ function makeFields(hostId, prefix, specs, state, onChange, errId) {
   function edit(f, show, fromRange) {
     const N = $(f.id + "N"), v = Number(N.value), ok = N.value.trim() !== "" && Number.isFinite(v) && v >= f.lo && v <= f.hi && (!f.check || f.check(v));
     if (ok) N.removeAttribute("aria-invalid"); else N.setAttribute("aria-invalid", "true");
-    if (!ok) { if (show && errId) { $(errId).textContent = f.check && !f.check(v) && v >= f.lo && v <= f.hi ? f.checkMsg : f.msg; $(errId).hidden = false; } return; }
+    if (!ok) { if (show && errId) { setTex($(errId), f.check && !f.check(v) && v >= f.lo && v <= f.hi ? f.checkMsg : f.msg); $(errId).hidden = false; } return; }
     if (errId) $(errId).hidden = true;
     if (!fromRange) $(f.id + "R").value = String(v);
     if (state[f.key] !== v) { state[f.key] = v; onChange(f.key); }
@@ -1275,13 +1301,13 @@ function legend(el, items) {
   el.innerHTML = items.map(([lab, col, dash, kind]) => `<span>${kind === "band" ? `<svg width="18" height="10" aria-hidden="true"><rect width="18" height="10" fill="${col}"/></svg>`
     : kind === "dot" ? `<svg width="12" height="10" aria-hidden="true"><circle cx="6" cy="5" r="3.5" fill="${col}"/></svg>`
     : kind === "arrow" ? `<svg width="26" height="12" aria-hidden="true"><line x1="1" y1="6" x2="20" y2="6" stroke="${col}" stroke-width="1.6"/><path d="M25 6 L18 2.5 L18 9.5 Z" fill="${col}"/></svg>`
-    : `<svg width="26" height="10" aria-hidden="true"><line x1="0" y1="5" x2="26" y2="5" stroke="${col}" stroke-width="1.8"${dash ? ` stroke-dasharray="${dash}"` : ""}/></svg>`}${lab}</span>`).join("");
+    : `<svg width="26" height="10" aria-hidden="true"><line x1="0" y1="5" x2="26" y2="5" stroke="${col}" stroke-width="1.8"${dash ? ` stroke-dasharray="${dash}"` : ""}/></svg>`}${cellHTML(lab)}</span>`).join("");
 }
 function fillSelect(el, keys, names, value) { el.innerHTML = keys.map(k => `<option value="${k}">${esc(names[k])}</option>`).join(""); if (value) el.value = value; }
 function table(el, head, rows, wrap) {
   const cl = i => i ? (wrap ? "w" : "") : "w";
-  el.innerHTML = (head ? `<thead><tr>${head.map((h, i) => `<th class="${cl(i)}">${h}</th>`).join("")}</tr></thead>` : "") +
-    `<tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td class="${cl(i)}">${c}</td>`).join("")}</tr>`).join("")}</tbody>`;
+  el.innerHTML = (head ? `<thead><tr>${head.map((h, i) => `<th class="${cl(i)}">${cellHTML(h)}</th>`).join("")}</tr></thead>` : "") +
+    `<tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td class="${cl(i)}">${cellHTML(c)}</td>`).join("")}</tr>`).join("")}</tbody>`;
 }
 
 /* ---------- LaTeX: KaTeX if it loaded, the source text otherwise ---------- */
@@ -1292,14 +1318,50 @@ function texInto(el, src) {
   el.textContent = src; el.classList.add("raw");
 }
 function renderStaticTex() { document.querySelectorAll(".eq").forEach(el => { if (!el.dataset.done) texInto(el, el.textContent.trim()); }); }
-const subs = t => esc(t).replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>").replace(/-(?=\d)/g, "−");
+// inline math: \( … \) in a text is TeX, rendered by KaTeX (the source shows if KaTeX is missing)
+const tx = String.raw;
+const tn = (v, d) => { const t = v.toFixed(d); return /^-0\.?0*$/.test(t) ? t.slice(1) : t; };   // a number for TeX, ASCII minus
+function cTex(z, d) {
+  const n = d === undefined ? 3 : d, re = Math.abs(z.re) < 0.5 * 10 ** -n ? 0 : z.re, im = Math.abs(z.im) < 0.5 * 10 ** -n ? 0 : z.im;
+  if (im === 0) return tn(re, n);
+  if (re === 0) return `${im < 0 ? "-" : ""}${tn(Math.abs(im), n)}\\,i`;
+  return `${tn(re, n)} ${im < 0 ? "-" : "+"} ${tn(Math.abs(im), n)}\\,i`;
+}
+function texInline(src) {
+  if (hasTex()) { try { return katex.renderToString(src, { throwOnError: false, displayMode: false }); } catch (_) { /* fall through */ } }
+  return `<span class="mraw">${esc(src)}</span>`;
+}
+// short formulas stay on one line together with the brackets and punctuation around them
+function texHTML(t) {
+  const parts = String(t).split(/\\\(([\s\S]+?)\\\)/);
+  let out = "";
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 0) { out += esc(parts[i]).replace(/-(?=\d)/g, "−"); continue; }
+    let pre = "", post = "";
+    const nx = parts[i + 1] !== undefined ? parts[i + 1].match(/^[.,;:!?)\]]+/) : null;
+    if (nx) { post = nx[0]; parts[i + 1] = parts[i + 1].slice(post.length); }
+    if (/[(\[]$/.test(out)) { pre = out.slice(-1); out = out.slice(0, -1); }
+    const m = texInline(parts[i]);
+    out += parts[i].length <= 60 ? `<span class="nb">${pre}${m}${esc(post)}</span>` : `${pre}${m}${esc(post)}`;
+  }
+  return out;
+}
+function setTex(el, t) { if (el._tex === t) return; el._tex = t; el.innerHTML = texHTML(t); }
+const cellHTML = c => typeof c === "string" && c.includes("\\(") ? texHTML(c) : c;
+// static text: render \( … \) in every text node outside scripts, menus and display equations
+function renderInlineTex(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.nodeValue.includes("\\(") && !n.parentElement.closest("script, style, select, option, textarea, .eq, .katex") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const n of nodes) { const span = document.createElement("span"); span.innerHTML = texHTML(n.nodeValue); n.replaceWith(...span.childNodes); }
+}
 // each worked example: the answer and how to get it, from QUIZ (computed by the core)
 function initAnswers() {
   document.querySelectorAll(".qa").forEach(q => {
     const spec = QUIZ[q.dataset.q];
     if (!spec) return;
     const ans = spec.choices ? spec.choices.find(([v]) => v === spec.answer)[1] : `${fmtG(spec.value, spec.digits || 4)}${spec.unit === "°" ? "°" : spec.unit ? " " + spec.unit : ""}`;
-    q.insertAdjacentHTML("beforeend", `<p class="ans"><b>${subs(ans)}.</b> ${subs(spec.how)}</p>`);
+    q.insertAdjacentHTML("beforeend", `<p class="ans"><b>${texHTML(ans)}.</b> ${texHTML(spec.how)}</p>`);
   });
 }
 const crystalKeys = Object.keys(CRYSTALS), crystalNames = Object.fromEntries(crystalKeys.map(k => [k, CRYSTALS[k].name]));
@@ -1307,7 +1369,7 @@ const crystalKeys = Object.keys(CRYSTALS), crystalNames = Object.fromEntries(cry
 /* ===================================================================== 1. crystals */
 const K = { mat: "calcite", lam: 589.3 };
 fillSelect($("kMat"), crystalKeys, crystalNames, K.mat);
-const kF = makeFields("kF", "k", [["lam", "Wavelength λ₀", "nm", 250, 2000, 0.1]], K, () => kUpdate(), "kErr");
+const kF = makeFields("kF", "k", [["lam", tx`Wavelength \(\lambda_0\)`, "nm", 250, 2000, 0.1]], K, () => kUpdate(), "kErr");
 function kRange(key) { const c = CRYSTALS[key]; return c.o ? [Math.max(250, c.range[0] * 1000), Math.min(2000, c.range[1] * 1000)] : [400, 800]; }
 function kDraw() {
   const box = $("kPlotBox"), cv = $("kPlot"), H = 400, { ctx, W } = prepCanvas(box, cv, H), c = CRYSTALS[K.mat];
@@ -1326,36 +1388,38 @@ function kDraw() {
   if (c.o && c.range[0] * 1000 > 250) label(ctx, `data from ${fmtG(c.range[0] * 1000, 3)} nm`, L + 4, 22, COL.dg, "left");
 }
 function kText() {
-  const c = CRYSTALS[K.mat], r = crystalN(K.mat, K.lam), dn = r.ne - r.no, [lo, hi] = kRange(K.mat);
-  const sign = dn > 0 ? "positive" : "negative", fast = dn > 0 ? "perpendicular to the optic axis (the o-wave)" : "along the optic axis (the e-wave)";
-  let cap = c.o ? `${c.name} at ${fmtG(K.lam, 5)} nm: n_o = ${fix(r.no, 5)}, n_e = ${fix(r.ne, 5)}, Δn = ${fix(dn, 5)} (${sign} uniaxial).`
-    : `${c.name}: n_o = ${c.hecht[0]}, n_e = ${c.hecht[1]} at 589.3 nm (no dispersion data here), Δn = ${fix(dn, 4)} (${sign} uniaxial).`;
-  cap += ` E ${fast} sees the smaller index and travels faster: in a wave plate of ${c.name.replace(/ \(.*\)/, "").toLowerCase()} that is the fast axis.`;
+  const c = CRYSTALS[K.mat], r = crystalN(K.mat, K.lam), dn = r.ne - r.no, [lo, hi] = kRange(K.mat), short = c.name.replace(/ \(.*\)/, "").toLowerCase();
+  const sign = dn > 0 ? "positive" : "negative";
+  let cap = c.o ? tx`${c.name} at ${fmtG(K.lam, 5)} nm: \(n_o = ${tn(r.no, 5)}\), \(n_e = ${tn(r.ne, 5)}\), \(\Delta n = ${tn(dn, 5)}\) (${sign} uniaxial).`
+    : tx`${c.name}: \(n_o = ${c.hecht[0]}\), \(n_e = ${c.hecht[1]}\) at 589.3 nm (no dispersion data here), \(\Delta n = ${tn(dn, 4)}\) (${sign} uniaxial).`;
+  cap += dn > 0 ? tx` Light with \(\mathbf E\) perpendicular to the optic axis (the o-wave) sees the smaller index and travels faster: in a wave plate of ${short} that direction is the fast axis.`
+    : tx` Light with \(\mathbf E\) along the optic axis (the e-wave) sees the smaller index and travels faster: in a wave plate of ${short} the optic axis is the fast axis.`;
   if (c.o) {
     const a = crystalN(K.mat, Math.max(lo, 400)), b = crystalN(K.mat, Math.min(hi, 800));
-    cap += ` Both indices fall with wavelength (normal dispersion), and |Δn| changes by ${fix(Math.abs((a.ne - a.no) / (b.ne - b.no) - 1) * 100, 1)} % from ${fmtG(Math.max(lo, 400), 3)} to ${fmtG(Math.min(hi, 800), 3)} nm.`;
+    cap += tx` Both indices fall with wavelength (normal dispersion), and \(|\Delta n|\) changes by ${fix(Math.abs((a.ne - a.no) / (b.ne - b.no) - 1) * 100, 1)} % from ${fmtG(Math.max(lo, 400), 3)} to ${fmtG(Math.min(hi, 800), 3)} nm.`;
     if (!r.inRange) cap += ` ${fmtG(K.lam, 5)} nm is outside the measured range (${fmtG(c.range[0] * 1000, 4)}–${fmtG(c.range[1] * 1000, 4)} nm): the numbers are an extrapolation.`;
   }
-  $("kCap").textContent = minus(cap).replace(/_o/g, "ₒ").replace(/_e/g, "ₑ");
+  setTex($("kCap"), cap);
   const rows = crystalKeys.map(k => {
     const C = CRYSTALS[k], q = crystalN(k, K.lam), d = q.ne - q.no, mark = !C.o ? "†" : !q.inRange ? "*" : "";
     return `<tr${k === K.mat ? ' class="sel"' : ""}><td class="w">${esc(C.name)}${mark}</td><td>${fix(q.no, 4)}</td><td>${fix(q.ne, 4)}</td><td>${d > 0 ? "+" : "−"}${fix(Math.abs(d), 4)}</td>` +
       `<td class="l">${d > 0 ? "⊥ optic axis" : "∥ optic axis"}</td></tr>`;
   }).join("");
-  $("kTable").innerHTML = `<thead><tr><th class="l">crystal</th><th>n<sub>o</sub></th><th>n<sub>e</sub></th><th>Δn</th><th class="l">fast axis</th></tr></thead><tbody>${rows}</tbody>`;
+  $("kTable").innerHTML = `<thead><tr><th class="l">crystal</th><th>${texInline("n_o")}</th><th>${texInline("n_e")}</th><th>${texInline("\\Delta n")}</th><th class="l">fast axis</th></tr></thead><tbody>${rows}</tbody>`;
 }
 function kUpdate() { kDraw(); kText(); }
 $("kMat").addEventListener("change", () => { K.mat = $("kMat").value; kUpdate(); });
 onResize($("kPlotBox"), () => kDraw());
+legend($("kLeg"), [[tx`\(n_o\) (\(\mathbf E\perp\) optic axis)`, COL.k], [tx`\(n_e\) (\(\mathbf E\parallel\) optic axis)`, COL.o]]);
 
 /* ===================================================================== 2. double refraction */
 const D = { mat: "calcite", axis: "in", gamma: 45, thI: 0, t: 10, lam: 589.3 };
 fillSelect($("dMat"), crystalKeys, crystalNames, D.mat);
 const dF = makeFields("dF", "d", [
-  ["gamma", "Optic axis from the face normal, γ", "°", -90, 90, 1, { opt: "in" }],
-  ["thI", "Angle of incidence θ<sub>I</sub>", "°", -75, 75, 0.5],
+  ["gamma", tx`Optic axis from the face normal, \(\gamma\)`, "°", -90, 90, 1, { opt: "in" }],
+  ["thI", tx`Angle of incidence \(\theta_I\)`, "°", -75, 75, 0.5],
   ["t", "Thickness", "mm", 0.5, 30, 0.1],
-  ["lam", "Wavelength λ₀", "nm", 250, 2000, 0.1],
+  ["lam", tx`Wavelength \(\lambda_0\)`, "nm", 250, 2000, 0.1],
 ], D, () => dUpdate(), "dErr");
 const dAnim = anim({ host: $("dBox"), button: $("dPlay"), rate: () => 1, draw: () => dDraw() });
 function dSolve() { const r = crystalN(D.mat, D.lam); return { r, R: refractUniaxial(1, r.no, r.ne, D.thI, D.axis, D.gamma) }; }
@@ -1438,15 +1502,15 @@ function dDraw() {
 function dTable() {
   const { r, R } = dSolve(), ex = slabExit(R, D.t, D.thI), C = CRYSTALS[D.mat];
   const eE = D.axis === "in" ? "in the page, ⊥ ray" : "out of the page, along the axis", oE = D.axis === "in" ? "out of the page, ⊥ axis" : "in the page, ⊥ ray";
-  const cell = (q, f) => q ? f(q) : "—";
+  const cell = (q, f) => q ? f(q) : "—", spd = q => tx`\(${tn(1 / (q.n * Math.cos(q.rho * DEG)), 4)}\,c\)`;
   const away = R.e && Math.abs(R.e.rho) > 1e-6 ? ((r.ne < r.no) ? " (away from the axis)" : " (toward the axis)") : "";
   table($("dTable"), ["", "o-ray", "e-ray"], [
-    ["E points", oE, eE],
-    ["Index it sees, n = |k|/k₀", cell(R.o, q => fix(q.n, 5)), cell(R.e, q => fix(q.n, 5) + (D.axis === "in" ? ` (k at ${deg(q.thAxis)} to the axis)` : " = n<sub>e</sub>"))],
-    ["Wave normal k from the face normal", cell(R.o, q => deg(q.thK, 2)), cell(R.e, q => deg(q.thK, 2))],
+    [tx`\(\mathbf E\) points`, oE, eE],
+    [tx`Index it sees, \(n = |\mathbf k|/k_0\)`, cell(R.o, q => fix(q.n, 5)), cell(R.e, q => fix(q.n, 5) + (D.axis === "in" ? tx` (\(\mathbf k\) at ${deg(q.thAxis)} to the axis)` : tx` \(= n_e\)`))],
+    [tx`Wave normal \(\mathbf k\) from the face normal`, cell(R.o, q => deg(q.thK, 2)), cell(R.e, q => deg(q.thK, 2))],
     ["Ray (energy) from the face normal", cell(R.o, q => deg(q.thR, 2)), cell(R.e, q => deg(q.thR, 2))],
-    ["Walk-off ρ between ray and k", "0°", cell(R.e, q => deg(Math.abs(q.rho), 2) + away)],
-    ["Energy speed c/(n cos ρ)", cell(R.o, q => fix(1 / (q.n * Math.cos(q.rho * DEG)), 4) + " c"), cell(R.e, q => fix(1 / (q.n * Math.cos(q.rho * DEG)), 4) + " c")],
+    [tx`Walk-off \(\rho\) between ray and \(\mathbf k\)`, "0°", cell(R.e, q => deg(Math.abs(q.rho), 2) + away)],
+    [tx`Energy speed \(c/(n\cos\rho)\)`, cell(R.o, spd), cell(R.e, spd)],
     ["Leaves the back face at (along the face)", cell(R.o, () => fix(ex.xo, 3) + " mm"), cell(R.e, () => fix(ex.xe, 3) + " mm")],
     ["Gap between the two beams after the crystal", `${fix(ex.gap, 3)} mm`, `angle between rays inside: ${deg(Math.abs((R.e ? R.e.thR : 0) - (R.o ? R.o.thR : 0)), 2)}`],
   ], true);
@@ -1459,14 +1523,14 @@ document.querySelectorAll("[data-dpre]").forEach(b => b.addEventListener("click"
 $("dMat").addEventListener("change", () => { D.mat = $("dMat").value; dUpdate(); });
 $("dAxis").addEventListener("change", () => { D.axis = $("dAxis").value; dUpdate(); });
 onResize($("dBox"), () => dDraw());
-legend($("dLeg"), [["o-ray", COL.k], ["e-ray", COL.o], ["E out of the page", "#333", null, "dot"], ["E in the page", "#333", null, "arrow"]]);
+legend($("dLeg"), [["o-ray", COL.k], ["e-ray", COL.o], [tx`\(\mathbf E\) out of the page`, "#333", null, "dot"], [tx`\(\mathbf E\) in the page`, "#333", null, "arrow"]]);
 
 /* ===================================================================== 3. inside a wave plate */
 const PLATE_G = { qwp: 90, hwp: 180, full: 360, none: 0 };
 const IP = { plate: "qwp", G: 90, phi: 45 };
 const iF = makeFields("iF", "i", [
-  ["G", "Retardance Γ", "°", 0, 720, 1, { opt: "custom" }],
-  ["phi", "Light in, at φ from the fast axis", "°", -90, 90, 1],
+  ["G", tx`Retardance \(\Gamma\)`, "°", 0, 720, 1, { opt: "custom" }],
+  ["phi", tx`Light in, at \(\varphi\) from the fast axis`, "°", -90, 90, 1, { msg: tx`\(\varphi\) must be between −90° and 90°.` }],
 ], IP, () => iUpdate(), "iErr");
 const iAnim = anim({ hosts: [$("i3Box"), $("iRowBox")], button: $("iPlay"), rate: () => Number($("iRate").value), draw: () => iDraw() });
 const iGamma = () => (IP.plate === "custom" ? IP.G : PLATE_G[IP.plate]) * DEG;
@@ -1475,6 +1539,12 @@ function stateWords(v) {
   if (E.hand === "linear") return `linear at ${deg(E.psi, 0)}`;
   if (E.ratio > 0.999) return E.hand === "right" ? "right-circular" : "left-circular";
   return `${E.hand}-elliptical, b/a = ${fix(E.ratio, 2)}`;
+}
+function stateTex(v) {
+  const E = ellipseOf(v);
+  if (E.hand === "linear") return `linear at ${deg(E.psi, 0)}`;
+  if (E.ratio > 0.999) return E.hand === "right" ? "right-circular" : "left-circular";
+  return tx`${E.hand}-elliptical, \(b/a = ${tn(E.ratio, 2)}\)`;
 }
 function iDraw3() {
   const box = $("i3Box"), cv = $("i3"), Wb = box.clientWidth, HH = Wb < 560 ? Math.round(Math.max(190, Wb * 0.62)) : 340, { ctx, W } = prepCanvas(box, cv, HH);
@@ -1542,11 +1612,11 @@ function iDrawRow() {
 function iDraw() { iDraw3(); iDrawRow(); }
 function iText() {
   const G = iGamma(), v = insidePlate(IP.phi, G, 1), E = ellipseOf(v), half = ellipseOf(insidePlate(IP.phi, G, 0.5));
-  let t = `Face-on, looking back at the source, with the fast axis along x (blue) and the slow axis along y (red). The light enters linear at φ = ${fix(IP.phi, 0)}° from the fast axis and leaves ${stateWords(v)}`;
+  let t = tx`Face-on, looking back at the source, with the fast axis along \(x\) (blue) and the slow axis along \(y\) (red). The light enters linear at \(\varphi = ${tn(IP.phi, 0)}^\circ\) from the fast axis and leaves ${stateTex(v)}`;
   if (E.hand !== "linear" && E.ratio < 0.999) t += `, major axis at ${deg(E.psi, 1)}`;
-  t += `. The phase lag grows in proportion to depth: halfway through it is ${fix(G / 2 / DEG, 1)}° and the light is ${stateWords(insidePlate(IP.phi, G, 0.5))}.`;
+  t += tx`. The phase lag grows in proportion to depth: halfway through it is \(\Gamma/2 = ${tn(G / 2 / DEG, 1)}^\circ\) and the light is ${stateTex(insidePlate(IP.phi, G, 0.5))}.`;
   if (Math.abs(Math.abs(IP.phi) - 45) < 1e-9 && half.ratio > 0.999) t += " Circular light needs equal components and a 90° lag.";
-  $("iCap").textContent = minus(t);
+  setTex($("iCap"), t);
 }
 function iUpdate() { setOpts($("iF"), IP.plate === "custom" ? ["custom"] : []); iDraw(); iText(); }
 const I_PRE = { q45: { plate: "qwp", phi: 45 }, h45: { plate: "hwp", phi: 45 }, q30: { plate: "qwp", phi: 30 }, h30: { plate: "hwp", phi: 30 } };
@@ -1558,11 +1628,11 @@ legend($("iLeg"), [["fast-axis component", COL.f], ["slow-axis component", COL.s
 /* ===================================================================== 5. explorer */
 const X = { inp: "lin", a: 45, psi: 20, chi: 10, plate: "qwp", G: 90, th: 0, az: 35, el: 22 };
 const xF = makeFields("xF", "x", [
-  ["a", "Linear light at α", "°", -90, 90, 0.5, { opt: "lin" }],
-  ["psi", "Ellipse azimuth ψ", "°", -90, 90, 0.5, { opt: "ell" }],
-  ["chi", "Ellipticity angle χ (+ right, − left)", "°", -45, 45, 0.5, { opt: "ell" }],
-  ["G", "Retardance Γ", "°", 0, 360, 1, { opt: "custom" }],
-  ["th", "Fast axis at θ", "°", -90, 90, 0.5, { opt: "plate" }],
+  ["a", tx`Linear light at \(\alpha\)`, "°", -90, 90, 0.5, { opt: "lin" }],
+  ["psi", tx`Ellipse azimuth \(\psi\)`, "°", -90, 90, 0.5, { opt: "ell" }],
+  ["chi", tx`Ellipticity angle \(\chi\) (+ right, − left)`, "°", -45, 45, 0.5, { opt: "ell" }],
+  ["G", tx`Retardance \(\Gamma\)`, "°", 0, 360, 1, { opt: "custom" }],
+  ["th", tx`Fast axis at \(\theta\)`, "°", -90, 90, 0.5, { opt: "plate" }],
 ], X, () => xUpdate(), "xErr");
 const xGamma = () => (X.plate === "custom" ? X.G : PLATE_G[X.plate]) * DEG;
 const xIn = () => X.inp === "lin" ? jonesLinear(X.a) : X.inp === "right" ? RIGHT : X.inp === "left" ? LEFT : jonesEllipse(X.psi, X.chi);
@@ -1641,34 +1711,40 @@ function xSphere() {
   label(ctx, "S₃ up, S₁ toward H, S₂ toward +45°", 6, HH - 10, COL.g, "left");
 }
 function xRule() {
-  const G = xGamma(), Ein = ellipseOf(xIn()), Eout = ellipseOf(jApply(xJ(), xIn())), th = X.th;
+  const G = xGamma(), Ein = ellipseOf(xIn()), Eout = ellipseOf(jApply(xJ(), xIn())), th = X.th, d = v => tn(v, 1);
   let t;
   if (X.plate === "none") t = "No plate: the light is unchanged.";
-  else if (X.plate === "hwp") t = `Half-wave plate: J = M(θ), the mirror image in the fast axis. Azimuth 2θ − ψ = 2 × ${fix(th, 1)}° − ${fix(Ein.psi, 1)}° = ${fix(2 * th - Ein.psi, 1)}°${Math.abs(wrap90(2 * th - Ein.psi) - (2 * th - Ein.psi)) > 1e-9 ? ` (the same line as ${fix(wrap90(2 * th - Ein.psi), 1)}°)` : ""}; ellipticity −χ: ${Ein.hand === "linear" ? "linear stays linear" : "the handedness flips"}.`;
-  else if (X.plate === "qwp" && X.inp === "lin") {
+  else if (X.plate === "hwp") {
+    const az = 2 * th - Ein.psi, w = wrap90(az);
+    t = tx`Half-wave plate: \(\mathbf J = \mathbf M(\theta)\), the mirror image in the fast axis. Azimuth \(2\theta - \psi = 2\times ${d(th)}^\circ - ${d(Ein.psi)}^\circ = ${d(az)}^\circ\)` + (Math.abs(w - az) > 1e-9 ? tx` (the same line as \(${d(w)}^\circ\))` : "") + tx`; ellipticity \(-\chi\): ${Ein.hand === "linear" ? "linear stays linear" : "the handedness flips"}.`;
+  } else if (X.plate === "qwp" && X.inp === "lin") {
     const phi = wrap90(X.a - th), ap = Math.abs(phi);
-    t = `Quarter-wave plate, linear light at φ = α − θ = ${fix(phi, 1)}° from the fast axis: ` + (ap < 1e-9 || Math.abs(ap - 90) < 1e-9 ? "along an axis, so it is unchanged."
+    t = tx`Quarter-wave plate, linear light at \(\varphi = \alpha - \theta = ${d(phi)}^\circ\) from the fast axis: ` + (ap < 1e-9 || Math.abs(ap - 90) < 1e-9 ? "along an axis, so it is unchanged."
       : Math.abs(ap - 45) < 1e-9 ? `at 45° to the axes, so it comes out circular: ${phi > 0 ? "left" : "right"}-handed.`
-        : `an ellipse with its axes along the fast and slow axes, b/a = ${ap < 45 ? `|tan φ| = ${fix(Math.tan(ap * DEG), 3)}` : `|cot φ| = ${fix(1 / Math.tan(ap * DEG), 3)}`}, major axis along the ${ap < 45 ? "fast" : "slow"} axis, ${phi > 0 ? "left" : "right"}-handed (E turns ${phi > 0 ? "counterclockwise" : "clockwise"}).`);
-  } else if (X.plate === "qwp" && (X.inp === "right" || X.inp === "left")) t = `Quarter-wave plate, ${X.inp}-circular light: linear at θ ${X.inp === "right" ? "+" : "−"} 45° = ${fix(wrap90(th + (X.inp === "right" ? 45 : -45)), 1)}°.`;
-  else if (X.plate === "full") t = "Full-wave plate: Γ = 360° is no change at this wavelength (other wavelengths are changed: part 6).";
-  else t = `The Stokes vector turns by Γ = ${fix(G / DEG, 1)}° about the fast-axis point (longitude 2θ = ${fix(2 * th, 1)}° on the equator).` + (X.inp === "lin" ? ` For linear light: tan 2(ψ − θ) = cos Γ tan 2(α − θ) and sin 2χ = −sin Γ sin 2(α − θ).` : "");
+        : (ap < 45 ? tx`an ellipse with its axes along the fast and slow axes, \(b/a = |\tan\varphi| = ${tn(Math.tan(ap * DEG), 3)}\), major axis along the fast axis, ` : tx`an ellipse with its axes along the fast and slow axes, \(b/a = |\cot\varphi| = ${tn(1 / Math.tan(ap * DEG), 3)}\), major axis along the slow axis, `)
+          + tx`${phi > 0 ? "left" : "right"}-handed (\(\mathbf E\) turns ${phi > 0 ? "counterclockwise" : "clockwise"}).`);
+  } else if (X.plate === "qwp" && (X.inp === "right" || X.inp === "left")) t = tx`Quarter-wave plate, ${X.inp}-circular light: linear at \(\theta ${X.inp === "right" ? "+" : "-"} 45^\circ = ${d(wrap90(th + (X.inp === "right" ? 45 : -45)))}^\circ\).`;
+  else if (X.plate === "full") t = tx`Full-wave plate: \(\Gamma = 360^\circ\) is no change at this wavelength (other wavelengths are changed: part 6).`;
+  else t = tx`The Stokes vector turns by \(\Gamma = ${d(G / DEG)}^\circ\) about the fast-axis point (longitude \(2\theta = ${d(2 * th)}^\circ\) on the equator).` + (X.inp === "lin" ? tx` For linear light: \(\tan 2(\psi - \theta) = \cos\Gamma\,\tan 2(\alpha - \theta)\) and \(\sin 2\chi = -\sin\Gamma\,\sin 2(\alpha - \theta)\).` : "");
   if (X.plate !== "none") {
-    t += Math.abs(Eout.chi) > 44.95 ? ` Out: χ = ${fix(Eout.chi, 1)}° (circular, no azimuth).` : ` Out: ψ = ${fix(Eout.psi, 1)}°, χ = ${fix(Eout.chi, 1)}°.`;
-    const J = xJ(); t += ` J(θ, Γ) = [[${cfmt(J[0])}, ${cfmt(J[1])}], [${cfmt(J[2])}, ${cfmt(J[3])}]].`;
+    t += Math.abs(Eout.chi) > 44.95 ? tx` Out: \(\chi = ${d(Eout.chi)}^\circ\) (circular, no azimuth).` : tx` Out: \(\psi = ${d(Eout.psi)}^\circ\), \(\chi = ${d(Eout.chi)}^\circ\).`;
+    t += " In numbers:";
   }
-  $("xRule").textContent = minus(t);
+  setTex($("xRule"), t);
+  const J = xJ(), vin = xIn(), vout = jApply(J, vin);
+  texInto($("xJ"), X.plate === "none" ? tx`\mathbf E_\text{out} = \mathbf E_\text{in} = \begin{pmatrix} ${cTex(vin[0])} \\ ${cTex(vin[1])} \end{pmatrix}`
+    : tx`\mathbf J(${tn(X.th, 1)}^\circ, ${tn(xGamma() / DEG, 1)}^\circ)\,\mathbf E_\text{in} = \begin{pmatrix} ${cTex(J[0])} & ${cTex(J[1])} \\ ${cTex(J[2])} & ${cTex(J[3])} \end{pmatrix}\begin{pmatrix} ${cTex(vin[0])} \\ ${cTex(vin[1])} \end{pmatrix} = \begin{pmatrix} ${cTex(vout[0])} \\ ${cTex(vout[1])} \end{pmatrix}`);
 }
 function xTable() {
   const vin = xIn(), J = xJ(), vout = jApply(J, vin), a = ellipseOf(vin), b = ellipseOf(vout);
-  const jv = v => `(${cfmt(v[0])}, ${cfmt(v[1])})`, st = E => `(${E.S.slice(1).map(x => fix(x, 3)).join(", ")})`, az = E => Math.abs(E.chi) > 44.95 ? "— (circular)" : deg(E.psi, 1);
+  const jv = v => tx`\((${cTex(v[0])},\ ${cTex(v[1])})\)`, st = E => tx`\((${E.S.slice(1).map(x => tn(x, 3)).join(",\ ")})\)`, az = E => Math.abs(E.chi) > 44.95 ? "— (circular)" : deg(E.psi, 1);
   table($("xTable"), ["", "light in", "light out"], [
-    ["Jones vector (E<sub>x</sub>, E<sub>y</sub>)", jv(vin), jv(vout)],
-    ["Azimuth ψ of the major axis", az(a), az(b)],
-    ["Ellipticity angle χ", deg(a.chi, 1), deg(b.chi, 1)],
-    ["Axis ratio b/a = |tan χ|", fix(a.ratio, 3), fix(b.ratio, 3)],
+    [tx`Jones vector \((E_x, E_y)\)`, jv(vin), jv(vout)],
+    [tx`Azimuth \(\psi\) of the major axis`, az(a), az(b)],
+    [tx`Ellipticity angle \(\chi\)`, deg(a.chi, 1), deg(b.chi, 1)],
+    [tx`Axis ratio \(b/a = |\tan\chi|\)`, fix(a.ratio, 3), fix(b.ratio, 3)],
     ["Sense", handName(a.hand), handName(b.hand)],
-    ["Stokes (S<sub>1</sub>, S<sub>2</sub>, S<sub>3</sub>)", st(a), st(b)],
+    [tx`Stokes \((S_1, S_2, S_3)\)`, st(a), st(b)],
   ], true);
 }
 function xDrawMoving() { xPanel("xInBox", "xInCv", xIn(), "In", false); xPanel("xOutBox", "xOutCv", jApply(xJ(), xIn()), X.plate === "none" ? "Out (no plate)" : `Out, after Γ = ${fix(xGamma() / DEG, 0)}°`, true); xDrawTime(); }
@@ -1695,10 +1771,10 @@ legend($("xLeg"), [["fast-axis component", COL.f], ["slow-axis component", COL.s
 /* ===================================================================== 6. between polarizers */
 const BP = { plate: "hwp", G: 180, a: 0, an: "crossed", b: 90, th: 22.5, turn: false };
 const bF = makeFields("bF", "b", [
-  ["G", "Retardance Γ", "°", 0, 360, 1, { opt: "custom" }],
-  ["a", "Polarizer at α", "°", -90, 90, 0.5],
-  ["b", "Analyzer at β", "°", -90, 180, 0.5, { opt: "any" }],
-  ["th", "Plate's fast axis at θ", "°", -90, 180, 0.5, { opt: "fixed" }],
+  ["G", tx`Retardance \(\Gamma\)`, "°", 0, 360, 1, { opt: "custom" }],
+  ["a", tx`Polarizer at \(\alpha\)`, "°", -90, 90, 0.5],
+  ["b", tx`Analyzer at \(\beta\)`, "°", -90, 180, 0.5, { opt: "any" }],
+  ["th", tx`Plate's fast axis at \(\theta\)`, "°", -90, 180, 0.5, { opt: "fixed" }],
 ], BP, () => bUpdate(), "bErr");
 const bAnim = anim({ hosts: [$("bPlotBox"), $("bDiagBox")], button: $("bPlay"), rate: () => 1, draw: () => bDraw() });
 const bGamma = () => (BP.plate === "custom" ? BP.G : PLATE_G[BP.plate]) * DEG;
@@ -1738,11 +1814,11 @@ function bDraw() { bDrawPlot(); bDrawDiag(); if (BP.turn) bCaption(); }
 function bCaption() {
   const G = bGamma(), a = BP.a, b = bBeta(), th = bTheta(), I = betweenPolarizers(a, b, th, G);
   const t1 = Math.cos((b - a) * DEG) ** 2, t2 = Math.sin(2 * (th - a) * DEG), t3 = Math.sin(2 * (th - b) * DEG), t4 = Math.sin(G / 2) ** 2;
-  let t = `I/I₀ = cos²(β − α) − sin 2(θ − α) sin 2(θ − β) sin²(Γ/2) = ${fix(t1, 3)} − (${fix(t2, 3)})(${fix(t3, 3)})(${fix(t4, 3)}) = ${fix(I, 3)} at θ − α = ${fix(((th - a) % 180 + 180) % 180, 1)}°.`;
-  if (BP.an === "crossed") t += ` Crossed: zero with an axis along the polarizer (0°, 90°), largest at 45° and 135°, where it is sin²(Γ/2) = ${fix(t4, 3)}.`;
-  else if (BP.an === "parallel") t += ` Parallel: everything passes with an axis along the polarizer; the least, 1 − sin²(Γ/2) = ${fix(1 - t4, 3)}, at 45°.`;
+  let t = tx`\(I/I_0 = \cos^2(\beta - \alpha) - \sin 2(\theta - \alpha)\,\sin 2(\theta - \beta)\,\sin^2(\Gamma/2) = ${tn(t1, 3)} - (${tn(t2, 3)})(${tn(t3, 3)})(${tn(t4, 3)}) = ${tn(I, 3)}\) at \(\theta - \alpha = ${tn(((th - a) % 180 + 180) % 180, 1)}^\circ\).`;
+  if (BP.an === "crossed") t += tx` Crossed: zero with an axis along the polarizer (0°, 90°), largest at 45° and 135°, where it is \(\sin^2(\Gamma/2) = ${tn(t4, 3)}\).`;
+  else if (BP.an === "parallel") t += tx` Parallel: everything passes with an axis along the polarizer; the least, \(1 - \sin^2(\Gamma/2) = ${tn(1 - t4, 3)}\), at 45°.`;
   if (BP.an !== "any") t += " Dashed: the other analyzer; the two add to 1.";
-  $("bCap").textContent = minus(t);
+  setTex($("bCap"), t);
 }
 function bUpdate() {
   setOpts($("bF"), [BP.plate === "custom" ? "custom" : "", BP.an === "any" ? "any" : "", BP.turn ? "" : "fixed"]);
@@ -1756,7 +1832,7 @@ legend($("bLeg"), [["this analyzer", COL.k], ["the other one (crossed ↔ parall
 
 /* interference colors */
 const BC = { R: 550 };
-const bcF = makeFields("bcF", "bc", [["R", "Retardation R = |Δn| d", "nm", 0, 2000, 1]], BC, () => { bcDraw(); bcCaption(); }, "bcErr");
+const bcF = makeFields("bcF", "bc", [["R", tx`Retardation \(R = |\Delta n|\,d\)`, "nm", 0, 2000, 1]], BC, () => { bcDraw(); bcCaption(); }, "bcErr");
 const TINT = { crossed: [], parallel: [] };
 for (let R = 0; R <= 2000; R += 4) { TINT.crossed.push(toDisplay(tintRGB(R, true))); TINT.parallel.push(toDisplay(tintRGB(R, false))); }
 function bcDraw() {
@@ -1780,9 +1856,10 @@ function bcDraw() {
 function bcCaption() {
   const c = toDisplay(tintRGB(BC.R, true)), p = toDisplay(tintRGB(BC.R, false)), zeros = [];
   for (let m = 1; m < 20; m++) { const l = BC.R / m; if (l >= 380 && l <= 750) zeros.push(Math.round(l)); }
-  $("bcCap").innerHTML = `R = ${fmtG(BC.R, 4)} nm. Crossed polarizers <span class="swatch" style="background:${rgbCss(c)}"></span>, parallel <span class="swatch" style="background:${rgbCss(p)}"></span>. ` +
-    esc(minus(zeros.length ? `Between crossed polarizers the plate is a full-wave plate, and blocks, at ${zeros.join(", ")} nm (λ = R/m); those colors are missing. ` : "No visible wavelength is blocked completely. ")) +
-    esc(minus(`Bottom: the transmission of white light, crossed (black) and parallel (dashed); they add to 1. A quartz plate of thickness d has R = 0.0091 × d: ${fmtG(BC.R / 0.00910 / 1000, 3)} µm here.`));
+  $("bcCap").innerHTML = texHTML(tx`\(R = ${BC.R}\) nm. Crossed polarizers `) + `<span class="swatch" style="background:${rgbCss(c)}"></span>` + texHTML(", parallel ") +
+    `<span class="swatch" style="background:${rgbCss(p)}"></span>. ` +
+    texHTML(zeros.length ? tx`Between crossed polarizers the plate is a full-wave plate, and blocks, at ${zeros.join(", ")} nm (\(\lambda = R/m\)); those colors are missing. ` : "No visible wavelength is blocked completely. ") +
+    texHTML(tx`Bottom: the transmission of white light, crossed (black) and parallel (dashed); they add to 1. A quartz plate of thickness \(d\) has \(R = 0.0091\,d\): ${fmtG(BC.R / 0.00910 / 1000, 3)} µm here.`);
 }
 document.querySelectorAll("[data-bcpre]").forEach(b => b.addEventListener("click", () => { BC.R = Number(b.dataset.bcpre); bcF.write(); bcDraw(); bcCaption(); }));
 onResize($("bColBox"), () => bcDraw());
@@ -1791,10 +1868,10 @@ onResize($("bColBox"), () => bcDraw());
 const RP = { mat: "quartz", kind: "zero", tgt: 0.25, lam: 632.8, m: 10, l1: 450, l2: 650 };
 fillSelect($("rMat"), ["quartz", "mgf2", "sapphire", "calcite"], crystalNames, RP.mat);
 const rF = makeFields("rF", "r", [
-  ["lam", "Design wavelength λ₀", "nm", 250, 2000, 0.1, { opt: "single" }],
-  ["m", "Order m", "", 1, 40, 1, { opt: "multi" }],
-  ["l1", "Right at λ₁", "nm", 300, 1700, 1, { opt: "achro" }],
-  ["l2", "and at λ₂", "nm", 300, 1700, 1, { opt: "achro" }],
+  ["lam", tx`Design wavelength \(\lambda_0\)`, "nm", 250, 2000, 0.1, { opt: "single" }],
+  ["m", tx`Order \(m\)`, "", 1, 40, 1, { opt: "multi" }],
+  ["l1", tx`Right at \(\lambda_1\)`, "nm", 300, 1700, 1, { opt: "achro" }],
+  ["l2", tx`and at \(\lambda_2\)`, "nm", 300, 1700, 1, { opt: "achro" }],
 ], RP, () => rUpdate(), "rErr");
 function rDesign() { return designPlate({ kind: RP.kind, mat: RP.mat, lam: RP.lam, m: RP.m, target: RP.tgt, l1: Math.min(RP.l1, RP.l2), l2: Math.max(RP.l1, RP.l2) }); }
 function rValid() {
@@ -1834,11 +1911,11 @@ function rText() {
   for (const l of lams) { const w = P.waves(l); rows.push([`At ${fmtG(l, 4)} nm`, `${fix(w, 3)} waves ${waveName(w)}`]); }
   table($("rTable"), ["", RP.kind === "achro" ? `achromatic ${name} plate` : `${RP.kind === "zero" ? "zero-order" : "order-" + RP.m} ${CRYSTALS[RP.mat].name.replace(/ \(.*\)/, "").toLowerCase()} ${name} plate`], rows, true);
   legend($("rLeg"), [["this plate", COL.k]].concat(RP.kind === "zero" ? [] : [["zero-order plate, for comparison", COL.g, "5 4"]], [["design wavelength", COL.o, null, "dot"]]));
-  const ratio = RP.kind === "multi" ? 4 * RP.m + 1 : null;
+  const ratio = RP.kind === "multi" ? (RP.m + RP.tgt) / RP.tgt : null;
   let cap = RP.kind === "achro" ? `Black: the achromatic plate, right at ${fmtG(RP.l1, 4)} and ${fmtG(RP.l2, 4)} nm and within a few percent between. Gray dashed: a zero-order quartz plate for comparison.`
-    : RP.kind === "multi" ? `Black: the retardance minus whole waves, which is all the light feels. An order-${RP.m} plate changes ${ratio} times faster with wavelength than the zero-order plate (gray dashed) and is right only near its design wavelength; at some other wavelengths it is a quarter-, half- or full-wave plate again.`
-      : `Black: the retardance of a zero-order plate. Γ ∝ |Δn(λ)|/λ, so the plate is ${name} only at ${fmtG(RP.lam, 5)} nm, more at shorter wavelengths and less at longer ones.`;
-  $("rCap").textContent = minus(cap);
+    : RP.kind === "multi" ? tx`Black: the retardance minus whole waves, which is all the light feels. An order-${RP.m} plate changes \(${RP.tgt === 0.25 ? "4m + 1" : "2m + 1"} = ${ratio}\) times faster with wavelength than the zero-order plate (gray dashed) and is right only near its design wavelength; at some other wavelengths it is a quarter-, half- or full-wave plate again.`
+      : tx`Black: the retardance of a zero-order plate. \(\Gamma \propto |\Delta n(\lambda)|/\lambda\), so the plate is ${name} only at ${fmtG(RP.lam, 5)} nm, more at shorter wavelengths and less at longer ones.`;
+  setTex($("rCap"), cap);
   return true;
 }
 function rUpdate() {
@@ -1857,12 +1934,12 @@ onResize($("rPlotBox"), () => { if (!rValid()) rDraw(); });
 /* ===================================================================== 8. Young's slits */
 const Y = { lam: 632.8, d: 0.25, a: 0, L: 1.5, N: 2, yp: 0.95 };
 const yF = makeFields("yF", "y", [
-  ["lam", "Wavelength λ", "nm", 380, 750, 0.1],
-  ["d", "Slit spacing d", "mm", 0.02, 2, 0.001],
-  ["a", "Slit width a (0 = very narrow)", "mm", 0, 0.5, 0.001],
-  ["L", "Distance to the screen L", "m", 0.1, 5, 0.01],
-  ["N", "Number of slits N", "", 1, 10, 1],
-  ["yp", "Orange point on the screen, y", "mm", -60, 60, 0.01],
+  ["lam", tx`Wavelength \(\lambda\)`, "nm", 380, 750, 0.1],
+  ["d", tx`Slit spacing \(d\)`, "mm", 0.02, 2, 0.001],
+  ["a", tx`Slit width \(a\) (0 = very narrow)`, "mm", 0, 0.5, 0.001],
+  ["L", tx`Distance to the screen \(L\)`, "m", 0.1, 5, 0.01],
+  ["N", tx`Number of slits \(N\)`, "", 1, 10, 1],
+  ["yp", tx`Orange point on the screen, \(y\)`, "mm", -60, 60, 0.01],
 ], Y, () => yUpdate(), "yErr");
 yF.fields.a.check = v => v < Y.d; yF.fields.a.checkMsg = "The slit width must be smaller than the slit spacing.";
 yF.fields.d.check = v => v > Y.a; yF.fields.d.checkMsg = "The slit spacing must be larger than the slit width.";
@@ -1975,27 +2052,28 @@ function yDrawTrace() {
 }
 function yDrawMoving() { yDrawWave(); yDrawPhasor(); yDrawTrace(); }
 function yText() {
-  const m = yM(), dy = fringeSpacing(m.lam, m.d, m.L), { p, e } = yProbe(), N = Y.N, r = yRange();
+  const m = yM(), dy = fringeSpacing(m.lam, m.d, m.L), { p } = yProbe(), N = Y.N, r = yRange();
   const rows = [];
   if (N > 1) {
-    rows.push(["Fringe spacing Δy = λL/d", `${fmtG(dy * 1e3, 4)} mm`]);
-    rows.push(["First bright fringe, sin θ₁ = λ/d", `θ₁ = ${fix(Math.asin(m.lam / m.d) / DEG, 4)}°`]);
-    rows.push(["First dark fringe", N === 2 ? `y = ½Δy = ${fmtG(dy / 2 * 1e3, 4)} mm` : `y = Δy/N = ${fmtG(dy / N * 1e3, 4)} mm`]);
+    rows.push([tx`Fringe spacing \(\Delta y = \lambda L/d\)`, `${fmtG(dy * 1e3, 4)} mm`]);
+    rows.push([tx`First bright fringe, \(\sin\theta_1 = \lambda/d\)`, tx`\(\theta_1 = ${tn(Math.asin(m.lam / m.d) / DEG, 4)}^\circ\)`]);
+    rows.push(["First dark fringe", N === 2 ? tx`\(y = \tfrac12\Delta y\) = ${fmtG(dy / 2 * 1e3, 4)} mm` : tx`\(y = \Delta y/N\) = ${fmtG(dy / N * 1e3, 4)} mm`]);
   }
   if (Y.a > 0) {
-    rows.push(["Envelope's first zeros, y = ±λL/a", `±${fmtG(m.lam * m.L / m.a * 1e3, 4)} mm`]);
+    rows.push([tx`Envelope's first zeros, \(y = \pm\lambda L/a\)`, `±${fmtG(m.lam * m.L / m.a * 1e3, 4)} mm`]);
     if (N > 1) { const q = Y.d / Y.a, nb = 2 * Math.ceil(q - 1e-9) - 1; rows.push(["Bright fringes inside the envelope's central maximum", `${nb}${Math.abs(q - Math.round(q)) < 1e-9 ? ` (orders ±${Math.round(q)} fall on the zeros)` : ""}`]); }
   }
-  rows.push(["At the orange point: angle θ", `${fix(Math.asin(p.s) / DEG, 4)}°`]);
-  if (N > 1) rows.push(["Path difference d sin θ", `${fmtG(p.dr * 1e6, 4)} µm = ${fix(p.dr / m.lam, 3)} λ`], ["Phase difference δ", `${fix(p.delta / DEG, 1)}°`]);
-  rows.push(["Intensity there", `${fix(slitsI(Y.yp / 1e3, m.lam, m.d, m.a, m.L, N), 3)} I₁ (peak ${N * N} I₁)`]);
+  rows.push([tx`At the orange point: angle \(\theta\)`, `${fix(Math.asin(p.s) / DEG, 4)}°`]);
+  if (N > 1) rows.push([tx`Path difference \(d\sin\theta\)`, tx`${fmtG(p.dr * 1e6, 4)} µm = \(${tn(p.dr / m.lam, 3)}\,\lambda\)`], [tx`Phase difference \(\delta\)`, `${fix(p.delta / DEG, 1)}°`]);
+  rows.push(["Intensity there", tx`\(${tn(slitsI(Y.yp / 1e3, m.lam, m.d, m.a, m.L, N), 3)}\,I_1\) (peak \(${N * N}\,I_1\))`]);
   table($("yTable"), ["", "value"], rows);
-  let cap = N === 1 ? `One slit: only its diffraction pattern, sinc²(πay/λL), with zeros every λL/a = ${fmtG(m.lam * m.L / Math.max(m.a, 1e-12) * 1e3, 3)} mm.`
-    : `Bright fringes ${fmtG(dy * 1e3, 3)} mm apart (numbers: the order m).` + (N === 2 ? " Two slits give cos² fringes: 4I₁ at the bright ones, 0 at the dark ones, 2I₁ on average (dotted line)." : ` ${N} slits: the bright fringes stay at y = mλL/d but reach N²I₁ = ${N * N}I₁ and narrow, with ${N - 2} weak maxima between each pair.`);
+  let cap = N === 1 ? tx`One slit: only its diffraction pattern, \(\mathrm{sinc}^2(\pi a\,y/\lambda L)\), with zeros every \(\lambda L/a\) = ${fmtG(m.lam * m.L / Math.max(m.a, 1e-12) * 1e3, 3)} mm.`
+    : tx`Bright fringes ${fmtG(dy * 1e3, 3)} mm apart (numbers: the order \(m\)).` + (N === 2 ? tx` Two slits give \(\cos^2\) fringes: \(4I_1\) at the bright ones, 0 at the dark ones, \(2I_1\) on average (dotted line).`
+      : tx` ${N} slits: the bright fringes stay at \(y = m\lambda L/d\) but reach \(N^2 I_1 = ${N * N}\,I_1\) and narrow, with ${N - 2} weak maxima between each pair.`);
   if (Y.a > 0 && N > 1) cap += " The dashed curve is the single-slit envelope.";
   if (Math.abs(Y.yp) > r) cap += " The orange point is off this plot; move it closer to the center.";
-  cap += ` The strip on top is what the screen looks like.`;
-  $("yCap").textContent = minus(cap);
+  cap += " The strip on top is what the screen looks like.";
+  setTex($("yCap"), cap);
 }
 function yUpdate() { yDrawMoving(); yDrawScreen(); yText(); }
 const Y_PRE = { hene: { lam: 632.8, d: 0.25, a: 0, L: 1.5, N: 2, yp: 0.95 }, green: { lam: 532, d: 0.25, a: 0.05, L: 1, N: 2, yp: 0 }, narrow: { a: 0, N: 2 },
@@ -2004,13 +2082,13 @@ document.querySelectorAll("[data-ypre]").forEach(b => b.addEventListener("click"
 ["yShow", "yDv"].forEach(id => $(id).addEventListener("change", () => yDrawWave()));
 $("yLines").addEventListener("change", () => yDrawWave());
 onResize($("yWaveBox"), () => yDrawWave()); onResize($("yScrBox"), () => yDrawScreen()); onResize($("yPhBox"), () => yDrawPhasor()); onResize($("yTrBox"), () => yDrawTrace());
-legend($("yLeg"), [["intensity", COL.k], ["single-slit envelope × N²", COL.g, "5 4"], ["orange point", COL.o, null, "dot"]]);
+legend($("yLeg"), [["intensity", COL.k], [tx`single-slit envelope \(\times N^2\)`, COL.g, "5 4"], ["orange point", COL.o, null, "dot"]]);
 
 /* ===================================================================== 9. coherence */
 const CT = { ell: 10, dr: 4 };
 const cF = makeFields("cF", "c", [
-  ["ell", "Mean length of a wave train ℓ", "λ", 1, 60, 0.5],
-  ["dr", "Path difference Δr", "λ", 0, 80, 0.05],
+  ["ell", tx`Mean length of a wave train \(\ell\)`, tx`\(\lambda\)`, 1, 60, 0.5],
+  ["dr", tx`Path difference \(\Delta r\)`, tx`\(\lambda\)`, 0, 80, 0.05],
 ], CT, k => { if (k === "ell") cTrain = phaseTrain(11, 400000, CT.ell); cDraw(); }, "cErr");
 let cTrain = phaseTrain(11, 400000, CT.ell);
 const cAnim = anim({ host: $("cTrBox"), button: $("cPlay"), rate: () => 2.5, draw: () => cDraw() });
@@ -2031,7 +2109,10 @@ function cDraw() {
     series: [{ x: xs, y: ii, color: COL.k, w: 1.8 }], hlines: [{ y: avg, color: COL.o, dash: [], label: "average so far" }, { y: expect, color: COL.s, dash: [5, 4] }] });
   label(ctx, "intensity of the sum (cycle-averaged)", L + 6, 236, "#000", "left");
   void P1;
-  $("cTrCap").textContent = minus(`Top two panels: the field reaching one point on the screen from each slit, the same wave trains, one delayed by Δr; dashed lines mark the random phase jumps. Bottom: the intensity of their sum. While both waves come from the same train the two keep a fixed phase difference and give a steady fringe intensity, here 2 + 2 cos(2πΔr/λ) = ${fix(2 + 2 * Math.cos(2 * Math.PI * CT.dr), 2)} I₁; whenever a jump falls between them the phase difference is random. A fraction e^(−Δr/ℓ) = ${fix(V, 3)} of the time they match, so the fringe visibility is ${fix(V, 3)} and the average intensity is 2I₁[1 + V cos(2πΔr/λ)] = ${fix(expect, 3)} I₁ (red dashed); orange: the average over the last 1500 periods, ${fix(avg, 3)} I₁.`);
+  cCaption(V, expect);
+}
+function cCaption(V, expect) {
+  setTex($("cTrCap"), tx`Top two panels: the field reaching one point on the screen from each slit, the same wave trains, one delayed by \(\Delta r\); dashed lines mark the random phase jumps. Bottom: the intensity of their sum. While both waves come from the same train they keep a fixed phase difference and give a steady fringe intensity, here \(2 + 2\cos(2\pi\Delta r/\lambda) = ${tn(2 + 2 * Math.cos(2 * Math.PI * CT.dr), 2)}\,I_1\); whenever a jump falls between them the phase difference is random. A fraction \(e^{-\Delta r/\ell} = ${tn(V, 3)}\) of the time they match, so the fringe visibility is ${fix(V, 3)} and the average intensity is \(2I_1[1 + V\cos(2\pi\Delta r/\lambda)] = ${tn(expect, 3)}\,I_1\) (red dashed); orange: the average over the last 1500 periods.`);
 }
 onResize($("cTrBox"), () => cDraw());
 legend($("cLeg"), [["slit 1", COL.k], ["slit 2", COL.f], ["phase jumps", "#888", "3 3"], ["expected average", COL.s, "5 4"]]);
@@ -2039,10 +2120,10 @@ legend($("cLeg"), [["slit 1", COL.k], ["slit 2", COL.f], ["phase jumps", "#888",
 const FS = { src: "led", lam0: 630, dlam: 20, d: 0.25, L: 1 };
 const F_SRC = { laser: [632.8, 0.002, "line"], green: [532, 0.01, "line"], led: [630, 20, "gauss"], filter: [550, 10, "gauss"], white: [565, 370, "white"] };
 const fF = makeFields("fF", "f", [
-  ["lam0", "Center wavelength λ₀", "nm", 380, 750, 0.1, { opt: "custom" }],
-  ["dlam", "Line width Δλ (FWHM)", "nm", 0.001, 100, 0.001, { opt: "custom" }],
-  ["d", "Slit spacing d", "mm", 0.02, 2, 0.001],
-  ["L", "Distance to the screen L", "m", 0.1, 5, 0.01],
+  ["lam0", tx`Center wavelength \(\lambda_0\)`, "nm", 380, 750, 0.1, { opt: "custom" }],
+  ["dlam", tx`Line width \(\Delta\lambda\) (FWHM)`, "nm", 0.001, 100, 0.001, { opt: "custom" }],
+  ["d", tx`Slit spacing \(d\)`, "mm", 0.02, 2, 0.001],
+  ["L", tx`Distance to the screen \(L\)`, "m", 0.1, 5, 0.01],
 ], FS, () => fUpdate(), "fErr");
 function fSource() {
   if (FS.src === "custom") return { lam0: FS.lam0, dlam: FS.dlam, kind: "gauss" };
@@ -2074,23 +2155,24 @@ function fDraw() {
 }
 function fText() {
   const S = fSource(), d = FS.d * 1e-3, lc = cohLength(S.lam0 * 1e-9, S.dlam * 1e-9), half = 2 * LN2 / Math.PI * lc, dy = fringeSpacing(S.lam0 * 1e-9, d, FS.L);
-  const rows = [["Center wavelength λ₀", `${fmtG(S.lam0, 5)} nm`], ["Line width Δλ", S.kind === "white" ? "≈ 370 nm (380–750 nm)" : `${fmtG(S.dlam, 3)} nm`],
-    ["Coherence length ℓ<sub>c</sub> = λ₀²/Δλ", lc >= 1e-3 ? `${fmtG(lc * 1e3, 3)} mm` : `${fmtG(lc * 1e6, 3)} µm`], ["Path difference where V = ½ (0.44ℓ<sub>c</sub>)", half >= 1e-3 ? `${fmtG(half * 1e3, 3)} mm` : `${fmtG(half * 1e6, 3)} µm`],
-    ["That is fringe number", fmtG(half / (S.lam0 * 1e-9), 3)], ["Where on the screen", `y ≈ ${fmtG(half * FS.L / d * 1e3, 3)} mm`], ["Fringe spacing Δy at λ₀", `${fmtG(dy * 1e3, 4)} mm`]];
+  const rows = [[tx`Center wavelength \(\lambda_0\)`, `${fmtG(S.lam0, 5)} nm`], [tx`Line width \(\Delta\lambda\)`, S.kind === "white" ? "≈ 370 nm (380–750 nm)" : `${fmtG(S.dlam, 3)} nm`],
+    [tx`Coherence length \(\ell_c = \lambda_0^2/\Delta\lambda\)`, lc >= 1e-3 ? `${fmtG(lc * 1e3, 3)} mm` : `${fmtG(lc * 1e6, 3)} µm`],
+    [tx`Path difference where \(V = \tfrac12\) (\(0.44\,\ell_c\))`, half >= 1e-3 ? `${fmtG(half * 1e3, 3)} mm` : `${fmtG(half * 1e6, 3)} µm`],
+    ["That is fringe number", fmtG(half / (S.lam0 * 1e-9), 3)], ["Where on the screen", tx`\(y \approx\) ${fmtG(half * FS.L / d * 1e3, 3)} mm`], [tx`Fringe spacing \(\Delta y\) at \(\lambda_0\)`, `${fmtG(dy * 1e3, 4)} mm`]];
   table($("fTable"), ["", "value"], rows);
-  const cap = S.kind === "line" ? `A laser line: ℓ_c ≈ ${fmtG(lc * 100, 2)} cm, far more than any path difference on this screen, so every fringe has full contrast.`
-    : S.kind === "white" ? "White light: each color makes its own cos² pattern (dashed: 450, 550 and 650 nm). They agree only at y = 0, the white central fringe; one fringe out they are already out of step, so the next fringes are colored (reddish outside, bluish inside) and after two or three the colors average to an even gray-white. The strip on top is the color you would see."
-      : `A line of width ${fmtG(S.dlam, 3)} nm: the fringes fade as the path difference d·y/L grows past the coherence length; the dashed curves are 2I₁(1 ± V). The fringes are still there in each color, but they are out of step and average away.`;
-  $("fCap").textContent = minus(cap).replace(/ℓ_c/g, "ℓc");
+  const cap = S.kind === "line" ? tx`A laser line: \(\ell_c \approx\) ${fmtG(lc * 100, 2)} cm, far more than any path difference on this screen, so every fringe has full contrast.`
+    : S.kind === "white" ? tx`White light: each color makes its own \(\cos^2\) pattern (dashed: 450, 550 and 650 nm). They agree only at \(y = 0\), the white central fringe; one fringe out they are already out of step, so the next fringes are colored (reddish outside, bluish inside) and after two or three the colors average to an even gray-white. The strip on top is the color you would see.`
+      : tx`A line of width ${fmtG(S.dlam, 3)} nm: the fringes fade as the path difference \(d\,y/L\) grows past the coherence length; the dashed curves are \(2I_1(1 \pm V)\). The fringes are still there in each color, but they are out of step and average away.`;
+  setTex($("fCap"), cap);
 }
 function fUpdate() { setOpts($("fF"), FS.src === "custom" ? ["custom"] : []); fDraw(); fText(); }
 $("fSrc").addEventListener("change", () => { FS.src = $("fSrc").value; if (FS.src === "custom") { const s = F_SRC.led; FS.lam0 = s[0]; FS.dlam = s[1]; fF.write(); } fUpdate(); });
 onResize($("fBox"), () => fDraw());
-legend($("fLeg"), [["intensity", COL.k], ["2I₁(1 ± V)", COL.g, "5 4"], ["single colors (white light)", "#2a9a3a", "4 3"]]);
+legend($("fLeg"), [["intensity", COL.k], [tx`\(2I_1(1 \pm V)\)`, COL.g, "5 4"], ["single colors (white light)", "#2a9a3a", "4 3"]]);
 
 /* ===================================================================== 10. polarization and interference */
 const PP = { el: "hwp", th: 22.5 };
-const pF = makeFields("pF", "p", [["th", "Its axis at θ (fast axis, or the polarizer's axis)", "°", 0, 180, 0.5, { opt: "el" }]], PP, () => pUpdate(), "pErr");
+const pF = makeFields("pF", "p", [["th", tx`Its axis at \(\theta\) (fast axis, or the polarizer's axis)`, "°", 0, 180, 0.5, { opt: "el" }]], PP, () => pUpdate(), "pErr");
 function pE2(th) { const e = jonesLinear(0); return PP.el === "hwp" ? jApply(waveplateJ(th, Math.PI), e) : PP.el === "qwp" ? jApply(waveplateJ(th, Math.PI / 2), e) : PP.el === "pol" ? jApply(polarizerJ(th), e) : e; }
 function pDraw() {
   const e1 = jonesLinear(0), e2 = pE2(PP.th);
@@ -2105,13 +2187,13 @@ function pDraw() {
 }
 function pText() {
   const e1 = jonesLinear(0), e2 = pE2(PP.th), r = twoSlitPol(0, e1, e2), sh = r.shift / (2 * Math.PI);
-  const what = PP.el === "hwp" ? `a half-wave plate at ${fix(PP.th, 1)}° turns slit 2's light to ${fix(2 * PP.th, 1)}°` : PP.el === "qwp" ? `a quarter-wave plate at ${fix(PP.th, 1)}° makes slit 2's light ${stateWords(e2)}`
-    : PP.el === "pol" ? `a polarizer at ${fix(PP.th, 1)}° passes cos²θ = ${fix(r.i2, 3)} of slit 2's light, polarized at ${fix(PP.th, 1)}°` : "nothing changes slit 2's light";
-  let t = `Slit 1's light is horizontal; ${what}. ê₁*·ê₂ = ${cfmt(r.overlap)}, so the visibility is V = 2|ê₁*·ê₂|√(I₁I₂)/(I₁ + I₂) = ${fix(r.V, 3)}`;
-  if (r.V > 1e-6 && Math.abs(sh) > 1e-6) t += ` and the fringes shift by ${fix(Math.abs(sh), 3)} of a fringe (the phase of ê₁*·ê₂, ${fix(r.shift / DEG, 1)}°)`;
+  const what = PP.el === "hwp" ? `a half-wave plate at ${fix(PP.th, 1)}° turns slit 2's light to ${fix(2 * PP.th, 1)}°` : PP.el === "qwp" ? `a quarter-wave plate at ${fix(PP.th, 1)}° makes slit 2's light ${stateTex(e2)}`
+    : PP.el === "pol" ? tx`a polarizer at ${fix(PP.th, 1)}° passes \(\cos^2\theta = ${tn(r.i2, 3)}\) of slit 2's light, polarized at ${fix(PP.th, 1)}°` : "nothing changes slit 2's light";
+  let t = tx`Slit 1's light is horizontal; ${what}. \(\hat{\mathbf e}_1^*\cdot\hat{\mathbf e}_2 = ${cTex(r.overlap)}\), so the visibility is \(V = 2|\hat{\mathbf e}_1^*\cdot\hat{\mathbf e}_2|\sqrt{I_1I_2}/(I_1 + I_2) = ${tn(r.V, 3)}\)`;
+  if (r.V > 1e-6 && Math.abs(sh) > 1e-6) t += tx` and the fringes shift by ${fix(Math.abs(sh), 3)} of a fringe (the phase of \(\hat{\mathbf e}_1^*\cdot\hat{\mathbf e}_2\), ${fix(r.shift / DEG, 1)}°)`;
   t += ". Dashed: no optics over slit 2.";
   if (PP.el === "hwp" || PP.el === "qwp") t += " The plate's common phase, the same for both components, would shift the whole pattern too; here it is taken as compensated.";
-  $("pCap").textContent = minus(t);
+  setTex($("pCap"), t);
 }
 function pUpdate() { setOpts($("pF"), PP.el === "none" ? [] : ["el"]); pDraw(); pText(); }
 $("pEl").addEventListener("change", () => { PP.el = $("pEl").value; pUpdate(); });
@@ -2122,6 +2204,7 @@ legend($("pLeg2"), [["visibility against θ", COL.k], ["now", COL.o, null, "dot"
 /* ===================================================================== start */
 [kF, dF, iF, xF, bF, bcF, rF, yF, cF, fF, pF].forEach(f => f.write());
 renderStaticTex();
+renderInlineTex(document.querySelector("main"));
 initAnswers();
 kUpdate(); dUpdate(); iUpdate(); xUpdate(); bUpdate(); bcDraw(); bcCaption(); rUpdate(); yUpdate(); cDraw(); fUpdate(); pUpdate();
 requestAnimationFrame(frame);

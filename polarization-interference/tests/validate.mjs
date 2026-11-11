@@ -274,13 +274,24 @@ const angDiff = (a, b, per) => { const d = ((a - b) % per + per + per / 2) % per
     `${els.length} examples${bad.length ? "; bad: " + bad.join(", ") : ""}${missing.length ? "; missing: " + missing.join(", ") : ""}${unused.length ? "; unused: " + unused.join(", ") : ""}`);
 }
 
-// 17. every equation on the page parses in the bundled KaTeX, so a LaTeX typo fails here instead of showing red on the page
+// 17. every equation parses in the bundled KaTeX in strict mode: the display equations, the inline \( … \) math in the
+// page text and in the worked answers, so a typo or a stray Unicode symbol fails here instead of showing red on the page
 {
   const katex = createRequire(import.meta.url)(path.join(root, "vendor/katex/katex.min.js"));
   const decode = x => x.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
-  const srcs = [...html.matchAll(/<div class="eq">([\s\S]*?)<\/div>/g)].map(x => decode(x[1].trim())), bad = [];
-  for (const src of srcs) { try { katex.renderToString(src, { displayMode: true, throwOnError: true }); } catch (err) { bad.push(`"${src.slice(0, 40)}…": ${String(err.message).split("\n")[0]}`); } }
-  check("17 every equation parses in KaTeX", srcs.length > 40 && bad.length === 0, `${srcs.length} equations${bad.length ? "; " + bad.join("; ") : ""}`);
+  const body = html.replace(/<script[\s\S]*?<\/script>/g, "");
+  const display = [...body.matchAll(/<div class="eq">([\s\S]*?)<\/div>/g)].map(x => decode(x[1].trim()));
+  const inline = [...body.replace(/<div class="eq">[\s\S]*?<\/div>/g, "").matchAll(/\\\(([\s\S]+?)\\\)/g)].map(x => decode(x[1]));
+  const quiz = Object.values(c.QUIZ).flatMap(q => [q.how, q.unit || "", ...(q.choices || []).map(ch => ch[1])]).flatMap(t => [...String(t).matchAll(/\\\(([\s\S]+?)\\\)/g)].map(x => x[1]));
+  const bad = [];
+  for (const [src, mode] of [...display.map(x => [x, true]), ...inline.map(x => [x, false]), ...quiz.map(x => [x, false])]) {
+    try { katex.renderToString(src, { displayMode: mode, throwOnError: true, strict: "error" }); } catch (err) { bad.push(`"${src.slice(0, 40)}…": ${String(err.message).split("\n")[0]}`); }
+  }
+  // no formula left as plain text with HTML sub- and superscripts in the prose (labels of number boxes excepted)
+  const leftovers = [...body.matchAll(/<(p|li|td|th)[^>]*>(?:(?!<\/\1>)[\s\S])*?<su[bp]>/g)].map(x => x[0].slice(-60));
+  check("17 every equation parses in KaTeX (strict): display, inline in the text and inline in the worked answers; no formulas left in plain text",
+    display.length > 40 && inline.length > 100 && quiz.length > 60 && bad.length === 0 && leftovers.length === 0,
+    `${display.length} display, ${inline.length} inline in the text, ${quiz.length} in the answers${bad.length ? "; " + bad.join("; ") : ""}${leftovers.length ? "; plain: " + leftovers.join(" | ") : ""}`);
 }
 
 console.log(`${fails ? `${fails} FAILED` : "all passed"} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
