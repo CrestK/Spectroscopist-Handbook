@@ -55,6 +55,7 @@
   .thumb .why { color: #b00000; }
   .thumb.gone canvas { opacity: 0.25; }
   .thumb .gone { color: #555; font-weight: 600; }
+  .thumb .corner { color: #555; }
   table.est { width: auto; }
   table.est td { padding: 2px 4px; }
   table.est td.cur { background: #dfe9f9; }
@@ -159,6 +160,15 @@ so it cannot send them anywhere. Methods are at the bottom.</p>
       <label class="inline" for="nthN">of every <input type="number" id="nthN" class="short" min="1" step="1" value="2" autocomplete="off"> pages</label>
       <button type="button" id="selNth">Select</button>
       <span class="note">2 of every 2 is every back of a two-sided scan; 2,4 of every 8 is pages 2 and 4 of each 8-page exam.</span>
+    </div>
+    <div class="row">
+      <button type="button" id="findBacks">Find blank backs by the cut corner</button>
+      <button type="button" id="bStop" hidden>Stop</button>
+      <span id="bProgress" class="note num" role="status"></span>
+    </div>
+    <div id="backsOut" hidden>
+      <p id="backsHead" class="note"></p>
+      <div class="row" id="backsBtns"></div>
     </div>
     <p id="specErr" class="error" role="alert" hidden></p>
     <div class="row">
@@ -282,7 +292,14 @@ so it cannot send them anywhere. Methods are at the bottom.</p>
     <li>
       <p>Removing pages</p>
       <div class="eq">page <i>k</i> of every <i>n</i> = pages <i>k</i>, <i>k</i> + <i>n</i>, <i>k</i> + 2<i>n</i>, …</div>
-      <p class="note"><i>k</i> can be a list or range as in the page selection (2,4 or 3-5). A removed page that the check did not find blank is listed in red, so a back on which a student went on writing is not lost unseen.</p>
+      <p class="note"><i>k</i> can be a list or range as in the page selection (2,4 or 3-5). A removed page that the check or the back-page test below did not find blank is listed in red, so a back on which a student went on writing is not lost unseen.</p>
+    </li>
+    <li>
+      <p>Blank backs by the cut corner</p>
+      <div class="eq">page drawn at 150 dpi in gray,&emsp; <i>p</i> = 90th percentile inside 6 % margins (the paper)</div>
+      <div class="eq">corner <i>c</i> is cut if ≥ 50 % of a triangle with legs of 2.5 % of the short side differs from <i>p</i> by more than 7 %, and that share leads the next corner by ≥ 0.3</div>
+      <div class="eq">blank if the marks (connected pixels darker than 0.78 <i>p</i>, each ≥ 0.6 mm², inside the margins and away from the cut) add up to less than 1 mm²</div>
+      <p class="note">Turning a sheet over moves its cut corner to the other side, so fronts and backs show it in different corners (the scanner's background shows through the cut). A button is offered for each corner where most pages are blank, and it selects only the blank ones; a sheet that went through upside down shows its cut at the other end and gets its own button. Specks of dust are smaller than 0.6 mm², and show-through from the front is fainter than 22 %; a light pencil line 0.3 mm wide and 3 mm long already counts as writing. With a white scanner background the cut may not show, and the page says so.</p>
     </li>
     <li>
       <p>Smaller copy</p>
@@ -1085,6 +1102,56 @@ function rotatePdf(buf, turns) {
   return { bytes: out, changed: objs.length, kind: pdf.kind };
 }
 
+/* ---------- backs of a two-sided scan: which corner is cut off, and is the page blank ---------- */
+// Turning a sheet over moves its cut corner to the other side, so fronts and backs show it in different corners.
+const CORNERS = ["top left", "top right", "bottom left", "bottom right"];
+function innerPaper(img, mx, my) { // 90th percentile of the gray levels inside the margins: the paper
+  const { w, h, data } = img, hist = new Uint32Array(256);
+  let n = 0;
+  for (let y = my; y < h - my; y++) for (let x = mx, p = y * w + mx; x < w - mx; x++, p++) { hist[data[p]]++; n++; }
+  for (let v = 0, c = 0; v < 256; v++) { c += hist[v]; if (c > 0.9 * (n - 1)) return v; }
+  return 255;
+}
+// img: 8-bit gray page drawn at dpi. corner: 0-3 (CORNERS) or -1; score: share of each corner's triangle that is not paper.
+// Marks: connected areas (8-neighbours) of pixels at least 22 % darker than the paper, away from the edges and the cut corner,
+// of 0.6 mm² or more (dust is smaller); ink: their area in mm². Blank: less than 1 mm² of marks (a pencil line 0.3 mm wide
+// and 3 mm long is more): keeping a page with a smudge costs little, losing a back with writing on it costs a lot.
+function backPage(img, dpi) {
+  const { w, h, data } = img, mx = Math.max(1, Math.round(0.06 * w)), my = Math.max(1, Math.round(0.06 * h)), paper = innerPaper(img, mx, my);
+  // a right triangle with legs of 2.5 % of the short side at each corner; cut if it is mostly not paper and clearly more so than the others
+  const L = Math.max(3, Math.round(0.025 * Math.min(w, h))), tol = 0.07 * paper;
+  const score = [0, 1, 2, 3].map(c => {
+    let n = 0, off = 0;
+    for (let y = 0; y < L; y++) for (let x = 0; x < L - y; x++) {
+      const v = data[(c & 2 ? h - 1 - y : y) * w + (c & 1 ? w - 1 - x : x)];
+      n++; if (Math.abs(v - paper) > tol) off++;
+    }
+    return off / n;
+  });
+  const order = [0, 1, 2, 3].sort((a, b) => score[b] - score[a] || a - b);
+  const corner = score[order[0]] >= 0.5 && score[order[0]] - score[order[1]] >= 0.3 ? order[0] : -1;
+  const cut = Math.round(0.15 * Math.min(w, h)), lim = 0.78 * paper, ink = new Uint8Array(w * h);
+  for (let y = my; y < h - my; y++) for (let x = mx; x < w - mx; x++) {
+    if (corner >= 0 && (corner & 1 ? w - 1 - x : x) + (corner & 2 ? h - 1 - y : y) < cut) continue;
+    if (data[y * w + x] < lim) ink[y * w + x] = 1;
+  }
+  const mm2 = (25.4 / dpi) ** 2, stack = new Int32Array(w * h);
+  let area = 0, marks = 0;
+  for (let p0 = 0; p0 < ink.length; p0++) {
+    if (ink[p0] !== 1) continue;
+    let n = 0, top = 0;
+    stack[top++] = p0; ink[p0] = 2;
+    while (top) { // flood fill one mark; the margins keep every neighbour inside the image
+      const p = stack[--top];
+      n++;
+      for (const q of [p - w - 1, p - w, p - w + 1, p - 1, p + 1, p + w - 1, p + w, p + w + 1]) if (ink[q] === 1) { ink[q] = 2; stack[top++] = q; }
+    }
+    if (n * mm2 >= 0.6) { area += n; marks++; }
+  }
+  const inkMm2 = area * mm2;
+  return { corner, score, paper, marks, ink: Math.round(inkMm2 * 10) / 10, blank: inkMm2 < 1 };
+}
+
 /* ---------- a smaller copy: every page as one JPEG image, in a new PDF ---------- */
 // canvas RGBA to gray in place, with the weights of rgbaToGray (R = G = B), for a grayscale copy
 function grayRGBA(rgba) {
@@ -1176,6 +1243,7 @@ const S = {
   pending: null,   // clockwise turn of every page, from the file as loaded
   removed: null,   // 1 for every page left out of the smaller copy
   sel: new Set(), anchor: null, busy: false, cancel: false, stopWorkers: null,
+  backs: null,     // backPage() of every page: { corner, score, paper, ink, blank }
   est: null,       // size estimate for the smaller copy: { dpis, qs, gray, show, jpegs, dims, total(dpi, q) }
 };
 
@@ -1196,7 +1264,7 @@ function download(name, data, type) {
 function setBusy(on) {
   S.busy = on;
   $("stop").hidden = !on;
-  for (const id of ["scanFile", "tmplFile", "dpi", "nFirst", "modeTmpl", "modeFirst", "save", "cTry", "cGo", "cDpi", "cQ", "cGray"]) $(id).disabled = on || (id === "save" && !canSave()) || ((id === "cTry" || id === "cGo") && !S.scan);
+  for (const id of ["scanFile", "tmplFile", "dpi", "nFirst", "modeTmpl", "modeFirst", "save", "cTry", "cGo", "cDpi", "cQ", "cGray", "findBacks"]) $(id).disabled = on || (id === "save" && !canSave()) || ((id === "cTry" || id === "cGo") && !S.scan);
   updateCheckButton();
 }
 function updateCheckButton() {
@@ -1283,6 +1351,7 @@ function closeScan() {
   $("thumbs").textContent = ""; $("listTable").textContent = "";
   $("resultBody").hidden = true; $("noResult").hidden = false; $("selFlag").disabled = true; $("selBlank").disabled = true; $("straighten").disabled = true;
   $("removeWarn").hidden = true;
+  S.backs = null; $("backsOut").hidden = true; $("bProgress").textContent = "";
   S.est = null; $("cEst").hidden = true; $("cNote").textContent = ""; cprog(""); showErr("cErr", "");
   if ($("cPrev").src) { URL.revokeObjectURL($("cPrev").src); $("cPrev").removeAttribute("src"); }
   $("shrinkBody").hidden = true; $("noShrink").hidden = false;
@@ -1435,8 +1504,11 @@ function drawThumb(i) {
   if (S.removed[i]) html += ` <span class="gone">removed</span>`;
   if (t) html += `<br><span class="turn">turn ${turnName(t)}</span>`;
   if (why) html += `<br><span class="why">${esc(why.join("; ").replace(/ - CHECK| \(assigned exam #\d+ page \d+\)/g, ""))}</span>`;
+  const b = S.backs && S.backs[i];
+  if (b) html += `<br><span class="corner">${b.corner >= 0 ? GLYPH[b.corner] + " " : "no cut · "}${b.blank ? "blank" : "not blank"}</span>`;
   p.cap.innerHTML = html;
-  p.fig.title = `Scan page ${i + 1}` + (row && row.exam !== "" ? `, exam ${row.exam} page ${row.exam_page}` : "") + (why ? `: ${why.join("; ")}` : "");
+  p.fig.title = `Scan page ${i + 1}` + (row && row.exam !== "" ? `, exam ${row.exam} page ${row.exam_page}` : "") + (why ? `: ${why.join("; ")}` : "") +
+    (b ? `; cut corner: ${b.corner >= 0 ? CORNERS[b.corner] : "none found"}; ${b.ink} mm² of marks (blank below 1)` : "");
 }
 function updatePages() {
   if (!S.scan || !S.pending) return;
@@ -1448,9 +1520,10 @@ function updatePages() {
     (turned.length ? `${turned.length} set to turn: ` + byTurn.map(([t, l]) => `${compact(l)} (${turnName(t)})`).join("; ") : "none set to turn") +
     ` · ` + (gone.length ? `${gone.length} removed: ${compact(gone)}` : "none removed");
   // a back where a student went on writing must not vanish unseen: removed pages the check did not find blank
-  const written = S.res ? gone.filter(k => !S.res.isBlank[k - 1]) : [];
+  const written = gone.filter(k => (S.res && !S.res.isBlank[k - 1]) || (S.backs && !S.backs[k - 1].blank));
   $("removeWarn").hidden = !written.length;
-  $("removeWarn").innerHTML = written.length ? `${written.length} of the removed pages ${written.length === 1 ? "is" : "are"} not blank by the check: ` +
+  $("removeWarn").innerHTML = written.length ? `${written.length} of the removed pages ${written.length === 1 ? "is" : "are"} not blank` +
+    (S.res && S.backs ? " (by the check or the back-page test)" : S.res ? " by the check" : "") + ": " +
     written.map(k => `<a href="#p${k}">${k}</a>`).join(", ") + `. Look at ${written.length === 1 ? "it" : "them"} before making the copy.` : "";
   $("save").disabled = S.busy || !canSave();
 }
@@ -1548,6 +1621,50 @@ $("save").addEventListener("click", async () => {
   } finally {
     setBusy(false); updatePages();
   }
+});
+
+/* ---------- blank backs by the cut corner ---------- */
+const BACK_DPI = 150, GLYPH = ["◤", "◥", "◣", "◢"];
+const bprog = s => { $("bProgress").textContent = s; };
+async function findBacks() {
+  const sc = S.scan, N = sc.pages.length, canvas = document.createElement("canvas"), ctx = canvas.getContext("2d", { willReadFrequently: true }), out = [];
+  for (let i = 0; i < N; i++) {
+    if (S.cancel) throw new Cancelled();
+    if (i % 4 === 0) bprog(`Looking at page ${i + 1} of ${N}`);
+    const page = await sc.doc.getPage(i + 1), vp = page.getViewport({ scale: BACK_DPI / 72 });
+    canvas.width = Math.max(1, Math.round(vp.width)); canvas.height = Math.max(1, Math.round(vp.height));
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvas, canvasContext: ctx, viewport: vp, background: "#ffffff" }).promise;
+    out.push(backPage(rgbaToGray(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height), BACK_DPI));
+    page.cleanup();
+  }
+  S.backs = out;
+  bprog("");
+  renderBacks();
+  sc.pages.forEach((p, i) => drawThumb(i));
+}
+function renderBacks() {
+  const B = S.backs, none = B.filter(b => b.corner < 0).length;
+  const groups = [0, 1, 2, 3].map(c => {
+    const pages = B.map((b, i) => (b.corner === c ? i : -1)).filter(i => i >= 0);
+    return { c, pages, blank: pages.filter(i => B[i].blank), written: pages.filter(i => !B[i].blank) };
+  }).filter(g => g.pages.length).sort((a, b) => b.blank.length - a.blank.length || b.pages.length - a.pages.length);
+  $("backsHead").textContent = groups.length
+    ? "Cut corner: " + groups.map(g => `${GLYPH[g.c]} ${CORNERS[g.c]} on ${g.pages.length} page${g.pages.length === 1 ? "" : "s"} (${g.blank.length} blank${g.written.length ? `; not blank: ${compact(g.written.map(i => i + 1))}` : ""})`).join("; ") +
+      (none ? `; no cut corner found on ${none} page${none === 1 ? "" : "s"}` + (none <= 20 ? ` (${compact(B.map((b, i) => (b.corner < 0 ? i + 1 : 0)).filter(Boolean))})` : "") : "") +
+      ". The backs are the corners where most pages are blank; pages that are not blank are never selected here."
+    : `No cut corner stands out on any of the ${B.length} pages: the scanner's background may look too much like the paper. Select the backs with "page 2 of every 2" or the blank pages the check found instead.`;
+  // a button only for corners where most pages are blank (the backs), not for the odd blank page among the fronts
+  $("backsBtns").innerHTML = groups.filter(g => g.blank.length && 2 * g.blank.length >= g.pages.length).map(g => `<button type="button" data-corner="${g.c}">Select the ${g.blank.length} blank page${g.blank.length === 1 ? "" : "s"} cut at ${CORNERS[g.c]}</button>`).join("");
+  $("backsOut").hidden = false;
+}
+$("findBacks").addEventListener("click", () => { if (S.scan) job(findBacks, "Could not look at the pages", "specErr", "bStop", bprog); });
+$("bStop").addEventListener("click", () => { S.cancel = true; });
+$("backsBtns").addEventListener("click", e => {
+  const b = e.target.closest("button[data-corner]");
+  if (!b || !S.backs) return;
+  const c = Number(b.dataset.corner);
+  setSel(S.backs.map((x, i) => (x.corner === c && x.blank ? i : -1)).filter(i => i >= 0));
 });
 
 /* ---------- smaller copy ---------- */
@@ -1682,14 +1799,16 @@ async function checkCopy(bytes, out, turns) {
   if (worst.page && worst.s < 0.9) throw new Error(`the copy of scan page ${worst.page} does not look like it (similarity ${worst.s.toFixed(3)})`);
   return worst;
 }
-async function shrinkJob(fn, what) {
-  showErr("cErr", "");
+// a long job with its own Stop button, progress line and error line
+async function job(fn, what, errId, stopId, prog) {
+  showErr(errId, "");
   setBusy(true); S.cancel = false;
-  $("stop").hidden = true; $("cStop").hidden = false;
+  $("stop").hidden = true; $(stopId).hidden = false;
   try { await fn(); }
-  catch (e) { cprog(e instanceof Cancelled ? "Stopped." : ""); if (!(e instanceof Cancelled)) showErr("cErr", `${what}: ${msg(e)}.`); }
-  finally { $("cStop").hidden = true; setBusy(false); updatePages(); }
+  catch (e) { prog(e instanceof Cancelled ? "Stopped." : ""); if (!(e instanceof Cancelled)) showErr(errId, `${what}: ${msg(e)}.`); }
+  finally { $(stopId).hidden = true; setBusy(false); updatePages(); }
 }
+const shrinkJob = (fn, what) => job(fn, what, "cErr", "cStop", cprog);
 $("cTry").addEventListener("click", () => { if (S.scan) shrinkJob(estimateCopy, "No estimate"); });
 $("cGo").addEventListener("click", () => { if (S.scan) shrinkJob(makeCopy, "Not saved"); });
 $("cStop").addEventListener("click", () => { S.cancel = true; });

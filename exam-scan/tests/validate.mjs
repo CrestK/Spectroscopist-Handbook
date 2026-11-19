@@ -15,7 +15,7 @@ const m = html.match(/<script id="core">([\s\S]*?)<\/script>/);
 if (!m) throw new Error("index.html has no <script id=\"core\">");
 const names = ["rgbaToGray", "rot90ccw", "portrait", "resizeLanczos", "gaussianBlur", "toFeature", "flip180", "prepTemplate", "prepPage", "correlation",
   "matchPages", "bestSequence", "buildReport", "reportText", "reportCsv", "checkStack", "parsePages", "everyNth", "compact", "inflate", "PdfFile", "listPages", "rotatePdf", "THUMB_W", "THUMB_H",
-  "rgbaToGray", "grayRGBA", "jpegInfo", "imagePdf"];
+  "rgbaToGray", "grayRGBA", "jpegInfo", "imagePdf", "backPage"];
 // new Function keeps the core in this realm (Node's vm sandbox makes typed arrays much slower)
 const core = new Function(m[1] + `\nreturn {${names.join(",")}};`)();
 
@@ -314,6 +314,60 @@ function buildPdf({ rotates = [0, 90, 0], pagesRotate = null, objstm = false, hy
   let errs = 0;
   for (const bad of [[], [{ jpeg: rgb, width: 0, height: 792 }], [{ jpeg: enc("not a jpeg"), width: 612, height: 792 }]]) { try { core.imagePdf(bad); } catch (e) { errs++; } }
   check("10d grayscale = the check's gray levels; no pages, a zero page size or a non-JPEG are refused", sameGray && errs === 3, `${errs}/3 refused`);
+}
+
+// 11. blank backs by the cut corner: synthetic letter pages drawn at 150 dpi (1275 × 1650)
+{
+  const dpi = 150, f = dpi / 75, W = Math.round(8.5 * dpi), H = 11 * dpi, mm = dpi / 25.4;
+  const make = (seed, { paper = 232, cut = null, cutMm = 15, cutValue = 40, edges = false, slivers = false, band = false, show = false, specks = 0, pencilMm = 0, pencilWidth = 0.4, text = false } = {}) => {
+    let t = seed >>> 0;
+    const r = () => (t = (Math.imul(t, 1103515245) + 12345) >>> 0) / 4294967296, d = new Uint8Array(W * H);
+    for (let i = 0; i < d.length; i++) d[i] = paper + Math.floor(r() * 7) - 3;
+    const set = (x, y, v) => { if (x >= 0 && x < W && y >= 0 && y < H) d[y * W + x] = v; };
+    const tri = (c, L, v) => { for (let y = 0; y < L; y++) for (let x = 0; x < L - y; x++) set(c & 1 ? W - 1 - x : x, c & 2 ? H - 1 - y : y, v); };
+    if (show) for (let y = 160; y < 1400; y += 48) for (let x = 180; x < 1080; x++) if ((x * 7 + y) % 100 < 76) for (let k = 0; k < 12; k++) set(x, y + k, paper - 16); // 7 % show-through of the front
+    if (text) for (let y = 140; y < 1520; y += 44) for (let x = 120; x < 1160; x++) if ((x * 13 + y * 5) % 180 < 140) for (let k = 0; k < 14; k++) set(x, y + k, 35);
+    for (let k = 0; k < specks; k++) { const x = 120 + Math.floor(r() * 1000), y = 120 + Math.floor(r() * 1400); set(x, y, 110); set(x + 1, y, 110); set(x, y + 1, 110); set(x + 1, y + 1, 110); } // dust: 2 × 2 pixels, 0.11 mm²
+    if (pencilMm) { // a light pencil line (value 165 on the paper), drawn with area coverage so a thin line comes out lighter
+      const wpx = pencilWidth * mm;
+      for (let x = 600; x < 600 + pencilMm * mm; x++) {
+        const yc = 800 + 4 * Math.sin(x / 6);
+        for (let y = Math.floor(yc - wpx / 2) - 1; y <= yc + wpx / 2 + 1; y++) {
+          const cover = Math.max(0, Math.min(y + 1, yc + wpx / 2) - Math.max(y, yc - wpx / 2));
+          if (cover > 0) set(x, y, Math.round(d[y * W + x] - cover * (d[y * W + x] - 165)));
+        }
+      }
+    }
+    if (edges) { for (let x = 0; x < W; x++) { set(x, 0, 150); set(x, 1, 150); set(x, H - 1, 150); } for (let y = 0; y < H; y++) { set(0, y, 150); set(W - 1, y, 150); set(W - 2, y, 150); } }
+    if (slivers) for (let c = 0; c < 4; c++) tri(c, 10, 40); // a slightly skewed sheet shows a sliver of background at every corner
+    if (band) for (let y = 0; y < H; y++) for (let x = W - 60; x < W; x++) set(x, y, 40); // the sheet narrower than the scan
+    if (cut !== null) tri(cut, Math.round(cutMm * mm), cutValue);
+    return { w: W, h: H, data: d };
+  };
+  void f;
+  const cases = [
+    ["cut top left (dark scanner background), blank", make(1, { cut: 0 }), 0, true],
+    ["cut top right", make(2, { cut: 1 }), 1, true],
+    ["cut bottom left", make(3, { cut: 2 }), 2, true],
+    ["cut bottom right", make(4, { cut: 3 }), 3, true],
+    ["cut top left on a light scanner background (252 on 225 paper)", make(5, { cut: 0, paper: 225, cutValue: 252 }), 0, true],
+    ["a cut of 7 mm", make(6, { cut: 1, cutMm: 7 }), 1, true],
+    ["a cut of 3 cm is not counted as ink", make(7, { cut: 1, cutMm: 30 }), 1, true],
+    ["no cut, edge shadows", make(8, { edges: true }), -1, true],
+    ["skew slivers at every corner and a cut top right", make(9, { slivers: true, edges: true, cut: 1 }), 1, true],
+    ["a dark band along one side: ambiguous, no corner", make(10, { band: true }), -1, true],
+    ["blank back with show-through and 60 dust specks", make(11, { cut: 1, show: true, specks: 60 }), 1, true],
+    ["back with a light pencil line 0.4 mm wide, 1 cm long: not blank", make(12, { cut: 1, show: true, pencilMm: 10 }), 1, false],
+    ["back with a light pencil line 0.3 mm wide, 6 mm long: not blank", make(13, { cut: 1, pencilMm: 6, pencilWidth: 0.3 }), 1, false],
+    ["a written front: not blank", make(14, { cut: 0, text: true }), 0, false],
+  ];
+  const bad = [], info = [];
+  for (const [label, img, corner, blank] of cases) {
+    const r = core.backPage(img, dpi);
+    info.push(`${r.corner}/${r.blank ? "b" : r.ink}`);
+    if (r.corner !== corner || r.blank !== blank) bad.push(`${label}: corner ${r.corner}, ${r.ink} mm² in ${r.marks} marks, scores ${r.score.map(v => v.toFixed(2))}`);
+  }
+  check(`11 cut corner and blank test on ${cases.length} synthetic pages`, !bad.length, bad.length ? bad.join("; ") : `corner/ink mm²: ${info.join(" ")}`);
 }
 
 // 8. the bundled pdf.js files are the published pdfjs-dist 6.4.299 (legacy build) byte for byte

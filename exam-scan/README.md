@@ -11,7 +11,8 @@ the blank backs of a two-sided scan). The check and the rotation are a browser p
 (one complete exam); the resolution of the comparison (default 30 dpi, as the script). Password-protected PDFs ask for
 the password. In the page grid: a page selection typed as in `rotate_pdf.py -p` (`1,3-5,9-`, `-4`, `even`, `odd`,
 `last`, `all`), as "page *k* of every *n*" (2 of every 2 is every back of a two-sided scan; *k* can be a list such as
-2,4), as the pages the check flagged or found blank, or made by clicking and Shift-clicking pages; buttons that turn
+2,4), as the pages the check flagged or found blank, as the blank backs found by their cut corner, or made by clicking and
+Shift-clicking pages; buttons that turn
 the selection 90° either way or 180°, and that remove it from the smaller copy or put it back. For the smaller copy: the
 resolution (default 150 dpi), the JPEG quality (default 50 %) and grayscale.
 
@@ -25,8 +26,11 @@ resolution (default 150 dpi), the JPEG quality (default 50 %) and grayscale.
 - "Turn every upside-down and sideways page upright" sets the turns the check found; "Save" writes
   *name*_rotated.pdf. pdf.js reads the new file back and every page's rotation is checked before it is offered. This
   file keeps every page.
-- Removed pages are dimmed in the grid. A removed page that the check did not find blank is listed in red, so a back on
-  which a student went on writing is not dropped unseen.
+- "Find blank backs by the cut corner": for every page, which corner is cut off and whether it is blank, shown under
+  its thumbnail (◤ ◥ ◣ ◢), a summary per corner, and a button for each corner where most pages are blank that selects
+  the blank pages cut there. Pages with writing are never selected this way. Works without running the check.
+- Removed pages are dimmed in the grid. A removed page that the check or the back-page test did not find blank is listed
+  in red, so a back on which a student went on writing is not dropped unseen.
 - "Estimate the size": the size of the whole smaller copy at 100, 150 and 200 dpi and quality 30–75 %, from 6 sample
   pages, and one page as it would be stored, shown at about paper size. Clicking a size picks those settings.
 - "Make the smaller copy" writes *name*_compressed.pdf: the kept pages, turned, each drawn again at the chosen resolution
@@ -42,6 +46,14 @@ radius 1.5). Each scanned page is compared with each template page by normalised
 4 pixels, upright and turned 180°. Pages with almost no ink are set aside as blank. A dynamic programme finds the
 most likely global position (exam × *n* + page) of every page, with a cost of 4 for every skipped position or repeat.
 A second pass rebuilds each template page as the median of its scanned copies and matches again.
+
+The back-page test draws every page at 150 dpi in gray. The paper level is the 90th percentile inside 6 % margins. A
+corner is cut when at least half of a small triangle there (legs of 2.5 % of the short side) differs from the paper by
+more than 7 %, and that share leads the next corner by 0.3: the scanner's background shows through the cut, dark or
+light. Turning a sheet over moves the cut to the other side, so fronts and backs show it in different corners. A page is
+blank when its marks (connected pixels darker than 0.78 of the paper, each at least 0.6 mm², inside the margins and away
+from the cut) add up to less than 1 mm²: dust is smaller, show-through is fainter, and a light pencil line 0.3 mm wide
+and 3 mm long already counts as writing.
 
 The smaller copy draws each kept page with pdf.js at the chosen resolution (with its turn, on white, gray if asked),
 encodes it with the browser's JPEG encoder and writes a new PDF with one image per page, the JPEG stored as it is
@@ -92,6 +104,10 @@ node tests/validate.mjs     # about 5 s
 - Rotation on hand-built PDFs with a classic table, an inherited `/Rotate`, an object stream with a PNG-predicted
   cross-reference stream, a hybrid file (table plus `/XRefStm`) and a damaged `startxref`, and two saves in a row:
   the core and the bundled pdf.js read the intended rotation on every page, and the original bytes are kept.
+- Back-page test, on 14 synthetic pages at 150 dpi: the cut found in each of the four corners, on a dark and on a light
+  scanner background, for cuts of 7 mm to 3 cm (a 3 cm cut does not count as ink), with edge shadows and skew slivers
+  at every corner; no corner with edge shadows only or with a dark band along one side. Blank with show-through and 60
+  dust specks; not blank with a light pencil line 0.4 mm × 1 cm or 0.3 mm × 6 mm, or with printed text.
 - Smaller copy: the size, components and coding of three JPEGs made with Pillow (baseline colour, progressive gray, EXIF
   and a comment before the frame header) are read from their headers, and a PNG, a truncated JPEG and an empty file are
   refused. A PDF of those three as pages of 612 × 792, 841.89 × 595.276 and 200.5 × 100.25 pt has a cross-reference
@@ -119,3 +135,9 @@ blank with faint show-through, one back written on) checked against the blank ex
 removing "2 of every 2" listed the written back in red; the copy had exactly the kept pages in order. A password-protected
 scan with an OCR text layer gave the warning about the text and an unencrypted copy; a copy that would be larger than
 the scan (a 72 dpi scan at 300 dpi) was refused; Stop left no file.
+
+The back-page test on a two-sided scan of 6 exams × 4 pages (48 pages at 200 dpi; fronts cut top left, backs top right,
+the backs blank with show-through except one written in pen and one with a short light pencil line; one sheet through
+upside down; page 4 of each exam an almost empty front): top right on 23 pages, 21 blank, the pen and pencil backs not
+blank; the upside-down sheet's back alone at bottom left; buttons for those two corners only, none for the 6 almost
+empty fronts; 3.1 s. On 40 pages scanned at 300 dpi without a cut corner it said no cut corner stands out, in 5.6 s.
