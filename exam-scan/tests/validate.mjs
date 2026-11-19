@@ -1,6 +1,7 @@
 // Checks the core embedded in index.html (<script id="core">): the port of check_scan.py against Pillow and numpy,
-// the page sequence against brute force, a synthetic stack of exams, page selection, inflate, and page rotation
-// read back by the core and by the bundled pdf.js. Also the bundled files and the page's privacy policy.
+// the page sequence against brute force, a synthetic stack of exams, page selection, inflate, page rotation
+// read back by the core and by the bundled pdf.js, and the smaller copy's PDF writer. Also the bundled files and the
+// page's privacy policy.
 //   node tests/validate.mjs     # about 10 s
 import fs from "node:fs";
 import path from "node:path";
@@ -13,7 +14,8 @@ const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const m = html.match(/<script id="core">([\s\S]*?)<\/script>/);
 if (!m) throw new Error("index.html has no <script id=\"core\">");
 const names = ["rgbaToGray", "rot90ccw", "portrait", "resizeLanczos", "gaussianBlur", "toFeature", "flip180", "prepTemplate", "prepPage", "correlation",
-  "matchPages", "bestSequence", "buildReport", "reportText", "reportCsv", "checkStack", "parsePages", "compact", "inflate", "PdfFile", "listPages", "rotatePdf", "THUMB_W", "THUMB_H"];
+  "matchPages", "bestSequence", "buildReport", "reportText", "reportCsv", "checkStack", "parsePages", "everyNth", "compact", "inflate", "PdfFile", "listPages", "rotatePdf", "THUMB_W", "THUMB_H",
+  "rgbaToGray", "grayRGBA", "jpegInfo", "imagePdf"];
 // new Function keeps the core in this realm (Node's vm sandbox makes typed arrays much slower)
 const core = new Function(m[1] + `\nreturn {${names.join(",")}};`)();
 
@@ -172,6 +174,10 @@ const stack = (() => {
   const bad = cases.filter(([s, n, want]) => { try { return core.parsePages(s, n).join() !== want; } catch (e) { return want !== null; } });
   const comp = core.compact([1, 2, 3, 7, 9, 10]) === "1-3, 7, 9-10" && core.compact([]) === "none" && core.compact([4]) === "4";
   check("5 page selection and compact() = rotate_pdf.py", !bad.length && comp, bad.length ? JSON.stringify(bad) : `${cases.length} cases`);
+  // page k of every n: the backs of a two-sided scan, two pages of each 8-page exam, "even" within each run of 4
+  const nth = [["2", 2, 7, "1,3,5"], ["2,4", 8, 20, "1,3,9,11,17,19"], ["even", 4, 10, "1,3,5,7,9"], ["1", 3, 3, "0"], ["3", 2, 10, null], ["2", 0, 10, null], ["1", 11, 10, null], ["", 2, 10, null]];
+  const badNth = nth.filter(([sp, n, N, want]) => { try { return core.everyNth(sp, n, N).join() !== want; } catch (e) { return want !== null; } });
+  check("5 page k of every n pages", !badNth.length, badNth.length ? JSON.stringify(badNth) : `${nth.length} cases`);
 }
 
 // 6. inflate against zlib: stored, fixed and dynamic blocks, raw deflate, random and repetitive data
@@ -262,6 +268,52 @@ function buildPdf({ rotates = [0, 90, 0], pagesRotate = null, objstm = false, hy
   try { core.rotatePdf(upd, new Map([[5, 90]])); } catch (e) { threw = e.message; }
   check("7 a page outside the document is refused", /outside this document/.test(threw), threw);
   console.warn = warn;
+}
+
+// 10. the smaller copy: JPEG headers, and a new PDF of JPEG pages read back by the core and by pdf.js (pixels included)
+{
+  // JPEGs made with Pillow: 40 × 30 colour, left half (200, 30, 30) and right half (20, 40, 220), baseline, quality 90;
+  // 24 × 16 gray, left 40 and right 220, progressive; 17 × 9 colour (240, 240, 240) with EXIF and a comment before the frame
+  const b64 = s => new Uint8Array(Buffer.from(s, "base64"));
+  const rgb = b64("/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAeACgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDwKiiivzI/uM5zxf8A8un/AAP/ANlrnK6Pxf8A8un/AAP/ANlrnK/vTwx/5JLB/wDcT/07M/iPxH/5KnF/9uf+m4BRRRX6ifmp6NRRRX+XR/pMc54v/wCXT/gf/stc5XR+L/8Al0/4H/7LXOV/enhj/wAklg/+4n/p2Z/EfiP/AMlTi/8Atz/03AKKKK/UT81P/9k=");
+  const gray = b64("/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wgALCAAQABgBAREA/8QAFQABAQAAAAAAAAAAAAAAAAAABwj/2gAIAQEAAAABCXh4g94eP//EABYQAQEBAAAAAAAAAAAAAAAAAAcQAP/aAAgBAQABBQLF1Lp//8QAGBAAAwEBAAAAAAAAAAAAAAAABRCDwgD/2gAIAQEABj8C4nPTJz0v/8QAFBABAAAAAAAAAAAAAAAAAAAAIP/aAAgBAQABPyFXf//aAAgBAQAAABD/AP/EABQQAQAAAAAAAAAAAAAAAAAAACD/2gAIAQEAAT8QRn//2Q==");
+  const exif = b64("/9j/4AAQSkZJRgABAQAAAQABAAD/4QAoRXhpZgAATU0AKgAAAAgAAQEOAAIAAAAFAAAAGgAAAAB0ZXN0AAD//gANbWFya2VyIHRlc3T/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAJABEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD6VooooAKKKKAP/9k=");
+  const info = j => { const r = core.jpegInfo(j); return `${r.width}x${r.height}x${r.components}${r.progressive ? "p" : ""}`; };
+  const refused = [enc("\x89PNG\r\n\x1a\n...."), rgb.subarray(0, 120), new Uint8Array(0)].map(b => { try { core.jpegInfo(b); return false; } catch (e) { return true; } });
+  check("10a JPEG frame headers: size, components, progressive; other files refused", info(rgb) === "40x30x3" && info(gray) === "24x16x1p" && info(exif) === "17x9x3" && refused.every(Boolean),
+    `${info(rgb)}, ${info(gray)}, ${info(exif)}; refused ${refused.filter(Boolean).length}/3`);
+
+  const pages = [{ jpeg: rgb, width: 612, height: 792 }, { jpeg: gray, width: 841.8898, height: 595.2756 }, { jpeg: exif, width: 200.5, height: 100.25 }];
+  const pdf = core.imagePdf(pages), text = Buffer.from(pdf).toString("latin1"), own = new core.PdfFile(pdf), list = core.listPages(pdf);
+  const offsetsOk = [...own.entries].every(([n, e]) => e.type !== 1 || text.startsWith(`${n} 0 obj`, e.offset));
+  const sizes = list.map(p => `${p.width}x${p.height}`).join(", "), wantSizes = "612x792, 841.89x595.276, 200.5x100.25";
+  const kept = pages.every(p => Buffer.from(pdf).indexOf(Buffer.from(p.jpeg)) > 0);
+  check("10b new PDF read by the core: a valid cross-reference table, the page sizes, the JPEGs stored unchanged",
+    own.kind === "table" && !own.rebuilt && offsetsOk && sizes === wantSizes && list.every(p => p.rotate === 0) && kept && text.endsWith("%%EOF\n"), `${pdf.length} bytes; ${sizes}`);
+
+  const warn = console.warn;
+  console.warn = (...a) => { if (!/napi-rs\/canvas|Cannot polyfill/.test(String(a[0]))) warn(...a); };
+  const pdfjs = await import(pathToFileURL(path.join(root, "vendor/pdfjs/pdf.min.mjs")).href);
+  const task = pdfjs.getDocument({ data: pdf.slice(), verbosity: 0 }), doc = await task.promise, got = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const p = await doc.getPage(i), vp = p.getViewport({ scale: 1 }), ops = await p.getOperatorList(), k = ops.fnArray.indexOf(pdfjs.OPS.paintImageXObject);
+    const img = k < 0 ? null : await new Promise(r => p.objs.get(ops.argsArray[k][0], r));
+    // the colour of the image's left and right halves (middle row), whatever the pixel layout pdf.js hands back
+    const px = (x, y) => { const c = img.data.length / (img.width * img.height), o = (y * img.width + x) * c; return c >= 3 ? [img.data[o], img.data[o + 1], img.data[o + 2]] : [img.data[o], img.data[o], img.data[o]]; };
+    got.push({ size: `${+vp.width.toFixed(3)}x${+vp.height.toFixed(3)}`, dims: img && `${img.width}x${img.height}`, left: img && px(2, img.height >> 1), right: img && px(img.width - 3, img.height >> 1) });
+  }
+  await task.destroy();
+  console.warn = warn;
+  const near = (a, b) => a && a.every((v, i) => Math.abs(v - b[i]) <= 12);
+  const okJs = got.length === 3 && got.map(g => g.size).join(", ") === wantSizes && got.map(g => g.dims).join() === "40x30,24x16,17x9" &&
+    near(got[0].left, [200, 30, 30]) && near(got[0].right, [20, 40, 220]) && near(got[1].left, [40, 40, 40]) && near(got[1].right, [220, 220, 220]) && near(got[2].left, [240, 240, 240]);
+  check("10c new PDF read by pdf.js: page sizes, image sizes and the decoded colours", okJs, got.map(g => `${g.size} ${g.dims} ${g.left}|${g.right}`).join("; "));
+
+  const rgba = new Uint8Array(4 * 64).map((_, i) => (i * 37 + 11) & 255), g8 = core.rgbaToGray(rgba, 8, 8).data, grayed = core.grayRGBA(rgba.slice());
+  const sameGray = Array.from(g8).every((v, i) => grayed[4 * i] === v && grayed[4 * i + 1] === v && grayed[4 * i + 2] === v && grayed[4 * i + 3] === rgba[4 * i + 3]);
+  let errs = 0;
+  for (const bad of [[], [{ jpeg: rgb, width: 0, height: 792 }], [{ jpeg: enc("not a jpeg"), width: 612, height: 792 }]]) { try { core.imagePdf(bad); } catch (e) { errs++; } }
+  check("10d grayscale = the check's gray levels; no pages, a zero page size or a non-JPEG are refused", sameGray && errs === 3, `${errs}/3 refused`);
 }
 
 // 8. the bundled pdf.js files are the published pdfjs-dist 6.4.299 (legacy build) byte for byte
