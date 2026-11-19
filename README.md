@@ -20,7 +20,7 @@ one domain. The originals stay in their own repositories and on their own sites.
 | `shg-narrowing/` | Spectral narrowing by SHG in BBO | made here, with its README and tests | — |
 | `advanced-optics/` | Advanced optics: interactive examples | made here, with its README and tests | — |
 | `polarization-interference/` | Birefringence, wave plates and interference | made here, with its README and tests | — |
-| `exam-scan/` | Exam scan check | made here: a browser port of `check_scan.py` and `rotate_pdf.py`, with its README and tests | — |
+| `exam-scan/` | Exam scan check | made here: a browser port of `check_scan.py` and `rotate_pdf.py`, plus page removal and a smaller copy, with its README and tests | — |
 
 Each copy holds only what the page needs to run (its `index.html`, scripts, and for Franck–Condon, advanced optics and wave plates the bundled KaTeX),
 plus its tests where the original has them. READMEs, CNAME files and `package.json` stay in the originals; the Lorentz
@@ -77,7 +77,7 @@ The empty `.nojekyll` file tells Pages to serve the files as they are instead of
 | `franck-condon/`, `focal-overlap/`, `overlap-game/`, `screensaver/`, `solvent-subtraction/`, `lorentz-explorer/`, `shg-narrowing/`, `advanced-optics/`, `polarization-interference/`, `exam-scan/` | the pages |
 | `tests/validate.mjs` | checks the home page, the previews, the copies and every text file in the repository |
 
-The home page is 12.1 KB and the ten previews 50.3 KB; the pages are about 5.3 MB, most of it pdf.js in
+The home page is 12.2 KB and the ten previews 50.3 KB; the pages are about 5.3 MB, most of it pdf.js in
 `exam-scan/vendor/` (2.4 MB) and KaTeX in `franck-condon/vendor/`, `advanced-optics/vendor/` and `polarization-interference/vendor/`.
 
 ## Tests
@@ -99,7 +99,7 @@ node tests/validate.mjs --quick    # under 0.1 s, without the copied pages' own 
   pdf.js is checked by its hashes in `exam-scan/tests`) holds an email address, a local file path, a file URL or a
   chat or session link, and all 11 GitHub links go to the public repositories listed in the test.
 - The copied pages' own tests pass where they now live: Franck–Condon 11 checks (about 6 s), solvent subtraction 50
-  checks (about 10 s), Lorentz oscillator 17 checks (under 1 s), SHG narrowing 47 checks (about 1.5 s), advanced optics 23 checks (under 1 s), wave plates and interference 17 checks (under 1 s), exam scan check 22 checks (about 6 s).
+  checks (about 10 s), Lorentz oscillator 17 checks (under 1 s), SHG narrowing 47 checks (about 1.5 s), advanced optics 23 checks (under 1 s), wave plates and interference 17 checks (under 1 s), exam scan check 27 checks (about 6 s).
 - A broken copy of the repository (a missing preview, a link to an unlisted repository, a remote script, an email
   address, a local path, a session link, a deleted script in a copy and a CNAME in a copy) fails checks 1, 2, 5, 6
   and 7, each naming the problem.
