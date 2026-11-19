@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Spectroscopist Handbook</title>
-<meta name="description" content="Spectroscopy calculations as web pages: Franck–Condon overlap factors, Gaussian beam focal overlap, a beam overlap game and solvent subtraction for Raman spectra.">
+<meta name="description" content="Spectroscopy calculations as web pages: Franck–Condon overlap factors, Gaussian beam focal overlap, a beam overlap game, solvent subtraction for Raman spectra, etalons and narrowband pulses.">
 <style>
   /* Plain page: white, black text, system font, native controls. Layout only. */
   :root { color-scheme: light; }
@@ -128,16 +128,44 @@ site.</p>
   </div>
 </section>
 
+<section id="narrowband">
+  <h2>Etalon and narrowband pulses</h2>
+  <div class="hub">
+    <div class="entry" id="etalon">
+      <a class="thumb" href="etalon/index.html" tabindex="-1" aria-hidden="true"><img src="previews/etalon.webp" width="128" height="128" alt=""></a>
+      <div>
+        <h3><a href="etalon/index.html">Etalon transmission and reflection</a></h3>
+        <p>What a Fabry–Perot etalon does to a femtosecond pulse: the partial beams, the transmitted and reflected
+        spectra and the pulse trains in time, with the finesse and bandwidths. Enter a bandwidth and a spacing to get
+        the mirror reflectance, and see how far a tilt tunes the peaks.</p>
+        <p class="note">Two equal, lossless mirrors and a Gaussian pulse, transform-limited or chirped.</p>
+      </div>
+    </div>
+
+    <div class="entry" id="bbo-etalon">
+      <a class="thumb" href="bbo-etalon/index.html" tabindex="-1" aria-hidden="true"><img src="previews/bbo-etalon.webp" width="128" height="128" alt=""></a>
+      <div>
+        <h3><a href="bbo-etalon/index.html">BBO crystal and etalon for a narrowband pulse</a></h3>
+        <p>Frequency-double a femtosecond pulse in BBO and narrow it with an etalon, for a pulse between 400 and 750 nm.
+        For 0.1, 0.3 and 0.5 mm crystals and your own, the page works out the second harmonic and the transmitted
+        pulse, lists which give a single clean pulse with an exponential decay at the bandwidth you want, and
+        suggests the thinnest.</p>
+        <p class="note">BBO dispersion from Tamošauskas et al. (2018).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="notes">
   <h2>Notes</h2>
   <ul class="notes">
     <li>The calculations run in your browser. Nothing you type or load is uploaded.</li>
     <li>Each page is a static folder in this repository (<code>franck-condon/</code>, <code>focal-overlap/</code>,
     <code>overlap-game/</code>, <code>screensaver/</code>, <code>solvent-subtraction/</code>, <code>lorentz-explorer/</code>,
-    <code>exam-scan/</code>): open its <code>index.html</code> and it runs with no build step. The exam scan page has to
+    <code>exam-scan/</code>, <code>etalon/</code>, <code>bbo-etalon/</code>): open its <code>index.html</code> and it runs with no build step. The exam scan page has to
     be served, by this site or any local web server, because browsers do not load its PDF reader straight from disk.
     The calculation pages list their model and equations at the bottom.</li>
-    <li>The Franck–Condon, solvent subtraction, Lorentz oscillator and exam scan pages come with their tests
+    <li>The Franck–Condon, solvent subtraction, Lorentz oscillator, etalon, BBO and etalon, and exam scan pages come with their tests
     (<code>node franck-condon/tests/validate.mjs</code>), which check the calculation against closed forms,
     numerical integration and published values; their READMEs give the numbers.</li>
   </ul>

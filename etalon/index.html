@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Etalon transmission and reflection</title>
+<style>
+  /* Plain page: white, black text, system font, native controls. Layout only. */
+  :root { color-scheme: light; }
+  body { margin: 0; background: #fff; color: #000; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; padding-block: 16px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 8px; }
+  h3 { font-size: 15px; margin: 0 0 4px; }
+  p { margin: 0 0 8px; }
+  section { border-top: 1px solid #bbb; padding-block: 16px; }
+  .caption { color: #333; font-size: 14px; max-width: 90ch; margin-top: 8px; }
+  .note { color: #555; font-size: 13px; }
+  .readout { font-size: 14px; font-variant-numeric: tabular-nums; margin: 6px 0 0; }
+  .error { color: #b00000; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-block: 8px; }
+  .sliders { display: grid; grid-template-columns: max-content minmax(90px, 1fr) 6.5em max-content; gap: 6px 10px; align-items: center; margin-block: 8px; max-width: 860px; }
+  .sliders input[type=range] { width: 100%; margin: 0; }
+  .sliders input[type=number] { width: 100%; box-sizing: border-box; }
+  .sliders .unit { color: #444; font-size: 13px; }
+  .sliders select.wide { grid-column: 2 / -1; justify-self: start; max-width: 100%; }
+  .fields { display: grid; grid-template-columns: max-content 7em max-content; gap: 6px 10px; align-items: center; margin-block: 8px; }
+  .fields input[type=number] { width: 100%; box-sizing: border-box; }
+  input[aria-invalid=true] { outline: 2px solid #b00000; }
+  .pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
+  .plotbox { min-width: 0; }
+  .plotbox canvas { display: block; width: 100%; cursor: crosshair; touch-action: pan-y; }
+  #figCanvas { cursor: default; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; margin: 8px 0 2px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 4px 7px; text-align: right; white-space: nowrap; }
+  th { background: #f2f2f2; font-weight: 600; }
+  td.l, th.l { text-align: left; white-space: normal; }
+  .eq { font-family: "Times New Roman", Times, serif; font-size: 17px; overflow-x: auto; margin: 4px 0 8px; padding-left: 1em; }
+  ol.eqs { padding-left: 1.6em; margin: 0; max-width: 100ch; }
+  ol.eqs > li { margin-block: 14px; }
+  ol.eqs > li > p:first-child { font-weight: 600; margin-bottom: 2px; }
+  @media (max-width: 920px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) {
+    .sliders { grid-template-columns: minmax(0, 1fr) 6.5em max-content; }
+    .sliders label { grid-column: 1 / -1; margin-top: 4px; }
+    .sliders select.wide { grid-column: 1 / -1; }
+    .fields { grid-template-columns: 7em max-content; }
+    .fields label { grid-column: 1 / -1; margin-top: 4px; }
+    th, td { padding: 3px 4px; }
+  }
+  :focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+<h1>Etalon transmission and reflection</h1>
+<p>Set the mirror reflectance and free spectral range of an etalon and the length of the input pulse. The page draws the
+partial beams, the transmitted and reflected spectra, and the pulses in time, and lists the finesse and bandwidths.
+To go the other way, enter a bandwidth and a spacing under "Etalon for a given bandwidth" and the page gives the mirror
+reflectance. "Tuning by tilt" shows how far a tilt moves the peaks. Everything recalculates as you drag. Equations are at
+the bottom.</p>
+<noscript><p class="error">This page needs JavaScript.</p></noscript>
+
+<section id="inputs">
+  <h2>Etalon and input pulse</h2>
+  <div class="pair">
+    <div>
+      <div class="sliders">
+        <label for="RR"><i>R</i>, mirror reflectance</label><input type="range" id="RR" min="1" max="99.5" step="0.1" autocomplete="off"><input type="number" id="RN" step="any" autocomplete="off"><span class="unit">%</span>
+        <label for="fsrR">FSR, free spectral range</label><input type="range" id="fsrR" min="5" max="1000" step="1" autocomplete="off"><input type="number" id="fsrN" step="any" autocomplete="off"><span class="unit">cm⁻¹</span>
+        <label for="offR">peak offset from pulse centre, at θ = 0</label><input type="range" id="offR" min="-0.5" max="0.5" step="0.005" autocomplete="off"><input type="number" id="offN" step="any" autocomplete="off"><span class="unit">× FSR</span>
+        <label for="tiltR">θ, tilt of the etalon</label><input type="range" id="tiltR" min="0" max="20" step="0.05" autocomplete="off"><input type="number" id="tiltN" step="any" autocomplete="off"><span class="unit">°</span>
+        <label for="pmode">input pulse given as</label><select id="pmode" class="wide" autocomplete="off"><option value="tau">duration (transform-limited)</option><option value="dnu">bandwidth (transform-limited)</option><option value="both">duration and bandwidth (not transform-limited)</option></select>
+        <label for="tauR">τ, input duration (FWHM)</label><input type="range" id="tauR" min="10" max="1000" step="1" autocomplete="off"><input type="number" id="tauN" step="any" autocomplete="off"><span class="unit">fs</span>
+        <label for="dnuR">Δν, input bandwidth (FWHM)</label><input type="range" id="dnuR" min="5" max="1500" step="0.1" autocomplete="off"><input type="number" id="dnuN" step="any" autocomplete="off"><span class="unit">cm⁻¹</span>
+        <label for="lamR">λ₀, pulse centre</label><input type="range" id="lamR" min="250" max="2000" step="1" autocomplete="off"><input type="number" id="lamN" step="any" autocomplete="off"><span class="unit">nm</span>
+        <label for="nR"><i>n</i>, index in the gap</label><input type="range" id="nR" min="1" max="4" step="0.01" autocomplete="off"><input type="number" id="nN" step="any" autocomplete="off"><span class="unit"></span>
+      </div>
+      <div class="row">
+        <span class="note">Examples:</span>
+        <button type="button" data-preset="p200">200 fs → 15 cm⁻¹</button>
+        <button type="button" data-preset="p70">70 fs → 15 cm⁻¹</button>
+        <button type="button" data-preset="p25">25 µm air gap, 12.5 cm⁻¹</button>
+        <button type="button" data-preset="lowR">Low <i>R</i>, in reflection</button>
+        <button type="button" id="reset">Reset</button>
+      </div>
+      <p id="inErr" class="error" role="alert" hidden></p>
+      <p class="note">Two equal, lossless mirrors; <i>R</i> is the same at every wavelength. The input pulse is a Gaussian,
+      given by its duration, by its bandwidth, or by both. With both, the extra bandwidth is put in as a linear chirp: the
+      spectra depend only on the bandwidth, the pulses in time on both. The offset moves the comb of peaks under the pulse: in the lab that is a gap change
+      of less than λ/2. The tilt is the angle of incidence outside the etalon; it moves the peaks to higher wavenumber
+      (see "Tuning by tilt"). The FSR entered here is the one at normal incidence. λ₀ and <i>n</i> set the gap, the nm values
+      and the size of the tilt shift.</p>
+    </div>
+    <div>
+      <div id="figBox" class="plotbox"><canvas id="figCanvas" role="img" aria-label="Etalon with the incident beam and the transmitted and reflected partial beams"></canvas></div>
+      <p class="caption">Each number is that partial beam's share of the incident intensity; line weight follows its field
+      amplitude. Beams below 0.1 % of the first one are left out. The beams are drawn tilted so the bounces can be seen; at normal incidence they lie on top of each other
+      and interfere. <span id="figNote"></span></p>
+    </div>
+  </div>
+</section>
+
+<section id="design">
+  <h2>Etalon for a given bandwidth</h2>
+  <p>Enter the bandwidth you want for one transmission peak, as a FWHM or as the decay time of the transmitted pulse, and the
+  spacing, as a free spectral range, a gap thickness or a multiple of the input bandwidth. The table gives the mirror
+  reflectance, the tilt needed to tune over one FSR and the other parameters.</p>
+  <div class="pair">
+    <div>
+      <div class="fields">
+        <label for="dW">transmission bandwidth</label><input type="number" id="dW" step="any" autocomplete="off">
+        <select id="dWU" aria-label="how the bandwidth is given"><option value="cm">FWHM in cm⁻¹</option><option value="thz">FWHM in THz</option><option value="nm">FWHM in nm</option><option value="fs">decay time (1/e) in fs</option><option value="ps">decay time (1/e) in ps</option></select>
+        <label for="dS">spacing</label><input type="number" id="dS" step="any" autocomplete="off">
+        <select id="dSU" aria-label="how the spacing is given"><option value="cm">FSR in cm⁻¹</option><option value="thz">FSR in THz</option><option value="nm">FSR in nm</option><option value="um">gap thickness in µm</option><option value="bw">× input bandwidth</option></select>
+      </div>
+      <div class="row"><button type="button" id="dUse">Use these in the etalon above</button></div>
+      <p id="dErr" class="error" role="alert" hidden></p>
+      <p class="note">Changing a unit converts the number. Values in nm and the tilt use λ₀, the gap thickness uses <i>n</i>, and
+      "× input bandwidth" uses the input pulse, all from the inputs above. The button copies <i>R</i> and the FSR into those
+      inputs so the plots show this etalon.</p>
+      <p class="note">For a smooth, continuous decay in time, use a spacing of about 2 × the input bandwidth. The neighbouring
+      peaks are then too weak for the round trips to show as ripple on the tail. At 1.5 × the spectrum is already a single
+      peak, but the tail still carries about ±18 % ripple. The table lists both numbers.</p>
+    </div>
+    <div class="tablewrap"><table id="tblDesign"></table></div>
+  </div>
+</section>
+
+<section id="tilt">
+  <h2>Tuning by tilt</h2>
+  <p>A fixed air-gap etalon is already tunable. Tilting it moves every peak to higher wavenumber, and a tilt of
+  θ ≈ √(2·FSR/ν) covers one FSR: 7.6° for 172 cm⁻¹ and 11.6° for 394 cm⁻¹ at 515 nm. Tilt plus hopping between orders
+  gives continuous coverage, and with a thin gap the walk-off is negligible.</p>
+  <div class="pair">
+    <div>
+      <div class="legend" aria-hidden="true">
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#000" stroke-width="1.5"/></svg>peak shift, in FSR</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#888" stroke-width="1.5" stroke-dasharray="5 4"/></svg>whole numbers of FSR</span>
+        <span><svg width="26" height="12"><line x1="13" y1="0" x2="13" y2="12" stroke="#c65a12" stroke-width="1.6"/></svg>tilt set above</span>
+      </div>
+      <div id="tiltBox" class="plotbox"><canvas id="tiltCanvas" role="img" aria-label="Shift of the transmission peaks against tilt angle"></canvas></div>
+      <p class="caption">The shift grows as θ². Where the curve crosses a dashed line the comb is back where it started, one
+      order further on, so any wavelength can be reached with a tilt below the first crossing.</p>
+    </div>
+    <div>
+      <p id="tiltOut" class="readout"></p>
+      <div class="tablewrap" style="margin-top:8px"><table id="tblTilt"></table></div>
+      <p class="note">Tilt only moves peaks to higher wavenumber (shorter wavelength). Keep a degree or two of tilt even when
+      none is needed for tuning, so the reflected light does not go back into the laser. Not included: the change of
+      <i>R</i> with angle and polarisation, and the broadening from beam divergence, δν ≈ ν · tan θ · δθ.</p>
+    </div>
+  </div>
+</section>
+
+<section id="spectra">
+  <h2>Spectra</h2>
+  <div class="pair">
+    <div>
+      <h3>Transmission</h3>
+      <div class="legend" aria-hidden="true">
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#000" stroke-width="1.5"/></svg>etalon transmission</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#888" stroke-width="1.5" stroke-dasharray="5 4"/></svg>input spectrum</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#1f5fbf" stroke-width="2.2"/></svg>transmitted spectrum</span>
+        <span><svg width="26" height="12"><path d="M2 6H24M2 1V11M24 1V11" stroke="#c65a12" stroke-width="1.6" fill="none"/></svg>FWHM of an output band</span>
+      </div>
+      <div id="specTBox" class="plotbox"><canvas id="specTCanvas" role="img" aria-label="Etalon transmission, input spectrum and transmitted spectrum"></canvas></div>
+      <p id="specTOut" class="readout"></p>
+      <p class="caption">Narrow peaks, one per FSR, each reaching 1. Between the peaks the etalon still passes
+      1/(1 + <i>F</i>); that floor only matters where the pulse has light.</p>
+    </div>
+    <div>
+      <h3>Reflection</h3>
+      <div class="legend" aria-hidden="true">
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#000" stroke-width="1.5"/></svg>etalon reflection</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#888" stroke-width="1.5" stroke-dasharray="5 4"/></svg>input spectrum</span>
+        <span><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d40000" stroke-width="2.2"/></svg>reflected spectrum</span>
+        <span><svg width="26" height="12"><path d="M2 6H24M2 1V11M24 1V11" stroke="#c65a12" stroke-width="1.6" fill="none"/></svg>FWHM of an output band</span>
+      </div>
+      <div id="specRBox" class="plotbox"><canvas id="specRCanvas" role="img" aria-label="Etalon reflection, input spectrum and reflected spectrum"></canvas></div>
+      <p id="specROut" class="readout"></p>
+      <p class="caption">The complement, 1 − <i>T</i>: zeros at the transmission peaks and bright bands between them. A bright
+      band is never narrower than FSR/2, and it gets wider as <i>R</i> goes up. Set the offset to ±0.5 to put a band on the
+      pulse centre.</p>
+    </div>
+  </div>
+  <div class="row">
+    <button type="button" id="specFull">Full range</button>
+    <span class="note">Drag across either plot to zoom both in x, double-click to zoom out, hover to read values. The input spectrum is scaled to a peak of 1.</span>
+  </div>
+</section>
+
+<section id="numbers">
+  <h2>Numbers</h2>
+  <div class="pair">
+    <div class="tablewrap"><table id="tblEtalon"></table></div>
+    <div>
+      <div class="tablewrap"><table id="tblOut"></table></div>
+      <p class="note" id="outNote"></p>
+    </div>
+  </div>
+</section>
+
+<section id="time">
+  <h2>Pulses in time</h2>
+  <div class="pair">
+    <div>
+      <h3>Transmitted</h3>
+      <div id="timeTBox" class="plotbox"><canvas id="timeTCanvas" role="img" aria-label="Transmitted intensity against time"></canvas></div>
+      <p class="caption">Copies of the input one round trip apart, each weaker by <i>R</i>². When the round trip is shorter
+      than the pulse they merge into a sharp rise and an exponential tail.</p>
+    </div>
+    <div>
+      <h3>Reflected</h3>
+      <div id="timeRBox" class="plotbox"><canvas id="timeRCanvas" role="img" aria-label="Reflected intensity against time"></canvas></div>
+      <p class="caption">The first copy comes straight off the front mirror with <i>R</i> of the input. The later ones leak
+      back out of the gap with the opposite sign; at low <i>R</i> only the first two matter.</p>
+    </div>
+  </div>
+  <div class="row">
+    <button type="button" id="timeFull">Full range</button>
+    <span class="note">Intensity in units of the input peak intensity; the input pulse is centred at <i>t</i> = 0. A pulse that is not transform-limited is given a linear chirp. Drag to zoom both, double-click to zoom out.</span>
+  </div>
+</section>
+
+<section id="equations">
+  <h2>Equations</h2>
+  <ol class="eqs">
+    <li>
+      <p>Round-trip phase and free spectral range</p>
+      <div class="eq">δ = 4π <i>n d</i> cos θ · ν = 2π ν / FSR,&emsp; FSR = 1 / (2 <i>n d</i> cos θ),&emsp; <i>t</i><sub>rt</sub> = 1 / (<i>c</i> · FSR)</div>
+      <p class="note">ν is the wavenumber in cm⁻¹, <i>d</i> the gap, θ the angle inside the gap (0 here for the listed gap). A transmission peak sits wherever δ is a multiple of 2π.</p>
+    </li>
+    <li>
+      <p>Transmission (Airy function)</p>
+      <div class="eq"><i>T</i> = 1 / [1 + <i>F</i> sin²(δ/2)],&emsp; <i>F</i> = 4<i>R</i> / (1 − <i>R</i>)²</div>
+      <p class="note">Maximum 1, minimum 1/(1 + <i>F</i>) = [(1 − <i>R</i>)/(1 + <i>R</i>)]².</p>
+    </li>
+    <li>
+      <p>Reflection</p>
+      <div class="eq"><i>R</i><sub>e</sub> = 1 − <i>T</i> = <i>F</i> sin²(δ/2) / [1 + <i>F</i> sin²(δ/2)]</div>
+      <p class="note">Zero at every transmission peak for any <i>R</i>, because the two mirrors are equal and lossless. Maximum <i>F</i>/(1 + <i>F</i>).</p>
+    </li>
+    <li>
+      <p>Widths and finesse</p>
+      <div class="eq">transmission peak FWHM = (2 FSR / π) arcsin(1/√<i>F</i>) ≈ FSR / ℱ,&emsp; ℱ = π√<i>F</i> / 2 = π√<i>R</i> / (1 − <i>R</i>)</div>
+      <div class="eq">reflection bright band FWHM = FSR [1 − (2/π) arcsin(1/√(2 + <i>F</i>))] ≥ FSR / 2</div>
+      <p class="note">The transmission peak has a half-maximum only when <i>F</i> &gt; 1, that is <i>R</i> &gt; 3 − 2√2 = 17.2 %. Below that the
+      transmission never drops to one half and the table shows a dash.</p>
+    </li>
+    <li>
+      <p>Mirror reflectance for a given peak width</p>
+      <div class="eq"><i>F</i> = 1 / sin²(π · FWHM / (2 FSR)),&emsp; <i>R</i> = [<i>F</i> + 2 − 2√(<i>F</i> + 1)] / <i>F</i></div>
+      <p class="note">Equation 4 solved for <i>F</i>, then <i>F</i> = 4<i>R</i>/(1 − <i>R</i>)² solved for <i>R</i>. It needs FWHM &lt; FSR. A gap thickness
+      is turned into a spacing with FSR = 1/(2<i>nd</i>); 1 cm⁻¹ = 0.029979 THz = λ₀²/10⁷ nm (λ₀ in nm).</p>
+      <div class="eq">from a decay time τ<sub>c</sub>:&emsp; <i>R</i> = exp[−<i>t</i><sub>rt</sub> / (2τ<sub>c</sub>)],&emsp; <i>t</i><sub>rt</sub> = 1 / (<i>c</i> · FSR)</div>
+      <div class="eq">neighbouring peaks: <i>S</i>(FSR) = exp[−4 ln 2 (FSR/Δν)²];&emsp; ripple on the tail ≈ ±4 √<i>S</i>(FSR)</div>
+      <p class="note">τ<sub>c</sub> is the 1/e time of the transmitted intensity. The ripple is the beat between the main peak and its two neighbours, for
+      a transform-limited input with a peak on the pulse centre: ±18 % at FSR = 1.5 Δν, ±1.6 % at 2 Δν.</p>
+    </li>
+    <li>
+      <p>Tuning by tilt</p>
+      <div class="eq">ν<sub><i>m</i></sub>(θ) = ν<sub><i>m</i></sub>(0) / cos θ<sub>in</sub>,&emsp; sin θ = <i>n</i> sin θ<sub>in</sub>,&emsp; shift ≈ ν θ<sub>in</sub>² / 2</div>
+      <div class="eq">one FSR at cos θ<sub>in</sub> = 1 − FSR/ν, so θ<sub>in</sub> ≈ √(2 FSR/ν);&emsp; walk-off per round trip = 2<i>d</i> tan θ<sub>in</sub></div>
+      <p class="note">θ is the angle of incidence outside the etalon and θ<sub>in</sub> the angle in the gap (equal for an air gap). From equation 1,
+      a tilt replaces FSR by FSR/cos θ<sub>in</sub> and adds ν<sub>0</sub>(1 − cos θ<sub>in</sub>)/FSR to the peak offset; the plots and tables use those values.</p>
+    </li>
+    <li>
+      <p>Input pulse</p>
+      <div class="eq"><i>S</i>(ν) = exp[−4 ln 2 (ν − ν<sub>0</sub>)² / Δν²],&emsp; <i>a</i>(<i>t</i>) = exp[−2 ln 2 (1 + i<i>C</i>) <i>t</i>² / τ²],&emsp; <i>c</i> τ Δν = 0.4413 √(1 + <i>C</i>²)</div>
+      <p class="note">Gaussian, τ and Δν both intensity FWHM. Transform-limited (<i>C</i> = 0): 200 fs gives 73.6 cm⁻¹, 70 fs gives 210 cm⁻¹. When both τ and
+      Δν are entered, the linear chirp <i>C</i> is whatever makes them consistent; Δν cannot be smaller than the transform limit of τ.</p>
+    </li>
+    <li>
+      <p>Pulse energy transmitted and reflected</p>
+      <div class="eq"><i>E</i><sub>T</sub> / <i>E</i><sub>in</sub> = [(1 − <i>R</i>)/(1 + <i>R</i>)] · [1 + 2 Σ<sub><i>m</i>≥1</sub> <i>R</i><sup><i>m</i></sup> exp(−2π² <i>m</i>² σ² / FSR²) cos(2π <i>m x</i><sub>0</sub>)],&emsp; <i>E</i><sub>R</sub> = <i>E</i><sub>in</sub> − <i>E</i><sub>T</sub></div>
+      <p class="note">σ = Δν / 2.355 and <i>x</i><sub>0</sub> is the peak offset in units of FSR. This is the Airy function written as a Fourier series and averaged over the Gaussian spectrum.</p>
+    </li>
+    <li>
+      <p>Pulses in time</p>
+      <div class="eq"><i>E</i><sub>T</sub>(<i>t</i>) = (1 − <i>R</i>) Σ<sub><i>m</i>≥0</sub> <i>R</i><sup><i>m</i></sup> e<sup>i<i>m</i>φ</sup> <i>a</i>(<i>t</i> − <i>m t</i><sub>rt</sub>)</div>
+      <div class="eq"><i>E</i><sub>R</sub>(<i>t</i>) = √<i>R</i> [<i>a</i>(<i>t</i>) − (1 − <i>R</i>) Σ<sub><i>m</i>≥1</sub> <i>R</i><sup><i>m</i>−1</sup> e<sup>i<i>m</i>φ</sup> <i>a</i>(<i>t</i> − <i>m t</i><sub>rt</sub>)]</div>
+      <p class="note"><i>a</i>(<i>t</i>) is the input field envelope and φ = −2π<i>x</i><sub>0</sub> the round-trip phase at the pulse centre. The intensity of the
+      transmitted train falls by <i>R</i>² per round trip: 1/e time <i>t</i><sub>rt</sub> / (2 ln(1/<i>R</i>)), which is 1/(2π<i>c</i> · FWHM) at high finesse.</p>
+    </li>
+  </ol>
+  <p class="note">Not included: mirror loss, unequal mirrors, the wavelength dependence and phase of the coatings, dispersion in the gap, beam
+  walk-off and divergence, surface flatness. All of these lower the real finesse and peak transmission.</p>
+</section>
+</main>
+
+<script id="core">
+"use strict";
+/* Numerical core: pure functions, no DOM. tests/validate.mjs runs this script in Node.
+   p = { R: mirror reflectance (0–1), fsr: cm⁻¹, off: peak offset in FSR, tau: fs FWHM, lam: nm, n: gap index }.
+   x is the wavenumber measured from the pulse centre, in cm⁻¹; t is in fs. */
+const C_CM_FS = 2.99792458e-5;               // speed of light, cm/fs
+const TBP_GAUSS = 2 * Math.LN2 / Math.PI;     // time-bandwidth product of a Gaussian, 0.4413
+const FWHM_PER_SIGMA = 2 * Math.sqrt(2 * Math.LN2);
+function coeffF(R) { return 4 * R / ((1 - R) * (1 - R)); }
+function airyT(delta, R) { const s = Math.sin(delta / 2); return 1 / (1 + coeffF(R) * s * s); }
+function airyR(delta, R) { const s = Math.sin(delta / 2), a = coeffF(R) * s * s; return a / (1 + a); }
+function phase(x, p) { return 2 * Math.PI * (x / p.fsr - p.off); }
+function pulseWidth(tau) { return TBP_GAUSS / (C_CM_FS * tau); }
+function specWidth(p) { return p.dnu || pulseWidth(p.tau); }   // spectral FWHM: given, or transform-limited from the duration
+function pulseSpec(x, dnu) { return Math.exp(-4 * Math.LN2 * x * x / (dnu * dnu)); }
+function linspace(a, b, n) { const x = new Float64Array(n); for (let i = 0; i < n; i++) x[i] = a + (b - a) * i / (n - 1); return x; }
+function trapz(x, y) { let s = 0; for (let i = 1; i < x.length; i++) s += 0.5 * (y[i] + y[i - 1]) * (x[i] - x[i - 1]); return s; }
+// uniform grid plus the points first + k·step that fall inside it (so narrow peaks are drawn at full height)
+function gridWith(lo, hi, n, first, step, maxExtra) {
+  const pts = Array.from(linspace(lo, hi, n)), k0 = Math.ceil((lo - first) / step), k1 = Math.floor((hi - first) / step);
+  if (k1 - k0 < maxExtra) for (let k = k0; k <= k1; k++) pts.push(first + k * step);
+  return Float64Array.from(pts).sort();
+}
+// inverse problem: the mirror reflectance that gives a transmission peak of the wanted FWHM at a given FSR (both in cm⁻¹)
+const THZ_PER_CM = C_CM_FS * 1e3;
+function reflectanceForF(F) { return (F + 2 - 2 * Math.sqrt(F + 1)) / F; }
+function design(fwhm, fsr) {
+  if (!(fwhm > 0 && fsr > 0 && fwhm < fsr)) return null;
+  const sn = Math.sin(Math.PI * fwhm / (2 * fsr)), F = 1 / (sn * sn), R = reflectanceForF(F);
+  return { F, R, finesse: Math.PI * Math.sqrt(F) / 2, fwhm, ratio: fsr / fwhm };
+}
+// the same from the 1/e decay time of the transmitted intensity (fs): R² per round trip, so R = exp(-t_rt / 2τc)
+function designDecay(tauc, fsr) {
+  if (!(tauc > 0 && fsr > 0)) return null;
+  const R = Math.exp(-1 / (2 * C_CM_FS * fsr * tauc)), F = coeffF(R), fwhm = F > 1 ? fsr * (2 / Math.PI) * Math.asin(1 / Math.sqrt(F)) : NaN;
+  return { F, R, finesse: Math.PI * Math.sqrt(F) / 2, fwhm, ratio: fsr / fwhm };
+}
+// input spectrum at the neighbouring peaks (relative to the centre), and the ripple it leaves on the decay in time (± fraction)
+function neighbourHeight(fsr, dnu) { return Math.exp(-4 * Math.LN2 * (fsr / dnu) * (fsr / dnu)); }
+function tailRipple(fsr, dnu) { return Math.min(1, 4 * Math.sqrt(neighbourHeight(fsr, dnu))); }
+// a width or spacing in cm⁻¹ from a value in "cm" (cm⁻¹), "thz", "nm" (at lam, nm) or "um" (gap thickness in µm, index n); fromCm is the inverse
+function toCm(v, unit, lam, n) { return unit === "thz" ? v / THZ_PER_CM : unit === "nm" ? v * 1e7 / (lam * lam) : unit === "um" ? 1e4 / (2 * n * v) : v; }
+function fromCm(v, unit, lam, n) { return unit === "thz" ? v * THZ_PER_CM : unit === "nm" ? v * lam * lam / 1e7 : unit === "um" ? 1e4 / (2 * n * v) : v; }
+// tilt: q.fsr and q.off are the values at normal incidence and q.tilt the external angle of incidence in degrees.
+// Returns the same parameters with the effective FSR and peak offset at that tilt (everything else uses those).
+function applyTilt(q) {
+  const sIn = Math.sin((q.tilt || 0) * Math.PI / 180) / q.n, cIn = Math.sqrt(1 - sIn * sIn), nu0 = 1e7 / q.lam;
+  let off = q.off + nu0 * (1 - cIn) / q.fsr; off -= Math.round(off);
+  return { ...q, fsr: q.fsr / cIn, off, fsr0: q.fsr, off0: q.off, thetaIn: Math.asin(sIn), shift: nu0 * (1 / cIn - 1), shiftFSR: nu0 * (1 - cIn) / q.fsr };
+}
+// peak shift in units of FSR at an external tilt angle (degrees), and the tilt (degrees) that gives a shift of exactly one FSR
+function combShift(deg, fsr0, lam, n) { const sIn = Math.sin(deg * Math.PI / 180) / n; return 1e7 / lam * (1 - Math.sqrt(1 - sIn * sIn)) / fsr0; }
+function tiltForOneFSR(fsr0, lam, n) { const c = 1 - fsr0 * lam / 1e7, sv = n * Math.sqrt(1 - c * c); return c > 0 && sv < 1 ? Math.asin(sv) * 180 / Math.PI : NaN; }
+function etalon(p) {
+  const F = coeffF(p.R), tRT = 1 / (C_CM_FS * p.fsr), d_um = 1e4 / (2 * p.n * (p.fsr0 || p.fsr));
+  return {
+    F, finesse: Math.PI * Math.sqrt(F) / 2,
+    fwhmT: F > 1 ? p.fsr * (2 / Math.PI) * Math.asin(1 / Math.sqrt(F)) : NaN,
+    fwhmR: p.fsr * (1 - (2 / Math.PI) * Math.asin(1 / Math.sqrt(2 + F))),
+    Tmin: 1 / (1 + F), Rmax: F / (1 + F),
+    d_um, walk: 2 * d_um * Math.tan(p.thetaIn || 0), tRT, decay: tRT / (2 * Math.log(1 / p.R)), trips1pct: Math.log(0.01) / Math.log(p.R * p.R),
+    dnu: specWidth(p), nmPerCm: p.lam * p.lam / 1e7,
+  };
+}
+// fraction of the pulse energy that is transmitted (Fourier series of the Airy function averaged over the Gaussian)
+function fracT(p) {
+  const sig = specWidth(p) / FWHM_PER_SIGMA, k = 2 * Math.PI * Math.PI * sig * sig / (p.fsr * p.fsr);
+  let sum = 0, Rm = 1;
+  for (let m = 1; m < 5e6; m++) { Rm *= p.R; const term = Rm * Math.exp(-k * m * m); if (term < 1e-16) break; sum += term * Math.cos(2 * Math.PI * m * p.off); }
+  return (1 - p.R) / (1 + p.R) * (1 + 2 * sum);
+}
+function spectra(p, lo, hi, n) {
+  const x = gridWith(lo, hi, n, p.off * p.fsr, p.fsr / 2, 3000), dnu = specWidth(p), N = x.length;
+  const T = new Float64Array(N), R = new Float64Array(N), S = new Float64Array(N), TS = new Float64Array(N), RS = new Float64Array(N);
+  for (let i = 0; i < N; i++) { const d = phase(x[i], p); T[i] = airyT(d, p.R); R[i] = airyR(d, p.R); S[i] = pulseSpec(x[i], dnu); TS[i] = T[i] * S[i]; RS[i] = R[i] * S[i]; }
+  return { x, T, R, S, TS, RS };
+}
+// one band of the output spectrum, taken within one FSR: a transmission peak, or a reflection band between two zeros.
+// second = false: the band nearest the pulse centre; second = true: its neighbour on the other side of the pulse centre.
+function outputPeak(p, which, second) {
+  const E = etalon(p), fsr = p.fsr, isT = which === "T", up = p.off >= 0;
+  const c = fsr * (isT ? (second ? (up ? p.off - 1 : p.off + 1) : p.off)
+                       : (second ? (up ? p.off + 0.5 : p.off - 0.5) : (up ? p.off - 0.5 : p.off + 0.5)));
+  const feature = Math.min(Number.isFinite(E.fwhmT) ? E.fwhmT : fsr, E.dnu, fsr);
+  let n = Math.min(200000, Math.max(400, Math.ceil(40 * fsr / feature))); if (n % 2 === 0) n++;
+  const x = linspace(c - fsr / 2, c + fsr / 2, n), y = new Float64Array(n);
+  let im = 0;
+  for (let i = 0; i < n; i++) { const d = phase(x[i], p); y[i] = (isT ? airyT(d, p.R) : airyR(d, p.R)) * pulseSpec(x[i], E.dnu); if (y[i] > y[im]) im = i; }
+  const half = y[im] / 2, cross = (i, j) => x[i] + (half - y[i]) / (y[j] - y[i]) * (x[j] - x[i]);
+  let a = im, b = im, lo = NaN, hi = NaN;
+  while (a >= 0 && y[a] > half) a--;
+  while (b < n && y[b] > half) b++;
+  // a maximum at the edge of the window is the pulse spectrum running through, not a band of its own
+  const own = im > 0 && im < n - 1 && y[im] > 0;
+  if (own && a >= 0 && b < n) { lo = cross(a, a + 1); hi = cross(b - 1, b); }
+  const total = (isT ? fracT(p) : 1 - fracT(p)) * E.dnu * Math.sqrt(Math.PI / (4 * Math.LN2));
+  return { centre: own ? x[im] : NaN, fwhm: hi - lo, lo, hi, share: total > 0 ? trapz(x, y) / total : NaN, peak: y[im] };
+}
+function timeRange(p) {
+  const E = etalon(p);
+  return [-2.5 * p.tau, Math.max(4 * p.tau, 2 * p.tau + Math.min(300 * E.tRT, Math.max(3.5 * E.tRT, 5 * E.decay)))];
+}
+function timeGrid(p, lo, hi, n) { const tRT = 1 / (C_CM_FS * p.fsr); return gridWith(lo, hi, n, 0, tRT, 1500); }
+// intensity of the transmitted and reflected pulse trains, in units of the input peak intensity.
+// p.chirp = C of the input field envelope exp[-2 ln2 (1 + iC) t²/τ²]; 0 for a transform-limited pulse.
+function timeProfiles(p, t) {
+  const R = p.R, tRT = 1 / (C_CM_FS * p.fsr), phi = -2 * Math.PI * p.off, a = 2 * Math.LN2 / (p.tau * p.tau), ac = a * (p.chirp || 0), reach = 5 * p.tau;
+  const mMax = Math.ceil(Math.log(1e-10) / Math.log(R)), IT = new Float64Array(t.length), IR = new Float64Array(t.length);
+  for (let i = 0; i < t.length; i++) {
+    const m0 = Math.max(0, Math.ceil((t[i] - reach) / tRT)), m1 = Math.min(mMax, Math.floor((t[i] + reach) / tRT));
+    let tr = 0, ti = 0, rr = 0, ri = 0;
+    for (let m = m0; m <= m1; m++) {
+      const u = t[i] - m * tRT, env = Math.exp(-a * u * u), w = Math.pow(R, m) * env, ang = m * phi - ac * u * u, cr = Math.cos(ang), ci = Math.sin(ang);
+      tr += w * cr; ti += w * ci;
+      if (m === 0) { rr += env * cr; ri += env * ci; } else { rr -= (1 - R) * w / R * cr; ri -= (1 - R) * w / R * ci; }
+    }
+    IT[i] = (1 - R) * (1 - R) * (tr * tr + ti * ti); IR[i] = R * (rr * rr + ri * ri);
+  }
+  return { IT, IR };
+}
+</script>
+
+<script>
+"use strict";
+(function () {
+const $ = id => document.getElementById(id);
+const FONT = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+const COL = { data: "#000", blue: "#1f5fbf", red: "#d40000", grey: "#888", zero: "#999", mark: "#c65a12" };
+const DEFAULTS = { R: 76.1, fsr: 172, off: 0, tilt: 0, pmode: "tau", tau: 200, dnu: 73.6, lam: 515, n: 1 };
+const PRESETS = {
+  p200: { R: 76.1, fsr: 172, off: 0, tilt: 0, pmode: "tau", tau: 200 },
+  p70: { R: 88.9, fsr: 400, off: 0, tilt: 0, pmode: "tau", tau: 70 },
+  p25: { R: 82.2, fsr: 200, off: 0, tilt: 0, pmode: "tau", tau: 200 },
+  lowR: { R: 4, fsr: 30, off: 0.5, tilt: 0, pmode: "tau", tau: 200 },
+};
+const FIELDS = [
+  { key: "R", num: "RN", range: "RR", min: 0.01, max: 99.9, msg: "R must be between 0.01 and 99.9 %." },
+  { key: "fsr", num: "fsrN", range: "fsrR", min: 0.5, max: 2000, msg: "FSR must be between 0.5 and 2000 cm⁻¹." },
+  { key: "off", num: "offN", range: "offR", min: -0.5, max: 0.5, msg: "The offset must be between −0.5 and 0.5 FSR." },
+  { key: "tilt", num: "tiltN", range: "tiltR", min: 0, max: 60, msg: "The tilt must be between 0 and 60°." },
+  { key: "tau", num: "tauN", range: "tauR", min: 5, max: 5000, msg: "τ must be between 5 and 5000 fs." },
+  { key: "dnu", num: "dnuN", range: "dnuR", min: 3, max: 3000, msg: "Δν must be between 3 and 3000 cm⁻¹." },
+  { key: "lam", num: "lamN", range: "lamR", min: 150, max: 5000, msg: "λ₀ must be between 150 and 5000 nm." },
+  { key: "n", num: "nN", range: "nR", min: 1, max: 5, msg: "n must be between 1 and 5." },
+];
+let state = { ...DEFAULTS }, D = null;
+let des = { w: 15, wu: "cm", s: 172, su: "cm" }, desOut = null, desLast = null;
+const P = () => {
+  const tau = state.pmode === "dnu" ? pulseWidth(state.dnu) : state.tau, dnu = state.pmode === "tau" ? pulseWidth(state.tau) : state.dnu;
+  const chirp = state.pmode === "both" ? Math.sqrt(Math.max(0, (dnu / pulseWidth(tau)) ** 2 - 1)) : 0;
+  return applyTilt({ R: state.R / 100, fsr: state.fsr, off: state.off, tilt: state.tilt, tau, dnu, chirp, lam: state.lam, n: state.n });
+};
+
+/* ---------- formatting ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const minus = s => s.replace(/^-/, "−").replace(/e-/, "e−");
+function fmtG(v, n) {
+  if (v === undefined || v === null || Number.isNaN(v)) return "—";
+  if (v === 0) return "0";
+  const a = Math.abs(v);
+  return minus(a >= 1e-4 && a < 1e6 ? String(Number(v.toPrecision(n || 4))) : v.toExponential((n || 4) - 1));
+}
+const fmtPct = (v, n) => Number.isNaN(v) ? "—" : fmtG(100 * v, n || 3) + " %";
+function niceStep(range, n) {
+  const raw = range / Math.max(1, n), p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+}
+function fmtNum(v, step) {
+  const d = Math.max(0, -Math.floor(Math.log10(step) + 1e-9)), s = v.toFixed(Math.min(d, 8));
+  return minus(/^-0\.?0*$/.test(s) ? s.slice(1) : s);
+}
+function nearest(x, v) { let a = 0, b = x.length - 1; while (b - a > 1) { const m = (a + b) >> 1; if (x[m] < v) a = m; else b = m; } return Math.abs(x[a] - v) <= Math.abs(x[b] - v) ? a : b; }
+
+/* ---------- canvas helpers ---------- */
+function prepCanvas(host, canvas, H) {
+  const W = Math.max(260, host.clientWidth), dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); }
+  canvas.style.height = H + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.globalAlpha = 1; ctx.setLineDash([]);
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+  ctx.font = FONT; ctx.lineJoin = "round";
+  return { ctx, W };
+}
+function yTicks(ctx, L, top, bot, lo, hi, ymap, every) {
+  ctx.strokeStyle = "#000"; ctx.fillStyle = "#000"; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(L - 0.5, top); ctx.lineTo(L - 0.5, bot); ctx.stroke();
+  const st = niceStep(hi - lo, Math.max(2, Math.floor((bot - top) / (every || 40))));
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let v = Math.ceil(lo / st - 1e-9) * st; v <= hi + 1e-9 * st; v += st) {
+    const py = Math.round(ymap(v)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(L - 5, py); ctx.lineTo(L, py); ctx.stroke();
+    ctx.fillText(st < 1e-3 ? fmtG(v, 3) : fmtNum(v, st), L - 7, py);
+  }
+}
+function xTicks(ctx, L, R, B, lo, hi, xmap, label) {
+  ctx.strokeStyle = "#000"; ctx.fillStyle = "#000"; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(L, B + 0.5); ctx.lineTo(R, B + 0.5); ctx.stroke();
+  const st = niceStep(hi - lo, Math.max(3, Math.floor((R - L) / 80)));
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let v = Math.ceil(lo / st - 1e-9) * st; v <= hi + 1e-9 * st; v += st) {
+    const px = Math.round(xmap(v)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(px, B); ctx.lineTo(px, B + 5); ctx.stroke();
+    const txt = fmtNum(v, st);
+    ctx.fillText(txt, Math.min(px, R + 11 - ctx.measureText(txt).width / 2), B + 7);
+  }
+  ctx.fillText(label, (L + R) / 2, B + 22);
+}
+
+/* ---------- plots: two groups (spectra, time), each with a shared x range, zoom and hover ---------- */
+const G = {
+  spec: { view: null, hover: null, drag: null, data: null, range: null, xname: "ν",
+    full: () => { const h = Math.max(1.7 * D.et.dnu, 1.6 * D.p.fsr); return [-h, h]; },
+    compute: (lo, hi) => spectra(P(), lo, hi, 3001) },
+  time: { view: null, hover: null, drag: null, data: null, range: null, xname: "t",
+    full: () => timeRange(P()),
+    compute: (lo, hi) => { const p = P(), x = timeGrid(p, lo, hi, 2401); return Object.assign({ x }, timeProfiles(p, x)); } },
+  tilt: { view: null, hover: null, drag: null, data: null, range: null, xname: "θ",
+    full: () => [0, Math.max(15, Math.min(60, 1.8 * (D.tilt1 || 15)))],
+    compute: (lo, hi) => { const x = linspace(lo, hi, 401); return { x, K: x.map(v => combShift(v, state.fsr, state.lam, state.n)) }; } },
+};
+const PLOTS = [
+  { g: "spec", box: "specTBox", canvas: "specTCanvas", yfix: [0, 1.06], xlabel: "wavenumber − pulse centre (cm⁻¹)", layout: null,
+    series: d => [{ y: d.S, color: COL.grey, dash: [5, 4], name: "input" }, { y: d.T, color: COL.data, name: "etalon T" }, { y: d.TS, color: COL.blue, w: 2.2, name: "transmitted" }], marks: () => D.bandsT },
+  { g: "spec", box: "specRBox", canvas: "specRCanvas", yfix: [0, 1.06], xlabel: "wavenumber − pulse centre (cm⁻¹)", layout: null,
+    series: d => [{ y: d.S, color: COL.grey, dash: [5, 4], name: "input" }, { y: d.R, color: COL.data, name: "etalon R" }, { y: d.RS, color: COL.red, w: 2.2, name: "reflected" }], marks: () => D.bandsR },
+  { g: "time", box: "timeTBox", canvas: "timeTCanvas", yfix: null, xlabel: "time (fs)", layout: null,
+    series: d => [{ y: d.IT, color: COL.blue, w: 1.8, name: "transmitted" }] },
+  { g: "time", box: "timeRBox", canvas: "timeRCanvas", yfix: null, xlabel: "time (fs)", layout: null,
+    series: d => [{ y: d.IR, color: COL.red, w: 1.8, name: "reflected" }] },
+  { g: "tilt", box: "tiltBox", canvas: "tiltCanvas", yfix: null, xlabel: "tilt angle θ (degrees)", layout: null,
+    series: d => [{ y: d.K, color: COL.data, w: 1.6, name: "shift / FSR" }], whole: true, vmark: () => state.tilt },
+];
+function refresh(g) { g.range = g.view || g.full(); g.data = g.compute(g.range[0], g.range[1]); }
+function drawGroup(name) { for (const pl of PLOTS) if (pl.g === name) drawPlot(pl); }
+function drawPlot(pl) {
+  const g = G[pl.g], host = $(pl.box), canvas = $(pl.canvas), H = 290, { ctx, W } = prepCanvas(host, canvas, H);
+  const xl = W < 480 ? 46 : 58, xr = W - 12, yt = 22, yb = H - 40, d = g.data;
+  if (!d) { pl.layout = null; return; }
+  const x = d.x, lo = g.range[0], hi = g.range[1], series = pl.series(d);
+  let ylo = 0, yhi = 0;
+  if (pl.yfix) { ylo = pl.yfix[0]; yhi = pl.yfix[1]; }
+  else { for (const s of series) for (let i = 0; i < x.length; i++) if (s.y[i] > yhi) yhi = s.y[i]; yhi = yhi > 0 ? yhi * 1.08 : 1; }
+  const xm = v => xl + (v - lo) / (hi - lo) * (xr - xl), ym = v => yb - (v - ylo) / (yhi - ylo) * (yb - yt);
+  pl.layout = { xl, xr, lo, hi };
+  yTicks(ctx, xl, yt, yb, ylo, yhi, ym);
+  xTicks(ctx, xl, xr, yb, lo, hi, xm, pl.xlabel);
+  ctx.save(); ctx.beginPath(); ctx.rect(xl, yt, xr - xl, yb - yt); ctx.clip();
+  for (const s of series) {
+    ctx.strokeStyle = s.color; ctx.lineWidth = s.w || 1.4; ctx.setLineDash(s.dash || []); ctx.beginPath();
+    for (let i = 0; i < x.length; i++) { const px = xm(x[i]), py = ym(s.y[i]); if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  if (pl.whole) {   // dashed lines at whole numbers of FSR
+    ctx.strokeStyle = COL.grey; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
+    for (let k = 1; k < yhi && k < 60; k++) { const py = Math.round(ym(k)) + 0.5; ctx.beginPath(); ctx.moveTo(xl, py); ctx.lineTo(xr, py); ctx.stroke(); }
+    ctx.setLineDash([]);
+  }
+  if (pl.vmark) { const v = pl.vmark(); if (v >= lo && v <= hi) { const px = Math.round(xm(v)) + 0.5; ctx.strokeStyle = COL.mark; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(px, yt); ctx.lineTo(px, yb); ctx.stroke(); } }
+  if (pl.marks) for (const k of pl.marks()) {   // half-maximum width of each output band
+    if (!Number.isFinite(k.fwhm) || k.peak < 0.02) continue;
+    const a = xm(k.lo), b = xm(k.hi), py = Math.round(ym(k.peak / 2)) + 0.5;
+    ctx.strokeStyle = COL.mark; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(a, py); ctx.lineTo(b, py); ctx.moveTo(a, py - 5); ctx.lineTo(a, py + 5); ctx.moveTo(b, py - 5); ctx.lineTo(b, py + 5); ctx.stroke();
+  }
+  if (g.drag && g.drag.moved) { const a = Math.max(xl, Math.min(g.drag.x0, g.drag.x1)), b = Math.min(xr, Math.max(g.drag.x0, g.drag.x1)); ctx.fillStyle = "rgba(0, 60, 200, 0.12)"; ctx.fillRect(a, yt, b - a, yb - yt); }
+  let hi_ = null;
+  if (g.hover !== null && g.hover >= lo && g.hover <= hi) { hi_ = nearest(x, g.hover); const px = Math.round(xm(x[hi_])) + 0.5; ctx.strokeStyle = "#888"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, yt); ctx.lineTo(px, yb); ctx.stroke(); }
+  ctx.restore();
+  if (hi_ !== null) {
+    ctx.fillStyle = "#000"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    const parts = [`${g.xname} = ${fmtG(x[hi_], 5)}`].concat(series.map(s => `${s.name} ${fmtG(s.y[hi_], 3)}`));
+    ctx.fillText(W < 480 ? parts.slice(0, 1).concat(parts.slice(-1)).join("   ") : parts.join("   "), xl + 4, yt - 11);
+  }
+}
+
+/* ---------- figure of the etalon ---------- */
+function drawEtalon() {
+  const host = $("figBox"), canvas = $("figCanvas"), H = 340, { ctx, W } = prepCanvas(host, canvas, H);
+  if (!D) return;
+  const R = D.p.R, E = D.et, small = W < 480;
+  const plate = small ? 14 : 24, top = 30, bot = H - 54, labelW = 56;
+  const gap = Math.max(34, Math.min(W * 0.24, 44 + 32 * Math.log10(Math.max(1, E.d_um))));
+  const x1 = Math.round(W / 2 - gap / 2), x2 = Math.round(W / 2 + gap / 2);
+  const tan = Math.max(0.14, Math.min(0.42, 17 / gap)), s = gap * tan;
+  const ext = Math.max(22, Math.min(130, x1 - plate - labelW, 36 / tan - plate)), rise = tan * (plate + ext);
+  // substrates and coatings
+  ctx.fillStyle = "#eee"; ctx.fillRect(x1 - plate, top, plate, bot - top); ctx.fillRect(x2, top, plate, bot - top);
+  ctx.strokeStyle = "#999"; ctx.lineWidth = 1; ctx.strokeRect(x1 - plate + 0.5, top + 0.5, plate, bot - top); ctx.strokeRect(x2 - 0.5, top + 0.5, plate, bot - top);
+  ctx.strokeStyle = "#000"; ctx.lineWidth = 1 + 5 * R; ctx.lineCap = "butt";
+  for (const xv of [x1, x2]) { ctx.beginPath(); ctx.moveTo(xv, top); ctx.lineTo(xv, bot); ctx.stroke(); }
+  const pct = I => I >= 0.9995 ? "100 %" : fmtG(100 * I, 2) + " %";
+  function ray(xa, ya, xb, yb, I, color, arrow, label) {
+    const amp = Math.sqrt(I);
+    ctx.globalAlpha = Math.min(1, 0.22 + 0.78 * Math.pow(amp, 0.8)); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 0.7 + 3.1 * amp;
+    ctx.beginPath(); ctx.moveTo(xa, ya); ctx.lineTo(xb, yb); ctx.stroke();
+    if (arrow) {
+      const f = arrow === "mid" ? 0.5 : 1, hx = xa + f * (xb - xa), hy = ya + f * (yb - ya), ang = Math.atan2(yb - ya, xb - xa), L = 7 + 2 * amp;
+      ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx - L * Math.cos(ang - 0.42), hy - L * Math.sin(ang - 0.42)); ctx.lineTo(hx - L * Math.cos(ang + 0.42), hy - L * Math.sin(ang + 0.42)); ctx.closePath(); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (label) { ctx.fillStyle = color; ctx.textBaseline = "middle"; ctx.textAlign = xb > xa ? "left" : "right"; ctx.fillText(label, xb + (xb > xa ? 5 : -5), yb); }
+  }
+  const yA = bot - 10, xL = x1 - plate - ext, xR = x2 + plate + ext;
+  ray(xL, yA + rise, x1, yA, 1, "#000", "mid");
+  ray(x1, yA, xL, yA - rise, R, COL.red, true, pct(R));
+  for (let k = 0; k < 400; k++) {
+    const y1 = yA - 2 * s * k, y2 = y1 - s, y3 = y2 - s, Iin = (1 - R) * Math.pow(R, 2 * k);
+    if (y2 - rise < 26 || Math.pow(R, 2 * k) < 1e-3) break;
+    ray(x1, y1, x2, y2, Iin, "#444");
+    ray(x2, y2, xR, y2 - rise, (1 - R) * Iin, COL.blue, true, pct((1 - R) * Iin));
+    if (y3 - rise < 26) break;
+    ray(x2, y2, x1, y3, Iin * R, "#444");
+    ray(x1, y3, xL, y3 - rise, (1 - R) * Iin * R, COL.red, true, pct((1 - R) * Iin * R));
+  }
+  // labels
+  ctx.textBaseline = "middle"; ctx.fillStyle = COL.red; ctx.textAlign = "right"; ctx.fillText("reflected", x1 - plate - 6, 10);
+  ctx.fillStyle = COL.blue; ctx.textAlign = "left"; ctx.fillText("transmitted", x2 + plate + 6, 10);
+  ctx.fillStyle = "#000"; ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText("incident", Math.max(2, xL - 4), Math.min(H - 14, yA + rise + 5));
+  // gap dimension
+  const yd = bot + 9;
+  ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x1, yd + 0.5); ctx.lineTo(x2, yd + 0.5);
+  ctx.moveTo(x1 + 0.5, yd - 4); ctx.lineTo(x1 + 0.5, yd + 5); ctx.moveTo(x2 - 0.5, yd - 4); ctx.lineTo(x2 - 0.5, yd + 5); ctx.stroke();
+  ctx.fillStyle = "#000"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.fillText(`gap d = ${fmtG(E.d_um, 4)} µm`, W / 2, yd + 9);
+  ctx.fillText(`round trip ${fmtG(E.tRT, 4)} fs`, W / 2, yd + 25);
+  $("figNote").textContent = `A transmitted beam falls to 1 % of the first after ${fmtG(E.trips1pct, 3)} round trips.`;
+}
+
+/* ---------- tables ---------- */
+function renderTables() {
+  const E = D.et, nm = E.nmPerCm;
+  const rows = [
+    ["free spectral range at θ = 0", fmtG(state.fsr, 4), "cm⁻¹"], ["", fmtG(state.fsr * nm, 4), "nm"],
+    ["free spectral range at this tilt", fmtG(D.p.fsr, 4), "cm⁻¹"],
+    ["gap d = 1/(2n·FSR)", fmtG(E.d_um, 4), "µm"],
+    ["round-trip time", fmtG(E.tRT, 4), "fs"],
+    ["coefficient of finesse F", fmtG(E.F, 4), ""],
+    ["finesse π√R/(1 − R)", fmtG(E.finesse, 4), ""],
+    ["intensity decay time (1/e)", fmtG(E.decay, 4), "fs"],
+    ["round trips to reach 1 %", fmtG(E.trips1pct, 3), ""],
+    ["input duration (FWHM)", fmtG(D.p.tau, 4), "fs"],
+    ["input bandwidth (FWHM)", fmtG(E.dnu, 4), "cm⁻¹"], ["", fmtG(E.dnu * nm, 4), "nm"],
+    ["time-bandwidth product c·τ·Δν", fmtG(C_CM_FS * D.p.tau * E.dnu, 3), ""],
+    ["transform limit of this bandwidth", fmtG(pulseWidth(E.dnu), 4), "fs"],
+  ];
+  $("tblEtalon").innerHTML = `<thead><tr><th class="l">etalon and input</th><th>value</th><th class="l">unit</th></tr></thead><tbody>` +
+    rows.map(([k, v, u]) => `<tr><td class="l">${esc(k)}</td><td>${v}</td><td class="l">${esc(u)}</td></tr>`).join("") + "</tbody>";
+  const tp = D.p, trows = [
+    ["tilt that moves the peaks by one FSR", fmtG(D.tilt1, 4), "°"],
+    ["tilt set above", fmtG(state.tilt, 4), "°"],
+    ["angle inside the gap", fmtG(tp.thetaIn * 180 / Math.PI, 4), "°"],
+    ["peak shift at this tilt", fmtG(tp.shift, 4), "cm⁻¹"], ["", fmtG(tp.shiftFSR, 4), "FSR"], ["", fmtG(-tp.shift * nm / (1 + tp.shift * state.lam / 1e7), 4), "nm"],
+    ["free spectral range at this tilt", fmtG(tp.fsr, 4), "cm⁻¹"],
+    ["walk-off per round trip", fmtG(E.walk, 3), "µm"],
+    ["walk-off over the round trips to reach 1 %", fmtG(E.walk * E.trips1pct, 3), "µm"],
+  ];
+  $("tblTilt").innerHTML = `<thead><tr><th class="l">tilt tuning</th><th>value</th><th class="l">unit</th></tr></thead><tbody>` +
+    trows.map(([k, v, u]) => `<tr><td class="l">${esc(k)}</td><td>${v}</td><td class="l">${esc(u)}</td></tr>`).join("") + "</tbody>";
+  $("tiltOut").innerHTML = `For this etalon (FSR ${fmtG(state.fsr, 4)} cm⁻¹ at ${fmtG(state.lam, 4)} nm, <i>n</i> = ${fmtG(state.n, 4)}), one FSR takes a tilt of <b>${fmtG(D.tilt1, 3)}°</b>. ` +
+    `At ${fmtG(state.tilt, 4)}° the peaks have moved <b>${fmtG(tp.shift, 4)} cm⁻¹</b> (${fmtG(tp.shiftFSR, 3)} FSR).`;
+  const [t1, t2] = D.bandsT, [r1, r2] = D.bandsR;
+  const out = [
+    ["etalon maximum", "1", fmtG(E.Rmax, 4)],
+    ["etalon minimum", fmtG(E.Tmin, 3), "0"],
+    ["etalon peak / bright band FWHM (cm⁻¹)", fmtG(E.fwhmT, 4), fmtG(E.fwhmR, 4)],
+    ["FWHM / FSR", fmtG(E.fwhmT / state.fsr, 3), fmtG(E.fwhmR / state.fsr, 3)],
+    ["FSR / FWHM", fmtG(state.fsr / E.fwhmT, 4), fmtG(state.fsr / E.fwhmR, 4)],
+    ["pulse energy that goes this way", fmtPct(D.fT), fmtPct(1 - D.fT)],
+    ["nearest output band: position (cm⁻¹)", fmtG(t1.centre, 4), fmtG(r1.centre, 4)],
+    ["nearest output band: FWHM (cm⁻¹)", fmtG(t1.fwhm, 4), fmtG(r1.fwhm, 4)],
+    ["nearest output band: FWHM (nm)", fmtG(t1.fwhm * nm, 3), fmtG(r1.fwhm * nm, 3)],
+    ["nearest output band: share of the output", fmtPct(t1.share), fmtPct(r1.share)],
+    ["next output band: position (cm⁻¹)", fmtG(t2.centre, 4), fmtG(r2.centre, 4)],
+    ["next output band: FWHM (cm⁻¹)", fmtG(t2.fwhm, 4), fmtG(r2.fwhm, 4)],
+    ["next output band: FWHM (nm)", fmtG(t2.fwhm * nm, 3), fmtG(r2.fwhm * nm, 3)],
+    ["next output band: share of the output", fmtPct(t2.share), fmtPct(r2.share)],
+  ];
+  const band = k => Number.isFinite(k.fwhm) ? `at ${fmtG(k.centre, 4)} cm⁻¹, FWHM <b>${fmtG(k.fwhm, 4)} cm⁻¹</b> (${fmtPct(k.share)} of the output)` : `no half-maximum of its own (${fmtPct(k.share)} of the output)`;
+  $("specTOut").innerHTML = `Etalon peak FWHM <b>${Number.isNaN(E.fwhmT) ? "—" : fmtG(E.fwhmT, 4) + " cm⁻¹"}</b>. Transmitted bands, nearest: ${band(t1)}; next: ${band(t2)}.`;
+  $("specROut").innerHTML = `Etalon bright band FWHM <b>${fmtG(E.fwhmR, 4)} cm⁻¹</b>. Reflected bands, nearest: ${band(r1)}; next: ${band(r2)}.`;
+  $("tblOut").innerHTML = `<thead><tr><th class="l">quantity</th><th>transmission</th><th>reflection</th></tr></thead><tbody>` +
+    out.map(([k, a, b]) => `<tr><td class="l">${esc(k)}</td><td>${a}</td><td>${b}</td></tr>`).join("") + "</tbody>";
+  $("outNote").textContent = "An output band is one FSR wide: a transmission peak with half an FSR on each side, or a reflection band between two zeros. The nearest band is the one closest to the pulse centre; " +
+    "the next band is its neighbour on the other side of the pulse centre. A share near 100 % in the nearest band means a single peak. A dash means that band has no half-maximum of its own.";
+}
+
+/* ---------- etalon for a given bandwidth ---------- */
+function renderDesign() {
+  const lam = state.lam, n = state.n, dnuIn = D ? D.et.dnu : NaN, timeW = des.wu === "fs" || des.wu === "ps";
+  const okW = Number.isFinite(des.w) && des.w > 0, okS = Number.isFinite(des.s) && des.s > 0;
+  const fsr = !okS ? NaN : des.su === "bw" ? des.s * dnuIn : toCm(des.s, des.su, lam, n);
+  let d = null, w = NaN;
+  if (okW && okS && timeW) d = designDecay(des.w * (des.wu === "ps" ? 1000 : 1), fsr);
+  else if (okW && okS) { w = toCm(des.w, des.wu, lam, n); d = design(w, fsr); }
+  let msg = "";
+  if (!okW) msg = "The bandwidth or decay time must be larger than 0.";
+  else if (!okS) msg = "The spacing must be larger than 0.";
+  else if (!d) msg = `The FWHM (${fmtG(w, 4)} cm⁻¹) must be smaller than the FSR (${fmtG(fsr, 4)} cm⁻¹). A wider peak has no half-maximum.`;
+  $("dW").toggleAttribute("aria-invalid", !okW || (okS && !d)); $("dS").toggleAttribute("aria-invalid", !okS);
+  if ($("dW").hasAttribute("aria-invalid")) $("dW").setAttribute("aria-invalid", "true");
+  if ($("dS").hasAttribute("aria-invalid")) $("dS").setAttribute("aria-invalid", "true");
+  desOut = d ? { R: Number((100 * d.R).toPrecision(6)), fsr: Number(fsr.toPrecision(6)) } : null;
+  const inRange = desOut && desOut.R >= 0.01 && desOut.R <= 99.9 && desOut.fsr >= 0.5 && desOut.fsr <= 2000;
+  if (d && !inRange) msg = "This etalon is outside the range of the inputs above (R 0.01 to 99.9 %, FSR 0.5 to 2000 cm⁻¹), so it cannot be copied there.";
+  $("dUse").disabled = !inRange;
+  $("dErr").textContent = msg; $("dErr").hidden = !msg;
+  if (!d) return;   // keep the last good table on screen
+  const tRT = 1 / (C_CM_FS * fsr), decay = tRT / (2 * Math.log(1 / d.R));
+  desLast = { fwhm: d.fwhm, decay, fsr };
+  const rows = [
+    ["mirror reflectance R", fmtG(100 * d.R, 4), "%"],
+    ["finesse FSR / FWHM", fmtG(d.ratio, 4), ""],
+    ["finesse π√R/(1 − R)", fmtG(d.finesse, 4), ""],
+    ["coefficient of finesse F", fmtG(d.F, 4), ""],
+    ["free spectral range", fmtG(fsr, 4), "cm⁻¹"], ["", fmtG(fromCm(fsr, "thz"), 4), "THz"], ["", fmtG(fromCm(fsr, "nm", lam), 4), "nm"],
+    [`gap d, for n = ${fmtG(n, 4)}`, fmtG(fromCm(fsr, "um", lam, n), 4), "µm"],
+    ["transmission peak FWHM", fmtG(d.fwhm, 4), "cm⁻¹"], ["", fmtG(fromCm(d.fwhm, "thz"), 4), "THz"], ["", fmtG(fromCm(d.fwhm, "nm", lam), 4), "nm"],
+    ["intensity decay time (1/e)", fmtG(decay, 4), "fs"],
+    ["round-trip time", fmtG(tRT, 4), "fs"],
+    [`tilt that tunes over one FSR, at ${fmtG(lam, 4)} nm`, fmtG(tiltForOneFSR(fsr, lam, n), 4), "°"],
+    ["transmission between the peaks, 1/(1 + F)", fmtG(1 / (1 + d.F), 3), ""],
+    ["FSR / input bandwidth", fmtG(fsr / dnuIn, 3), ""],
+    ["neighbouring peaks under the input pulse, relative height", fmtPct(neighbourHeight(fsr, dnuIn), 2), ""],
+    ["ripple on the decay in time, transform-limited input", "±" + fmtPct(tailRipple(fsr, dnuIn), 2), ""],
+  ];
+  $("tblDesign").innerHTML = `<thead><tr><th class="l">etalon needed</th><th>value</th><th class="l">unit</th></tr></thead><tbody>` +
+    rows.map(([k, v, u]) => `<tr><td class="l">${esc(k)}</td><td>${v}</td><td class="l">${esc(u)}</td></tr>`).join("") + "</tbody>";
+}
+function wireDesign() {
+  $("dW").value = String(des.w); $("dS").value = String(des.s); $("dWU").value = des.wu; $("dSU").value = des.su;
+  for (const [num, key] of [["dW", "w"], ["dS", "s"]]) $(num).addEventListener("input", () => { des[key] = $(num).value.trim() === "" ? NaN : Number($(num).value); renderDesign(); });
+  const put = (num, key, v) => { if (Number.isFinite(v) && v > 0) { des[key] = Number(v.toPrecision(6)); $(num).value = String(des[key]); } };
+  // changing a unit converts the number, using the last etalon that was worked out
+  $("dWU").addEventListener("change", () => {
+    const u = $("dWU").value;
+    if (desLast) put("dW", "w", u === "fs" ? desLast.decay : u === "ps" ? desLast.decay / 1000 : fromCm(desLast.fwhm, u, state.lam, state.n));
+    des.wu = u; renderDesign();
+  });
+  $("dSU").addEventListener("change", () => {
+    const u = $("dSU").value;
+    if (desLast) put("dS", "s", u === "bw" ? desLast.fsr / D.et.dnu : fromCm(desLast.fsr, u, state.lam, state.n));
+    des.su = u; renderDesign();
+  });
+  $("dUse").addEventListener("click", () => { if (!desOut) return; state = { ...state, R: desOut.R, fsr: desOut.fsr }; writeFields(); update(true); });
+}
+
+/* ---------- inputs ---------- */
+function pulseError(st) {   // duration and bandwidth both given: the bandwidth cannot be below the transform limit
+  if (st.pmode !== "both" || st.dnu >= pulseWidth(st.tau) * (1 - 2e-4)) return "";
+  return `A ${fmtG(st.tau, 4)} fs pulse has at least ${fmtG(pulseWidth(st.tau), 4)} cm⁻¹ of bandwidth, and ${fmtG(st.dnu, 4)} cm⁻¹ needs at least ${fmtG(pulseWidth(st.dnu), 4)} fs. Raise the bandwidth or lengthen the pulse.`;
+}
+function syncPulse() {   // work out the value that is not entered, and grey out its controls
+  if (state.pmode === "tau") state.dnu = Number(pulseWidth(state.tau).toPrecision(5));
+  if (state.pmode === "dnu") state.tau = Number(pulseWidth(state.dnu).toPrecision(5));
+  for (const k of ["tau", "dnu"]) {
+    const f = FIELDS.find(q => q.key === k), off = (k === "tau" && state.pmode === "dnu") || (k === "dnu" && state.pmode === "tau");
+    $(f.num).disabled = $(f.range).disabled = off;
+    if (off) { $(f.num).value = String(state[k]); $(f.range).value = String(state[k]); $(f.num).removeAttribute("aria-invalid"); }
+  }
+}
+function writeFields() {
+  $("inErr").hidden = true; $("pmode").value = state.pmode;
+  for (const f of FIELDS) { $(f.num).value = String(state[f.key]); $(f.range).value = String(state[f.key]); $(f.num).removeAttribute("aria-invalid"); }
+  syncPulse();
+}
+function onEdit(f, showError) {
+  const v = Number($(f.num).value), ok = $(f.num).value.trim() !== "" && Number.isFinite(v) && v >= f.min && v <= f.max;
+  if (ok) $(f.num).removeAttribute("aria-invalid"); else $(f.num).setAttribute("aria-invalid", "true");
+  if (!ok) { if (showError) { $("inErr").textContent = f.msg; $("inErr").hidden = false; } return; }
+  const perr = f.key === "tau" || f.key === "dnu" ? pulseError({ ...state, [f.key]: v }) : "";
+  if (perr) { $(f.num).setAttribute("aria-invalid", "true"); if (showError) { $("inErr").textContent = perr; $("inErr").hidden = false; } return; }
+  $("inErr").hidden = true;
+  $(f.range).value = String(v);
+  if (state[f.key] !== v) { state[f.key] = v; syncPulse(); update(false); }
+}
+function update(resetView) {
+  const p = P();
+  D = { p, et: etalon(p), tilt1: tiltForOneFSR(state.fsr, state.lam, state.n), fT: fracT(p), bandsT: [outputPeak(p, "T", false), outputPeak(p, "T", true)], bandsR: [outputPeak(p, "R", false), outputPeak(p, "R", true)] };
+  for (const name of ["spec", "time", "tilt"]) { const g = G[name]; if (resetView) g.view = null; g.hover = null; refresh(g); drawGroup(name); }
+  drawEtalon(); renderTables(); renderDesign();
+}
+
+/* ---------- wiring ---------- */
+for (const f of FIELDS) {
+  $(f.num).addEventListener("input", () => onEdit(f, false));
+  $(f.num).addEventListener("change", () => onEdit(f, true));
+  $(f.range).addEventListener("input", () => { $(f.num).value = $(f.range).value; onEdit(f, true); });
+}
+$("pmode").addEventListener("change", () => { state.pmode = $("pmode").value; writeFields(); update(false); });
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => { state = { ...state, ...PRESETS[b.dataset.preset] }; writeFields(); update(true); }));
+$("reset").addEventListener("click", () => { state = { ...DEFAULTS }; writeFields(); update(true); });
+$("specFull").addEventListener("click", () => { G.spec.view = null; refresh(G.spec); drawGroup("spec"); });
+$("timeFull").addEventListener("click", () => { G.time.view = null; refresh(G.time); drawGroup("time"); });
+for (const pl of PLOTS) {
+  const c = $(pl.canvas), g = G[pl.g];
+  const px = e => e.clientX - c.getBoundingClientRect().left;
+  const toX = p => pl.layout.lo + (Math.min(pl.layout.xr, Math.max(pl.layout.xl, p)) - pl.layout.xl) / (pl.layout.xr - pl.layout.xl) * (pl.layout.hi - pl.layout.lo);
+  c.addEventListener("pointerdown", e => { if (!pl.layout || e.button !== 0) return; const p = px(e); if (p < pl.layout.xl || p > pl.layout.xr) return; g.drag = { x0: p, x1: p, moved: false, pl }; c.setPointerCapture(e.pointerId); });
+  c.addEventListener("pointermove", e => {
+    if (!pl.layout) return;
+    const p = px(e);
+    if (g.drag && g.drag.pl === pl) { g.drag.x1 = p; g.drag.moved = g.drag.moved || Math.abs(g.drag.x1 - g.drag.x0) > 4; }
+    g.hover = p >= pl.layout.xl && p <= pl.layout.xr ? toX(p) : null;
+    if (g.drag) drawPlot(pl); else drawGroup(pl.g);
+  });
+  c.addEventListener("pointerup", () => {
+    if (g.drag && g.drag.pl === pl && g.drag.moved && pl.layout) {
+      const xa = toX(Math.min(g.drag.x0, g.drag.x1)), xb = toX(Math.max(g.drag.x0, g.drag.x1));
+      if (xb > xa) g.view = [xa, xb];
+    }
+    g.drag = null; refresh(g); drawGroup(pl.g);
+  });
+  c.addEventListener("pointercancel", () => { g.drag = null; drawGroup(pl.g); });
+  c.addEventListener("pointerleave", () => { if (!g.drag) { g.hover = null; drawGroup(pl.g); } });
+  c.addEventListener("dblclick", () => { g.view = null; refresh(g); drawGroup(pl.g); });
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $(pl.box).clientWidth; if (w && w !== lastW) { lastW = w; if (D) drawPlot(pl); } }).observe($(pl.box));
+}
+let figW = 0;
+new ResizeObserver(() => { const w = $("figBox").clientWidth; if (w && w !== figW) { figW = w; drawEtalon(); } }).observe($("figBox"));
+
+writeFields();
+wireDesign();
+update(true);
+})();
+</script>
+</body>
+</html>
